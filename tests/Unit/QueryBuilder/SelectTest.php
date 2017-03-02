@@ -2,11 +2,18 @@
 
 namespace Tests\Unit\QueryBuilder;
 
+use MadeSimple\Database\QueryBuilder\Clause;
 use MadeSimple\Database\QueryBuilder\Select;
+use Tests\MockConnection;
 use Tests\TestCase;
 
 class SelectTest extends TestCase
 {
+    /**
+     * @var MockConnection
+     */
+    private $mockConnection;
+
     /**
      * @var \Mockery\Mock|\PDO
      */
@@ -23,6 +30,7 @@ class SelectTest extends TestCase
 
         $this->mockPdo          = \Mockery::mock(\PDO::class);
         $this->mockPdoStatement = \Mockery::mock(\PDOStatement::class);
+        $this->mockConnection   = new MockConnection($this->mockPdo);
     }
 
 
@@ -30,24 +38,28 @@ class SelectTest extends TestCase
      * Test set columns.
      *
      * @param mixed $columns
+     *
      * @dataProvider columnsDataProvider
      */
     public function testColumns($columns)
     {
-        $sql = (new Select($this->mockPdo))->columns($columns)->from('table')->toSql();
-        $this->assertEquals("SELECT `id`\nFROM `table`", $sql);
+        $sql    = "SELECT `id`\nFROM `table`";
+        $select = (new Select($this->mockConnection))->columns($columns)->from('table');
+        $this->assertEquals($sql, $select->toSql());
     }
 
     /**
      * Test add columns.
      *
      * @param mixed $columns
+     *
      * @dataProvider columnsDataProvider
      */
     public function testAddColumns($columns)
     {
-        $sql = (new Select($this->mockPdo))->addColumns($columns)->from('table')->toSql();
-        $this->assertEquals("SELECT *,`id`\nFROM `table`", $sql);
+        $sql    = "SELECT *,`id`\nFROM `table`";
+        $select = (new Select($this->mockConnection))->addColumns($columns)->from('table');
+        $this->assertEquals($sql, $select->toSql());
     }
 
     /**
@@ -55,8 +67,9 @@ class SelectTest extends TestCase
      */
     public function testFromWithoutAlias()
     {
-        $sql = (new Select($this->mockPdo))->from('old')->from('table')->toSql();
-        $this->assertEquals("SELECT *\nFROM `table`", $sql);
+        $sql    = "SELECT *\nFROM `table`";
+        $select = (new Select($this->mockConnection))->from('old')->from('table');
+        $this->assertEquals($sql, $select->toSql());
     }
 
     /**
@@ -64,8 +77,9 @@ class SelectTest extends TestCase
      */
     public function testFromWithAlias()
     {
-        $sql = (new Select($this->mockPdo))->from('old')->from('table', 't')->toSql();
-        $this->assertEquals("SELECT *\nFROM `table` AS `t`", $sql);
+        $sql    = "SELECT *\nFROM `table` AS `t`";
+        $select = (new Select($this->mockConnection))->from('old')->from('table', 't');
+        $this->assertEquals($sql, $select->toSql());
     }
 
     /**
@@ -73,8 +87,9 @@ class SelectTest extends TestCase
      */
     public function testAddFromWithoutAlias()
     {
-        $sql = (new Select($this->mockPdo))->from('table1')->addFrom('table2')->toSql();
-        $this->assertEquals("SELECT *\nFROM `table1`,`table2`", $sql);
+        $sql    = "SELECT *\nFROM `table1`,`table2`";
+        $select = (new Select($this->mockConnection))->from('table1')->addFrom('table2');
+        $this->assertEquals($sql, $select->toSql());
     }
 
     /**
@@ -82,8 +97,9 @@ class SelectTest extends TestCase
      */
     public function testAddFromWithAlias()
     {
-        $sql = (new Select($this->mockPdo))->from('table1')->addFrom('table2', 't2')->toSql();
-        $this->assertEquals("SELECT *\nFROM `table1`,`table2` AS `t2`", $sql);
+        $sql    = "SELECT *\nFROM `table1`,`table2` AS `t2`";
+        $select = (new Select($this->mockConnection))->from('table1')->addFrom('table2', 't2');
+        $this->assertEquals($sql, $select->toSql());
     }
 
     /**
@@ -91,8 +107,9 @@ class SelectTest extends TestCase
      */
     public function testJoinWithoutAlias()
     {
-        $sql = (new Select($this->mockPdo))->from('table')->join('join', 'join.tableId = table.id')->toSql();
-        $this->assertEquals("SELECT *\nFROM `table`\nJOIN `join` ON `join`.`tableId` = `table`.`id`", $sql);
+        $sql    = "SELECT *\nFROM `table`\nJOIN `join` ON `join`.`tableId` = `table`.`id`";
+        $select = (new Select($this->mockConnection))->from('table')->join('join', 'join.tableId = table.id');
+        $this->assertEquals($sql, $select->toSql());
     }
 
     /**
@@ -100,8 +117,9 @@ class SelectTest extends TestCase
      */
     public function testJoinWithAlias()
     {
-        $sql = (new Select($this->mockPdo))->from('table')->join('join', 'j.tableId = table.id', 'j')->toSql();
-        $this->assertEquals("SELECT *\nFROM `table`\nJOIN `join` AS `j` ON `j`.`tableId` = `table`.`id`", $sql);
+        $sql    = "SELECT *\nFROM `table`\nJOIN `join` AS `j` ON `j`.`tableId` = `table`.`id`";
+        $select = (new Select($this->mockConnection))->from('table')->join('join', 'j.tableId = table.id', 'j');
+        $this->assertEquals($sql, $select->toSql());
     }
 
     /**
@@ -109,8 +127,9 @@ class SelectTest extends TestCase
      */
     public function testLeftJoin()
     {
-        $sql = (new Select($this->mockPdo))->from('table')->leftJoin('join', 'join.tableId = table.id')->toSql();
-        $this->assertEquals("SELECT *\nFROM `table`\nLEFT JOIN `join` ON `join`.`tableId` = `table`.`id`", $sql);
+        $sql    = "SELECT *\nFROM `table`\nLEFT JOIN `join` ON `join`.`tableId` = `table`.`id`";
+        $select = (new Select($this->mockConnection))->from('table')->leftJoin('join', 'join.tableId = table.id');
+        $this->assertEquals($sql, $select->toSql());
     }
 
     /**
@@ -118,8 +137,9 @@ class SelectTest extends TestCase
      */
     public function testRightJoin()
     {
-        $sql = (new Select($this->mockPdo))->from('table')->rightJoin('join', 'join.tableId = table.id')->toSql();
-        $this->assertEquals("SELECT *\nFROM `table`\nRIGHT JOIN `join` ON `join`.`tableId` = `table`.`id`", $sql);
+        $sql    = "SELECT *\nFROM `table`\nRIGHT JOIN `join` ON `join`.`tableId` = `table`.`id`";
+        $select = (new Select($this->mockConnection))->from('table')->rightJoin('join', 'join.tableId = table.id');
+        $this->assertEquals($sql, $select->toSql());
     }
 
     /**
@@ -127,8 +147,9 @@ class SelectTest extends TestCase
      */
     public function testFullJoin()
     {
-        $sql = (new Select($this->mockPdo))->from('table')->fullJoin('join', 'join.tableId = table.id')->toSql();
-        $this->assertEquals("SELECT *\nFROM `table`\nFULL JOIN `join` ON `join`.`tableId` = `table`.`id`", $sql);
+        $sql    = "SELECT *\nFROM `table`\nFULL JOIN `join` ON `join`.`tableId` = `table`.`id`";
+        $select = (new Select($this->mockConnection))->from('table')->fullJoin('join', 'join.tableId = table.id');
+        $this->assertEquals($sql, $select->toSql());
     }
 
     /**
@@ -136,8 +157,54 @@ class SelectTest extends TestCase
      */
     public function testInnerJoin()
     {
-        $sql = (new Select($this->mockPdo))->from('table')->innerJoin('join', 'join.tableId = table.id')->toSql();
-        $this->assertEquals("SELECT *\nFROM `table`\nINNER JOIN `join` ON `join`.`tableId` = `table`.`id`", $sql);
+        $sql    = "SELECT *\nFROM `table`\nINNER JOIN `join` ON `join`.`tableId` = `table`.`id`";
+        $select = (new Select($this->mockConnection))->from('table')->innerJoin('join', 'join.tableId = table.id');
+        $this->assertEquals($sql, $select->toSql());
+    }
+
+    /**
+     * Test set parameter.
+     */
+    public function testSetParameter()
+    {
+        $sql = "SELECT *\nFROM `table`\nWHERE `foo` = :bar";
+
+        $this->mockPdo->shouldReceive('prepare')->once()->with($sql, [])->andReturn($this->mockPdoStatement);
+        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(':bar', 1, \PDO::PARAM_INT)->andReturn(true);
+        $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
+
+        $select = (new Select($this->mockConnection))->from('table')->where('foo = :bar')->setParameter('bar', 1);
+        $this->assertEquals($this->mockPdoStatement, $select->execute());
+    }
+
+    /**
+     * Test set wildcard parameters.
+     */
+    public function testSetParametersWildcard()
+    {
+        $sql = "SELECT *\nFROM `table`\nWHERE `foo` = ?";
+
+        $this->mockPdo->shouldReceive('prepare')->once()->with($sql, [])->andReturn($this->mockPdoStatement);
+        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(1, 1, \PDO::PARAM_INT)->andReturn(true);
+        $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
+
+        $select = (new Select($this->mockConnection))->from('table')->where('foo = ?')->setParameters([1]);
+        $this->assertEquals($this->mockPdoStatement, $select->execute());
+    }
+
+    /**
+     * Test set named parameters.
+     */
+    public function testSetParametersNamed()
+    {
+        $sql = "SELECT *\nFROM `table`\nWHERE `foo` = :bar";
+
+        $this->mockPdo->shouldReceive('prepare')->once()->with($sql, [])->andReturn($this->mockPdoStatement);
+        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(':bar', 1, \PDO::PARAM_INT)->andReturn(true);
+        $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
+
+        $select = (new Select($this->mockConnection))->from('table')->where('foo = :bar')->setParameters(['bar' => 1]);
+        $this->assertEquals($this->mockPdoStatement, $select->execute());
     }
 
     /**
@@ -145,171 +212,160 @@ class SelectTest extends TestCase
      */
     public function testWhereWithoutParameters()
     {
-        $sql = (new Select($this->mockPdo))->from('table')->where('foo = 1')->toSql();
-        $this->assertEquals("SELECT *\nFROM `table`\nWHERE\n    `foo` = 1", $sql);
+        $sql    = "SELECT *\nFROM `table`\nWHERE `foo` = 1";
+        $select = (new Select($this->mockConnection))->from('table')->where('foo = 1');
+        $this->assertEquals($sql, $select->toSql());
     }
 
     /**
-     * Test where with a single wildcard parameter
+     * Test where with a wildcard parameter
      */
-    public function testWhereWithSingleWildcardParameter()
+    public function testWhereWithWildcardParameter()
     {
-        $sql = "SELECT *\nFROM `table`\nWHERE\n    `foo` = ?";
+        $sql    = "SELECT *\nFROM `table`\nWHERE `foo` = ?";
+        $select = (new Select($this->mockConnection))->from('table')->where('foo = ?');
 
-        $this->mockPdo->shouldReceive('prepare')->once()->with($sql)->andReturn($this->mockPdoStatement);
-        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(1, 1, \PDO::PARAM_INT)->andReturn(true);
+        $this->assertEquals($sql, $select->toSql());
+    }
+
+    /**
+     * Test where with a named parameter
+     */
+    public function testWhereWithNamedParameter()
+    {
+        $sql    = "SELECT *\nFROM `table`\nWHERE `foo` = :bar";
+        $select = (new Select($this->mockConnection))->from('table')->where('foo = :bar');
+
+        $this->assertEquals($sql, $select->toSql());
+    }
+
+    /**
+     * Test where with closure.
+     */
+    public function testWhereWithClosure()
+    {
+        $sql = "SELECT *\nFROM `table`\nWHERE ((`foo` = :foo OR `bar` = :bar) AND `baz` = :qux)";
+
+        $this->mockPdo->shouldReceive('prepare')->once()->with($sql, [])->andReturn($this->mockPdoStatement);
+        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(':foo', 2, \PDO::PARAM_INT)->andReturn(true);
+        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(':bar', 3, \PDO::PARAM_INT)->andReturn(true);
+        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(':qux', 5, \PDO::PARAM_INT)->andReturn(true);
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
 
-        $select = (new Select($this->mockPdo))->from('table')->where('foo = ?', 1);
+        $select = (new Select($this->mockConnection))
+            ->from('table')
+            ->where(function (Clause $clause) {
+                return $clause
+                    ->where(function (Clause $clause) {
+                        return $clause
+                            ->where('foo = :foo')
+                            ->orX('bar = :bar');
+
+                    }
+                    )
+                    ->andX('baz = :qux');
+            }
+            )
+            ->setParameters([
+                'foo' => 2,
+                'bar' => 3,
+                'qux' => 5,
+            ]
+            );
 
         $this->assertEquals($sql, $select->toSql());
         $this->assertEquals($this->mockPdoStatement, $select->execute());
     }
 
     /**
-     * Test where with multiple wildcard parameter
+     * Test and where with no parameter, wildcard parameter, and named parameter.
      */
-    public function testWhereWithMultipleWildcardParameters()
+    public function testAndWhere()
     {
-        $sql = "SELECT *\nFROM `table`\nWHERE\n    `foo` = ? AND `bar` = ?";
-
-        $this->mockPdo->shouldReceive('prepare')->once()->with($sql)->andReturn($this->mockPdoStatement);
-        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(1, 1, \PDO::PARAM_INT)->andReturn(true);
-        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(2, 2, \PDO::PARAM_INT)->andReturn(true);
-        $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
-
-        $select = (new Select($this->mockPdo))->from('table')->where('foo = ? AND bar = ?', [1, 2]);
+        $sql    = "SELECT *\nFROM `table`\nWHERE `foo` IS TRUE AND `bar` = ? AND (`baz` = :qux)";
+        $select = (new Select($this->mockConnection))
+            ->from('table')
+            ->where('foo IS TRUE')
+            ->andWhere('bar = ?')
+            ->andWhere(function (Clause $clause) {
+                return $clause->where('baz = :qux');
+            }
+            );
 
         $this->assertEquals($sql, $select->toSql());
-        $this->assertEquals($this->mockPdoStatement, $select->execute());
     }
 
     /**
-     * Test where with a single named parameter
+     * Test or where with no parameter, wildcard parameter, and named parameter.
      */
-    public function testWhereWithSingleNamedParameter()
+    public function testOrWhere()
     {
-        $sql = "SELECT *\nFROM `table`\nWHERE\n    `foo` = :bar";
-
-        $this->mockPdo->shouldReceive('prepare')->once()->with($sql)->andReturn($this->mockPdoStatement);
-        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(':bar', 1, \PDO::PARAM_INT)->andReturn(true);
-        $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
-
-        $select = (new Select($this->mockPdo))->from('table')->where('foo = :bar', ['bar' => 1]);
-
+        $sql    = "SELECT *\nFROM `table`\nWHERE `foo` IS NULL OR `bar` = ? OR (`baz` = :qux)";
+        $select = (new Select($this->mockConnection))
+            ->from('table')
+            ->where('foo IS NULL')
+            ->orWhere('bar = ?')
+            ->orWhere(function (Clause $clause) {
+                return $clause->where('baz = :qux');
+            }
+            );
         $this->assertEquals($sql, $select->toSql());
-        $this->assertEquals($this->mockPdoStatement, $select->execute());
-    }
-
-    /**
-     * Test where with multiple named parameter
-     */
-    public function testWhereWithMultipleParameter()
-    {
-        $sql = "SELECT *\nFROM `table`\nWHERE\n    `foo` = :foo AND `bar` = :bar";
-
-        $this->mockPdo->shouldReceive('prepare')->once()->with($sql)->andReturn($this->mockPdoStatement);
-        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(':foo', 1, \PDO::PARAM_INT)->andReturn(true);
-        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(':bar', 2, \PDO::PARAM_INT)->andReturn(true);
-        $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
-
-        $select = (new Select($this->mockPdo))->from('table')->where('foo = :foo AND bar = :bar', ['foo' => 1, 'bar' => 2]);
-
-        $this->assertEquals($sql, $select->toSql());
-        $this->assertEquals($this->mockPdoStatement, $select->execute());
-    }
-
-    /**
-     * Test or where without parameters.
-     */
-    public function testOrWhereWithoutParameters()
-    {
-        $sql = (new Select($this->mockPdo))->from('table')->orWhere(['foo = 1', 'bar = 2'])->toSql();
-        $this->assertEquals("SELECT *\nFROM `table`\nWHERE\n    ((`foo` = 1) OR (`bar` = 2))", $sql);
-    }
-
-    /**
-     * Test or where with wildcard parameters.
-     */
-    public function testOrWhereWithMultipleWildcardParameters()
-    {
-        $sql = "SELECT *\nFROM `table`\nWHERE\n    ((`foo` = ?) OR (`bar` = ?))";
-
-        $this->mockPdo->shouldReceive('prepare')->once()->with($sql)->andReturn($this->mockPdoStatement);
-        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(1, 1, \PDO::PARAM_INT)->andReturn(true);
-        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(2, 2, \PDO::PARAM_INT)->andReturn(true);
-        $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
-
-        $select = (new Select($this->mockPdo))->from('table')->orWhere(['foo = ?', 'bar = ?'], [1, 2]);
-
-        $this->assertEquals($sql, $select->toSql());
-        $this->assertEquals($this->mockPdoStatement, $select->execute());
-    }
-
-    /**
-     * Test or where with named parameters.
-     */
-    public function testOrWhereWithMultipleNamedParameters()
-    {
-        $sql = "SELECT *\nFROM `table`\nWHERE\n    ((`foo` = :foo) OR (`bar` = :bar))";
-
-        $this->mockPdo->shouldReceive('prepare')->once()->with($sql)->andReturn($this->mockPdoStatement);
-        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(':foo', 1, \PDO::PARAM_INT)->andReturn(true);
-        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(':bar', 2, \PDO::PARAM_INT)->andReturn(true);
-        $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
-
-        $select = (new Select($this->mockPdo))->from('table')->orWhere(['foo = :foo', 'bar = :bar'], ['foo' => 1, 'bar' => 2]);
-
-        $this->assertEquals($sql, $select->toSql());
-        $this->assertEquals($this->mockPdoStatement, $select->execute());
     }
 
     /**
      * Test set group by.
      *
      * @param mixed $clauses
+     *
      * @dataProvider groupByDataProvider
      */
     public function testGroupBy($clauses)
     {
-        $sql = (new Select($this->mockPdo))->from('table')->groupBy($clauses)->toSql();
-        $this->assertEquals("SELECT *\nFROM `table`\nGROUP BY `id`", $sql);
+        $sql    = "SELECT *\nFROM `table`\nGROUP BY `id`";
+        $select = (new Select($this->mockConnection))->from('table')->groupBy($clauses);
+        $this->assertEquals($sql, $select->toSql());
     }
 
     /**
      * Test add group by.
      *
      * @param mixed $clauses
+     *
      * @dataProvider groupByDataProvider
      */
     public function testAddGroupBy($clauses)
     {
-        $sql = (new Select($this->mockPdo))->from('table')->groupBy('foo')->addGroupBy($clauses)->toSql();
-        $this->assertEquals("SELECT *\nFROM `table`\nGROUP BY `foo`,`id`", $sql);
+        $sql    = "SELECT *\nFROM `table`\nGROUP BY `foo`,`id`";
+        $select = (new Select($this->mockConnection))->from('table')->groupBy('foo')->addGroupBy($clauses);
+        $this->assertEquals($sql, $select->toSql());
     }
 
     /**
      * Test set order by.
      *
      * @param mixed $clauses
+     *
      * @dataProvider orderByDataProvider
      */
     public function testOrderBy($clauses)
     {
-        $sql = (new Select($this->mockPdo))->from('table')->orderBy($clauses)->toSql();
-        $this->assertEquals("SELECT *\nFROM `table`\nORDER BY `id` ASC", $sql);
+        $sql    = "SELECT *\nFROM `table`\nORDER BY `id` ASC";
+        $select = (new Select($this->mockConnection))->from('table')->orderBy($clauses);
+        $this->assertEquals($sql, $select->toSql());
     }
 
     /**
      * Test add order by.
      *
      * @param mixed $clauses
+     *
      * @dataProvider orderByDataProvider
      */
     public function testAddOrderBy($clauses)
     {
-        $sql = (new Select($this->mockPdo))->from('table')->orderBy('foo')->addOrderBy($clauses)->toSql();
-        $this->assertEquals("SELECT *\nFROM `table`\nORDER BY `foo`,`id` ASC", $sql);
+        $sql    = "SELECT *\nFROM `table`\nORDER BY `foo`,`id` ASC";
+        $select = (new Select($this->mockConnection))->from('table')->orderBy('foo')->addOrderBy($clauses);
+        $this->assertEquals($sql, $select->toSql());
     }
 
     /**
@@ -317,8 +373,9 @@ class SelectTest extends TestCase
      */
     public function testLimitRange()
     {
-        $sql = (new Select($this->mockPdo))->from('table')->limit(15)->toSql();
-        $this->assertEquals("SELECT *\nFROM `table`\nLIMIT 15", $sql);
+        $sql    = "SELECT *\nFROM `table`\nLIMIT 15";
+        $select = (new Select($this->mockConnection))->from('table')->limit(15);
+        $this->assertEquals($sql, $select->toSql());
     }
 
     /**
@@ -326,8 +383,9 @@ class SelectTest extends TestCase
      */
     public function testLimitRangeAndStart()
     {
-        $sql = (new Select($this->mockPdo))->from('table')->limit(15, 5)->toSql();
-        $this->assertEquals("SELECT *\nFROM `table`\nLIMIT 5, 15", $sql);
+        $sql    = "SELECT *\nFROM `table`\nLIMIT 5, 15";
+        $select = (new Select($this->mockConnection))->from('table')->limit(15, 5);
+        $this->assertEquals($sql, $select->toSql());
     }
 
 
@@ -335,21 +393,23 @@ class SelectTest extends TestCase
     {
         return [
             [['id']],
-            ['id']
+            ['id'],
         ];
     }
+
     public function groupByDataProvider()
     {
         return [
             [['id']],
-            ['id']
+            ['id'],
         ];
     }
+
     public function orderByDataProvider()
     {
         return [
             [['id ASC']],
-            ['id ASC']
+            ['id ASC'],
         ];
     }
 }

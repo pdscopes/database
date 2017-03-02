@@ -38,11 +38,6 @@ abstract class Relation
     protected $clause;
 
     /**
-     * @var array[]
-     */
-    protected $joins = [];
-
-    /**
      * @var Select
      */
     protected $select;
@@ -64,7 +59,7 @@ abstract class Relation
         $this->entityAlias   = $entityAlias;
         $this->relativeAlias = $relativeAlias;
 
-        $this->select = new Select(Connection::get());
+        $this->select = new Select($entity->connection);
     }
 
     /**
@@ -83,6 +78,42 @@ abstract class Relation
     }
 
     /**
+     * @param string      $table Database table to join
+     * @param string      $on    Clause to join the table on
+     * @param null|string $alias Alias for the table
+     *
+     * @return Relation
+     */
+    public function rightJoin($table, $on, $alias = null)
+    {
+        return $this->join($table, $on, $alias, Select::JOIN_RIGHT);
+    }
+
+    /**
+     * @param string      $table Database table to join
+     * @param string      $on    Clause to join the table on
+     * @param null|string $alias Alias for the table
+     *
+     * @return Relation
+     */
+    public function fullJoin($table, $on, $alias = null)
+    {
+        return $this->join($table, $on, $alias, Select::JOIN_FULL);
+    }
+
+    /**
+     * @param string      $table Database table to join
+     * @param string      $on    Clause to join the table on
+     * @param null|string $alias Alias for the table
+     *
+     * @return Relation
+     */
+    public function innerJoin($table, $on, $alias = null)
+    {
+        return $this->join($table, $on, $alias, Select::JOIN_INNER);
+    }
+
+    /**
      * @see Select::where()
      *
      * @param string      $clause    A where clause
@@ -98,31 +129,31 @@ abstract class Relation
     }
 
     /**
-     * @see Select::orWhere()
+     * @see Select::andWhere()
      *
-     * @param string[]    $clauses   Array of where clauses
+     * @param string      $clause    A where clause
      * @param array|mixed $parameter A single, array of, or associated mapping of parameters
      *
      * @return Relation
      */
-    public function orWhere(array $clauses, $parameter = null)
+    public function andWhere($clause, $parameter = null)
     {
-        $this->select->orWhere($clauses, $parameter);
+        $this->select->andWhere($clause, $parameter);
 
         return $this;
     }
 
     /**
-     * @see Select::treeWhere()
+     * @see Select::orWhere()
      *
-     * @param string $conjunction
-     * @param array  $tree
+     * @param string      $clause    A where clause
+     * @param array|mixed $parameter A single, array of, or associated mapping of parameters
      *
      * @return Relation
      */
-    public function treeWhere($conjunction, array $tree)
+    public function orWhere($clause, $parameter = null)
     {
-        $this->select->treeWhere($conjunction, $tree);
+        $this->select->orWhere($clause, $parameter);
 
         return $this;
     }
@@ -149,7 +180,7 @@ abstract class Relation
 
         // Construct the where clause(s)
         foreach ($this->entity->getEntityMap()->getPrimaryKeys() as $dbKey => $entityKey) {
-            $select->where(sprintf('%1$s.%2$s = :%2$s', $entityAlias, $dbKey), [$dbKey => $this->entity->{$entityKey}]);
+            $select->where($entityAlias.'.'.$dbKey.' = :'.$dbKey, [$dbKey => $this->entity->{$entityKey}]);
         }
 
         return $select;

@@ -3,7 +3,6 @@
 namespace MadeSimple\Database\QueryBuilder;
 
 use MadeSimple\Database\Connection;
-use PDO;
 
 /**
  * Class Insert
@@ -25,11 +24,6 @@ class Insert extends Statement
     protected $columns;
 
     /**
-     * @var mixed[][]
-     */
-    protected $values;
-
-    /**
      * @var array
      */
     protected $parameters;
@@ -37,14 +31,13 @@ class Insert extends Statement
     /**
      * Insert constructor.
      *
-     * @param PDO $pdo
+     * @param Connection $connection
      */
-    public function __construct(PDO $pdo)
+    public function __construct(Connection $connection)
     {
-        parent::__construct($pdo);
+        parent::__construct($connection);
 
         $this->columns    = [];
-        $this->values     = [];
         $this->parameters = [];
     }
 
@@ -61,27 +54,26 @@ class Insert extends Statement
     }
 
     /**
-     * @param null|string|string[] $columns Columns to provide values for
+     * @param array ...$columns columns to be updated
      *
      * @return Insert
      */
-    public function columns($columns = null)
+    public function columns(... $columns)
     {
-        $columns       = is_string($columns) ? [$columns] : $columns;
-        $this->columns = $columns;
+        $this->columns = [];
+        array_walk_recursive($columns, function ($e) { $this->columns[] = $e; });
 
         return $this;
     }
 
     /**
-     * @param array $values
+     * @param array ...$values
      *
      * @return Insert
      */
-    public function values(array $values)
+    public function values(... $values)
     {
-        $this->values[]   = array_fill(0, count($values), '?');
-        $this->parameters = array_merge($this->parameters, array_values($values));
+        array_walk_recursive($values, function ($e) { $this->parameters[] = $e; });
 
         return $this;
     }
@@ -92,16 +84,16 @@ class Insert extends Statement
      */
     public function execute(array $parameters = null)
     {
-        if ($parameters) {
-            throw new \RuntimeException('Unsupported Operation.');
+        $statement = null;
+        if (empty($this->parameters) && empty($parameters)) {
+            $statement = $this->connection->query($this->toSql());
+        } else {
+            $statement = $this->connection->prepare($this->toSql());
+            $this->bindParameters($statement, $parameters ? : $this->parameters);
+            if (false === $statement->execute()) {
+                return false;
+            }
         }
-
-        $statement = $this->pdo->prepare($this->toSql());
-        $this->bindParameters($statement, $parameters ? : $this->parameters);
-        if (false === $statement->execute()) {
-            return false;
-        }
-        $this->values     = [];
         $this->parameters = [];
 
         return $statement;
@@ -112,23 +104,22 @@ class Insert extends Statement
      */
     public function toSql()
     {
-        // Add the table
-        $sql = sprintf(/** @lang text */
-            'INSERT INTO `%s`', trim($this->table, '`')
-        );
+        $sql = 'INSERT ';
+
+        // Set the table
+        $sql .= 'INTO ' . $this->connection->quoteColumn($this->table);
 
         // Add the columns
         if (!empty($this->columns)) {
-            $sql .= sprintf(' (%s)', implode(',', array_map([Connection::class, 'quoteColumn'], array_unique($this->columns))));
+            $sql .= "\n(" . implode(',', array_map([$this->connection, 'quoteColumn'], array_unique($this->columns))) . ')';
         }
 
         // Add the values
-        if (!empty($this->values)) {
-            $values = array_map(function ($el) {
-                return implode(',', $el);
-            }, $this->values
-            );
-            $sql .= sprintf("\nVALUES\n(%s)", implode("),\n(", $values));
+        if (!empty($this->parameters)) {
+            $sql .=
+                "\nVALUES\n(" .
+                implode("),\n(", array_fill(0, count($this->parameters) / count($this->columns), implode(',', array_fill(0, count($this->columns), '?')))) .
+                ')';
         }
 
         return $sql;

@@ -2,6 +2,7 @@
 
 namespace MadeSimple\Database\QueryBuilder;
 
+use MadeSimple\Database\Connection;
 use PDO;
 use PDOStatement;
 
@@ -14,26 +15,26 @@ use PDOStatement;
 abstract class Statement
 {
     /**
-     * @var PDO
+     * @var Connection
      */
-    protected $pdo;
+    protected $connection;
 
     /**
      * Statement constructor.
      *
-     * @param PDO $pdo
+     * @param Connection $connection
      */
-    public function __construct(PDO $pdo)
+    public function __construct(Connection $connection)
     {
-        $this->setPdo($pdo);
+        $this->setConnection($connection);
     }
 
     /**
-     * @param PDO $pdo
+     * @param Connection $connection
      */
-    protected function setPdo(PDO $pdo)
+    protected function setConnection(Connection $connection)
     {
-        $this->pdo = $pdo;
+        $this->connection = $connection;
     }
 
     /**
@@ -84,7 +85,7 @@ abstract class Statement
                 return 'NULL';
 
             default:
-                return $this->pdo->quote($value, PDO::PARAM_STR);
+                return $this->connection->quote($value, PDO::PARAM_STR);
         }
     }
 
@@ -98,7 +99,7 @@ abstract class Statement
     {
         $index = 0;
         foreach ($parameters as $name => $value) {
-            $name = is_int($name) ? ++$index : sprintf(':%s', $name);
+            $name = is_int($name) ? ++$index : ':'.$name;
             switch (gettype($value)) {
                 case 'array':
                     $value = array_map([$this, 'quote'], $value);

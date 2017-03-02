@@ -2,6 +2,8 @@
 
 namespace MadeSimple\Database;
 
+use MadeSimple\Database\Connection\MySQL;
+use MadeSimple\Database\Connection\SQLite;
 use MadeSimple\Database\QueryBuilder as Qb;
 
 /**
@@ -12,111 +14,87 @@ use MadeSimple\Database\QueryBuilder as Qb;
  */
 class Connection
 {
-    public static $columnQuote = '`';
-
     /**
-     * @var \PDO[]
+     * @var \PDO
      */
-    private static $instances = [];
+    protected $pdo;
 
     /**
-     * @var array
+     * @var string
      */
-    private static $transactions = [];
+    protected $columnQuote;
 
     /**
-     * @param string $key
-     * @param \PDO   $pdo
+     * @var int
      */
-    public static function set($key, \PDO $pdo)
-    {
-        self::$instances[$key] = $pdo;
-    }
+    protected $transactions;
 
     /**
-     * @param string $key
+     * Connection constructor.
      *
-     * @return string
+     * @param \PDO $pdo
      */
-    public static function lastInsertId($key)
+    public function __construct(\PDO $pdo)
     {
-        return self::get($key)->lastInsertId();
-    }
+        $this->pdo = $pdo;
 
-    /**
-     * @param null|string $key
-     *
-     * @return \PDO
-     */
-    public static function get($key = null)
-    {
-        $key = is_null($key) ? 'system' : $key;
-
-        if (isset(self::$instances[$key])) {
-            return self::$instances[$key];
+        switch ($pdo->getAttribute(\PDO::ATTR_DRIVER_NAME)) {
+            case 'mysql':
+                $this->columnQuote = MySQL::$columnQuote;
+                break;
+            case 'sqlite':
+                $this->columnQuote = SQLite::$columnQuote;
+                break;
         }
-
-        throw new \InvalidArgumentException(sprintf('Unknown key: %s', $key));
     }
 
     /**
-     * @param string $key
-     *
      * @return Qb\Select
      */
-    public static function select($key)
+    public function select()
     {
-        return new Qb\Select(self::get($key));
+        return new Qb\Select($this);
     }
 
     /**
-     * @param string $key
-     *
      * @return Qb\Insert
      */
-    public static function insert($key)
+    public function insert()
     {
-        return new Qb\Insert(self::get($key));
+        return new Qb\Insert($this);
     }
 
     /**
-     * @param string $key
-     *
      * @return Qb\Update
      */
-    public static function update($key)
+    public function update()
     {
-        return new Qb\Update(self::get($key));
+        return new Qb\Update($this);
     }
 
     /**
-     * @param string $key
-     *
      * @return Qb\Delete
      */
-    public static function delete($key)
+    public function delete()
     {
-        return new Qb\Delete(self::get($key));
+        return new Qb\Delete($this);
     }
 
 
     /**
-     * @param string $key
-     *
      * @return bool
+     * @see \PDO::beginTransaction()
      */
-    public static function beginTransaction($key = null)
+    public function beginTransaction()
     {
-        $key = is_null($key) ? 'system' : $key;
-
-        if (isset(self::$transactions[$key])) {
-            self::$transactions[$key]++;
+        if ($this->transactions > 0) {
+            $this->transactions++;
 
             return true;
         }
 
-        if (self::$instances[$key]->beginTransaction()) {
-            self::$transactions[$key] = 1;
+        if ($this->pdo->beginTransaction()) {
+            $this->transactions = 1;
 
             return true;
         }
@@ -125,43 +103,95 @@ class Connection
     }
 
     /**
-     * @param string $key
-     *
      * @return bool
+     * @see \PDO::rollBack()
      */
-    public static function rollBack($key = null)
+    public function rollBack()
     {
-        $key = is_null($key) ? 'system' : $key;
-
-        if (!isset(self::$transactions[$key])) {
+        if ($this->transactions < 1) {
             return false;
         }
 
-        if (--self::$transactions[$key] == 0) {
-            return self::$instances[$key]->rollBack();
+        if (--$this->transactions == 0) {
+            return $this->pdo->rollBack();
         };
 
         return true;
     }
 
     /**
-     * @param string $key
-     *
      * @return bool
+     * @see \PDO::commit()
      */
-    public static function commit($key = null)
+    public function commit()
     {
-        $key = is_null($key) ? 'system' : $key;
-
-        if (!isset(self::$transactions[$key])) {
+        if ($this->transactions < 1) {
             return false;
         }
 
-        if (--self::$transactions[$key] == 0) {
-            return self::$instances[$key]->commit();
+        if (--$this->transactions == 0) {
+            return $this->pdo->commit();
         };
 
         return true;
+    }
+
+    /**
+     * @param string $name [optional]
+     *                     Name of the sequence object from which the ID should be returned.
+     *
+     * @return string
+     * @see \PDO::lastInsertId()
+     */
+    public function lastInsertId($name = null)
+    {
+        return $this->pdo->lastInsertId($name);
+    }
+
+    /**
+     * @param string $statement      This must be a valid SQL statement for the target database server.
+     * @param array  $driver_options [optional]
+     *                               This array holds one or more key=>value pairs to set attribute values for the
+     *                               PDOStatement object that this method returns. You would most commonly use this to
+     *                               set the PDO::ATTR_CURSOR value to PDO::CURSOR_SCROLL to request a scrollable
+     *                               cursor. Some drivers have driver specific options that may be set at prepare-time.
+     *
+     * @return \PDOStatement
+     * @see \PDO::prepare()
+     */
+    public function prepare($statement, array $driver_options = array())
+    {
+        return $this->pdo->prepare($statement, $driver_options);
+    }
+
+    /**
+     * @param string $statement The SQL statement to prepare and execute.
+     *                          Data inside the query should be properly escaped.
+     * @param int    $mode      The fetch mode must be one of the PDO::FETCH_* constants.
+     * @param null   $arg3      The second and following parameters are the same as the parameters for
+     *                          PDOStatement::setFetchMode.
+     * @param array  $ctorargs  [optional]
+     *                          Arguments of custom class constructor when the mode parameter is set to
+     *                          PDO::FETCH_CLASS.
+     *
+     * @return \PDOStatement
+     * @see \PDO::query()
+     */
+    public function query($statement, $mode = \PDO::ATTR_DEFAULT_FETCH_MODE, $arg3 = null, array $ctorargs = array())
+    {
+        return $this->pdo->query($statement, $mode, $arg3, $ctorargs);
+    }
+
+    /**
+     * @param string $string        The string to be quoted
+     * @param int    $parameterType [optional] Provides a data type hint for drivers that have alternate quoting styles.
+     *
+     * @return string
+     * @see \PDO::quote()
+     */
+    public function quote($string, $parameterType = \PDO::PARAM_STR)
+    {
+        return $this->pdo->quote($string, $parameterType);
     }
 
 
@@ -170,7 +200,7 @@ class Connection
      *
      * @return string
      */
-    public static function quoteClause($clause)
+    public function quoteClause($clause)
     {
         $clause = trim($clause);
 
@@ -201,10 +231,10 @@ class Connection
 
                 $count                    = count($subClauses);
                 $modClause                = str_replace($function . '(' . $subClause . ')', '$' . $count, $modClause);
-                $subClauses['$' . $count] = $function . '(' . self::quoteClause($subClause) . ')';
+                $subClauses['$' . $count] = $function . '(' . static::quoteClause($subClause) . ')';
             }
 
-            $modClause = self::quoteClause($modClause);
+            $modClause = static::quoteClause($modClause);
             foreach ($subClauses as $k => $subClause) {
                 $modClause = str_replace($k, $subClause, $modClause);
             }
@@ -213,14 +243,14 @@ class Connection
         }
 
         // Handle operators
-        $arithmeticOperators = ['+', '-', '*', '/', '%'];
+        $arithmeticOperators = ['+', '-', '*', '/', '%', ','];
         $comparisonOperators = ['>=', '<=', '!=', '<>', '!<', '!>', '=', '>', '<'];
         $logicalOperators    =
             ['AND', '&&', 'OR', '||', 'IS', 'ALL', 'ANY', 'BETWEEN', 'EXISTS', 'IN', 'LIKE', 'NOT', 'UNIQUE'];
         foreach (array_merge($arithmeticOperators, $comparisonOperators, $logicalOperators) as $operator) {
             if (false !== strpos($clause, $operator)) {
                 return implode(' ' . $operator .
-                    ' ', array_map([Connection::class, 'quoteClause'], explode($operator, $clause))
+                    ' ', array_map([$this, 'quoteClause'], explode($operator, $clause))
                 );
             }
         }
@@ -239,7 +269,7 @@ class Connection
             return $clause;
         }
 
-        return self::quoteColumn($clause);
+        return static::quoteColumn($clause);
     }
 
     /**
@@ -249,20 +279,19 @@ class Connection
      *
      * @return string
      */
-    public static function quoteColumn($column)
+    public function quoteColumn($column)
     {
         $str = $column;
 
         // Only consider non function parts
-        $lBracket = strrpos($column, '(');
-        $rBracket = strpos($column, ')');
-
-        if (false !== $lBracket && false !== $rBracket) {
-            $str = substr($column, $lBracket, $rBracket - $lBracket);
+        if ((false !== $lBracket= strrpos($column, '(')) && (false !== $rBracket = strpos($column, ')'))) {
+            $str = substr($column, $lBracket + 1, $rBracket - $lBracket - 1);
+        } elseif (false !== $lSpace = strrpos($column, ' ')) {
+            $str = substr($column, $lSpace + 1);
         }
 
         // Apply quotes
-        $quoted = implode('.', array_map([Connection::class, 'applyQuote'], explode('.', $str)));
+        $quoted = implode('.', array_map([$this, 'applyQuote'], explode('.', $str)));
 
         return str_replace($str, $quoted, $column);
     }
@@ -272,10 +301,10 @@ class Connection
      *
      * @return string
      */
-    public static function applyQuote($column)
+    protected function applyQuote($column)
     {
-        $column = trim($column, self::$columnQuote);
+        $column = trim($column, $this->columnQuote);
 
-        return '*' == $column ? $column : sprintf('%1$s%2$s%1$s', self::$columnQuote, $column);
+        return '*' == $column ? '*' : $this->columnQuote . $column . $this->columnQuote;
     }
 }

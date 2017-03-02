@@ -13,7 +13,10 @@ use PDO;
  */
 abstract class Entity implements JsonSerializable
 {
-    const db = null;
+    /**
+     * @var Connection
+     */
+    public $connection;
 
     /**
      * @var bool True if create has been called
@@ -45,10 +48,12 @@ abstract class Entity implements JsonSerializable
     /**
      * Entity constructor.
      *
-     * @param array|null $row
+     * @param Connection|null $connection
+     * @param array|null      $row
      */
-    public function __construct(array $row = null)
+    public function __construct(Connection $connection = null, array $row = null)
     {
+        $this->connection = $connection;
         if (null !== $row) {
             $this->populate($row);
         }
@@ -80,33 +85,39 @@ abstract class Entity implements JsonSerializable
     /**
      * Creates the entity if the primary key(s) are null, otherwise updates the entity.
      *
+     * @param Connection|null $connection
+     *
      * @return bool True if the entity was successfully persisted
      */
-    public function persist()
+    public function persist(Connection $connection = null)
     {
         $entityMap = $this->getEntityMap();
         if (count($entityMap->getPrimaryKeys()) != 1) {
             throw new \InvalidArgumentException('Cannot persist');
         }
 
-        if (is_null($this->{$entityMap->getPrimaryKey(0)})) {
-            return $this->create();
+        if (array_reduce($entityMap->getPrimaryKeys(), function ($carry, $item) { return $carry && null === $this->{$item}; }, true)) {
+            return $this->create($connection);
         }
 
-        return $this->update();
+        return $this->update($connection);
     }
 
     /**
+     * @param Connection|null $connection
+     *
      * @return bool True if the entity was successfully created
      */
-    public function create()
+    public function create(Connection $connection = null)
     {
+        $connection = $connection ?: $this->connection;
+
         $entityMap = $this->getEntityMap();
         $values    = [];
         foreach ($entityMap->getColumnMap() as $property) {
             $values[$property] = $this->{$property};
         }
-        $stmt = Connection::insert(self::db)
+        $stmt = $connection->insert()
             ->into($entityMap->getTableName())
             ->columns($entityMap->getColumns())
             ->values($values)
@@ -117,29 +128,33 @@ abstract class Entity implements JsonSerializable
         }
 
         if (count($entityMap->getPrimaryKeys()) == 1) {
-            $this->{$entityMap->getPrimaryKey(0)} = Connection::lastInsertId(self::db);
+            $this->{$entityMap->getPrimaryKey(0)} = $connection->lastInsertId();
         }
 
         return $this->createdRecently = true;
     }
 
     /**
+     * @param Connection|null $connection
+     *
      * @return bool True if the entity was successfully updated
      */
-    public function update()
+    public function update(Connection $connection = null)
     {
+        $connection = $connection ?: $this->connection;
+
         $entityMap = $this->getEntityMap();
         $values    = [];
         foreach ($entityMap->getColumnMap() as $property) {
             $values[] = $this->{$property};
         }
-        $update = Connection::update(self::db)
+        $update = $connection->update()
             ->table($entityMap->getTableName())
-            ->set($entityMap->getColumns())
+            ->columns($entityMap->getColumns())
             ->setParameters($values);
 
         foreach ($entityMap->getPrimaryKeys() as $idx => $key) {
-            $update->where(sprintf('`%s` = ?', $key), $this->{$key});
+            $update->where($key . ' = ?', $this->{$key});
         }
 
 
@@ -147,23 +162,23 @@ abstract class Entity implements JsonSerializable
     }
 
     /**
+     * @param Connection|null $connection
      * @param null|mixed $primaryKey Null to use the set primary key, other the given primary key
      *
      * @return bool True if the entity was successfully read (populated)
      */
-    public function read($primaryKey = null)
+    public function read(Connection $connection = null, $primaryKey = null)
     {
-        $entityMap = $this->getEntityMap();
-        $select    = Connection::select(self::db)
-            ->columns()
-            ->from($entityMap->getTableName(), 't')
-            ->limit(1);
+        $connection = $connection ?: $this->connection;
 
-        if (!is_null($primaryKey) && !is_array($primaryKey)) {
+        $entityMap = $this->getEntityMap();
+        $select    = $connection->select()->columns()->from($entityMap->getTableName(), 't')->limit(1);
+
+        if (null !== $primaryKey && !is_array($primaryKey)) {
             $primaryKey = array_combine(array_keys($entityMap->getPrimaryKeys()), [$primaryKey]);
         }
         foreach ($entityMap->getPrimaryKeys() as $idx => $key) {
-            $select->where(sprintf('`t`.`%s` = ?', $key), !is_null($primaryKey) ? $primaryKey[$idx] : $this->{$key});
+            $select->where('t.' . $key . ' = ?', null !== $primaryKey ? $primaryKey[$idx] : $this->{$key});
         }
 
         $row = $select->execute()->fetch(PDO::FETCH_ASSOC, PDO::FETCH_ORI_FIRST);
@@ -177,16 +192,19 @@ abstract class Entity implements JsonSerializable
     }
 
     /**
+     * @param Connection|null $connection
+     *
      * @return bool True if entity was successfully deleted
      */
-    public function delete()
+    public function delete(Connection $connection = null)
     {
+        $connection = $connection ?: $this->connection;
+
         $entityMap = $this->getEntityMap();
-        $delete    = Connection::delete(self::db)
-            ->from($entityMap->getTableName());
+        $delete    = $connection->delete()->from($entityMap->getTableName());
 
         foreach ($entityMap->getPrimaryKeys() as $key) {
-            $delete->column($key, $this->{$key});
+            $delete->andWhere($key . '= ?', $this->{$key});
         }
 
         return false !== $delete->execute();

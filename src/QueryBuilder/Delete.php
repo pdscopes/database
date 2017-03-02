@@ -2,7 +2,7 @@
 
 namespace MadeSimple\Database\QueryBuilder;
 
-use PDO;
+use MadeSimple\Database\Connection;
 
 /**
  * Class Delete
@@ -18,7 +18,7 @@ class Delete extends Statement
     protected $table;
 
     /**
-     * @var string[]
+     * @var Clause
      */
     protected $where;
 
@@ -30,14 +30,14 @@ class Delete extends Statement
     /**
      * Delete constructor.
      *
-     * @param PDO $pdo
+     * @param Connection $connection
      */
-    public function __construct(PDO $pdo)
+    public function __construct(Connection $connection)
     {
-        parent::__construct($pdo);
+        parent::__construct($connection);
 
         $this->table      = [];
-        $this->where      = [];
+        $this->where      = new Clause();
         $this->parameters = [];
     }
 
@@ -50,35 +50,23 @@ class Delete extends Statement
      */
     public function from($table, $alias = null)
     {
-        $this->table = [(is_null($alias) ? $table : $alias), $table];
+        $this->table = [$alias ?: $table, $table];
 
         return $this;
     }
 
     /**
-     * @param string $name
-     * @param mixed  $value
+     * @param null|string $name  Name of the parameter (used in select query)
+     * @param mixed       $value Value of the parameter (must be convertible to string)
      *
      * @return Delete
      */
-    public function column($name, $value)
+    public function setParameter($name, $value)
     {
-        $this->where(sprintf('%s = ?', $name), $value);
-
-        return $this;
-    }
-
-    /**
-     * @param string      $clause    A where clause
-     * @param array|mixed $parameter A single, array of, or associated mapping of parameters
-     *
-     * @return Delete
-     */
-    public function where($clause, $parameter = null)
-    {
-        $this->where[] = $clause;
-        if (!is_null($parameter)) {
-            $this->setParameters(!is_array($parameter) ? [$parameter] : $parameter);
+        if (null !== $name) {
+            $this->parameters[$name] = $value;
+        } else {
+            $this->parameters[] = $value;
         }
 
         return $this;
@@ -92,39 +80,22 @@ class Delete extends Statement
     public function setParameters(array $parameters)
     {
         foreach ($parameters as $name => $value) {
-            $parameters[$name] = $value;//$this->quote($value);
-        }
-        $this->parameters = array_merge($this->parameters, $parameters);
-
-        return $this;
-    }
-
-    /**
-     * @param array $columns Associated map
-     *
-     * @return Delete
-     */
-    public function columns($columns)
-    {
-        foreach ($columns as $name => $value) {
-            $this->where(sprintf('%s = ?', $name), $value);
+            $this->setParameter(is_numeric($name) ? null : $name, $value);
         }
 
         return $this;
     }
 
     /**
-     * Given clauses are OR'd together.
-     *
-     * @param string[]    $clauses   Array of where clauses
-     * @param array|mixed $parameter A single, array of, or associated mapping of parameters
+     * @param string|\Closure $clause    A where clause or closure
+     * @param array|mixed     $parameter A single, array of, or associated mapping of parameters
      *
      * @return Delete
      */
-    public function orWhere(array $clauses, $parameter = null)
+    public function where($clause, $parameter = null)
     {
-        $this->where[] = sprintf('((%s))', implode(') OR (', $clauses));
-        if (!is_null($parameter)) {
+        $this->where->where($clause);
+        if (null !== $parameter) {
             $this->setParameters(!is_array($parameter) ? [$parameter] : $parameter);
         }
 
@@ -132,56 +103,33 @@ class Delete extends Statement
     }
 
     /**
-     * e.g.:
-     * ['AND', [
-     *      ['OR', [
-     *          'inner OR clause 1',
-     *          'inner OR clause 2',
-     *      ]],
-     *      'outer AND clause'
-     * ]]
-     *
-     * ((((inner OR clause 1) OR (inner OR clause 2))) AND (outer AND clause))
-     *
-     * @param string $conjunction
-     * @param array  $tree
+     * @param string|\Closure $clause    A where clause or closure
+     * @param array|mixed     $parameter A single, array of, or associated mapping of parameters
      *
      * @return Delete
      */
-    public function treeWhere($conjunction, array $tree)
+    public function andWhere($clause, $parameter = null)
     {
-        $this->where[] = $this->collapseTree([$conjunction, $tree]);
+        $this->where->andX($clause);
+        if (null !== $parameter) {
+            $this->setParameters(!is_array($parameter) ? [$parameter] : $parameter);
+        }
 
         return $this;
     }
 
     /**
-     * @param array $tree
-     *
-     * @return string
-     */
-    protected function collapseTree(array $tree)
-    {
-        list($conjunction, $clauses) = $tree;
-
-        foreach ($clauses as $k => $clause) {
-            if (is_array($clause) && in_array(reset($clause), ['OR', 'AND'])) {
-                $clauses[$k] = $this->collapseTree($clause);
-            }
-        }
-
-        return sprintf('((%s))', implode(sprintf(') %s (', $conjunction), $clauses));
-    }
-
-    /**
-     * @param string $name  Name of the parameter (used in select query)
-     * @param mixed  $value Value of the parameter (must be convertible to string)
+     * @param string|\Closure $clause    A where clause or closure
+     * @param array|mixed     $parameter A single, array of, or associated mapping of parameters
      *
      * @return Delete
      */
-    public function setParameter($name, $value)
+    public function orWhere($clause, $parameter = null)
     {
-        $this->parameters[$name] = $value;
+        $this->where->orX($clause);
+        if (null !== $parameter) {
+            $this->setParameters(!is_array($parameter) ? [$parameter] : $parameter);
+        }
 
         return $this;
     }
@@ -194,15 +142,14 @@ class Delete extends Statement
     {
         $statement = null;
         if (empty($this->parameters) && empty($parameters)) {
-            $statement = $this->pdo->query($this->toSql());
+            $statement = $this->connection->query($this->toSql());
         } else {
-            $statement = $this->pdo->prepare($this->toSql());
+            $statement = $this->connection->prepare($this->toSql());
             $this->bindParameters($statement, $parameters ? : $this->parameters);
             if (false === $statement->execute()) {
                 return false;
             }
         }
-        $this->parameters = [];
 
         return $statement;
     }
@@ -212,18 +159,16 @@ class Delete extends Statement
      */
     public function toSql()
     {
-        // Set the table
-        $sql = $this->table[0] == $this->table[1] ?
-            sprintf(/**@lang text */
-                "DELETE FROM `%s`\n", trim($this->table[1], '`')
-            ) :
-            sprintf(/**@lang text */
-                "DELETE %2\$s FROM `%1\$s` AS `%2\$s`\n", trim($this->table[1], '`'), trim($this->table[0], '`')
-            );
+        $sql = 'DELETE ';
 
-        // If where
-        if (!empty($this->where)) {
-            $sql .= sprintf("WHERE\n    %s\n", implode("\nAND ", $this->where));
+        // Add the from tables
+        $alias = $this->connection->quoteColumn($this->table[0]);
+        $table = $this->connection->quoteColumn($this->table[1]);
+        $sql .= $alias == $table ? 'FROM ' . $table : $alias . ' FROM ' . $table . ' AS ' . $alias;
+
+        // Add possible where clause(s)
+        if (!$this->where->isEmpty()) {
+            $sql .= "\nWHERE " . $this->connection->quoteClause($this->where->flatten());
         }
 
         return $sql;

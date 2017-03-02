@@ -13,7 +13,10 @@ use ReflectionClass;
  */
 class Repository
 {
-    const db = null;
+    /**
+     * @var Connection
+     */
+    protected $connection;
 
     /**
      * @var string
@@ -33,10 +36,12 @@ class Repository
     /**
      * Repository constructor.
      *
-     * @param string $className
+     * @param Connection $connection
+     * @param string     $className
      */
-    public function __construct($className)
+    public function __construct(Connection $connection, $className)
     {
+        $this->connection = $connection;
         $this->className  = $className;
         $this->reflection = new ReflectionClass($className);
 
@@ -53,12 +58,10 @@ class Repository
      */
     public function findBy(array $columns = [], array $order = [])
     {
-        $select = Connection::select(self::db)
-            ->columns()
-            ->from($this->entityMap->getTableName(), 't');
+        $select = $this->connection->select()->columns()->from($this->entityMap->getTableName(), 't');
 
         foreach ($columns as $column => $value) {
-            $select->where(sprintf('`t`.`%s` = ?', $column), $value);
+            $select->where('t.'.$column.' = ?', $value);
         }
         $select->orderBy($order);
 
@@ -79,13 +82,10 @@ class Repository
      */
     public function findOneBy(array $columns = [], array $order = [])
     {
-        $select = Connection::select(self::db)
-            ->columns()
-            ->from($this->entityMap->getTableName(), 't')
-            ->limit(1);
+        $select = $this->connection->select()->columns()->from($this->entityMap->getTableName(), 't')->limit(1);
 
         foreach ($columns as $column => $value) {
-            $select->where(sprintf('`t`.`%1$s` = :%1$s', $column), [$column => $value]);
+            $select->where('t.'.$column.' = :'.$column, [$column => $value]);
         }
         $select->orderBy($order);
 
