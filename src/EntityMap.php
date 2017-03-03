@@ -42,7 +42,7 @@ class EntityMap
     /**
      * @return string
      */
-    public function getTableName()
+    public function tableName()
     {
         return $this->tableName;
     }
@@ -50,7 +50,7 @@ class EntityMap
     /**
      * @return string[]
      */
-    public function getPrimaryKeys()
+    public function primaryKeys()
     {
         return $this->primaryKeys;
     }
@@ -60,7 +60,7 @@ class EntityMap
      *
      * @return string
      */
-    public function getPrimaryKey($index)
+    public function primaryKey($index)
     {
         return array_values(array_slice($this->primaryKeys, $index, 1))[0];
     }
@@ -68,7 +68,7 @@ class EntityMap
     /**
      * @return string[]
      */
-    public function getColumnMap()
+    public function columnMap()
     {
         return $this->columnMap;
     }
@@ -76,7 +76,7 @@ class EntityMap
     /**
      * @return string[]
      */
-    public function getColumns()
+    public function columns()
     {
         return array_keys($this->columnMap);
     }

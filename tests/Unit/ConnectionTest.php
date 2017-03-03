@@ -208,7 +208,7 @@ class ConnectionTest extends TestCase
     public function testQuery()
     {
         $this->mockPdo->shouldReceive('query')
-            ->once()->with('statement', \PDO::ATTR_DEFAULT_FETCH_MODE, null, [])->andReturn($this->mockPdoStatement);
+            ->once()->with('statement')->andReturn($this->mockPdoStatement);
 
         $connection = new MockConnection($this->mockPdo);
         $this->assertEquals($this->mockPdoStatement, $connection->query('statement'));

@@ -66,8 +66,8 @@ abstract class Entity implements JsonSerializable
      */
     public function populate(array &$row)
     {
-        $entityMap = $this->getEntityMap();
-        foreach ($entityMap->getColumnMap() as $dbName => $propName) {
+        $map = $this->getMap();
+        foreach ($map->columnMap() as $dbName => $propName) {
             if (!isset($row[$dbName])) {
                 continue;
             }
@@ -80,7 +80,7 @@ abstract class Entity implements JsonSerializable
     /**
      * @return EntityMap
      */
-    public abstract function getEntityMap();
+    public abstract function getMap();
 
     /**
      * Creates the entity if the primary key(s) are null, otherwise updates the entity.
@@ -91,16 +91,19 @@ abstract class Entity implements JsonSerializable
      */
     public function persist(Connection $connection = null)
     {
-        $entityMap = $this->getEntityMap();
-        if (count($entityMap->getPrimaryKeys()) != 1) {
+        $map = $this->getMap();
+        if (count($map->primaryKeys()) != 1) {
             throw new \InvalidArgumentException('Cannot persist');
         }
 
-        if (array_reduce($entityMap->getPrimaryKeys(), function ($carry, $item) { return $carry && null === $this->{$item}; }, true)) {
-            return $this->create($connection);
-        }
+        // Check if primary keys are set
+        $notExists = array_reduce(
+            $map->primaryKeys(), function ($carry, $item) {
+                return $carry && null === $this->{$item};
+            }, true
+        );
 
-        return $this->update($connection);
+        return $notExists ? $this->create($connection) : $this->update($connection);
     }
 
     /**
@@ -110,16 +113,16 @@ abstract class Entity implements JsonSerializable
      */
     public function create(Connection $connection = null)
     {
-        $connection = $connection ?: $this->connection;
+        $connection = $connection ? : $this->connection;
 
-        $entityMap = $this->getEntityMap();
-        $values    = [];
-        foreach ($entityMap->getColumnMap() as $property) {
-            $values[$property] = $this->{$property};
+        $map    = $this->getMap();
+        $values = [];
+        foreach ($map->columnMap() as $property) {
+            $values[] = $this->{$property};
         }
         $stmt = $connection->insert()
-            ->into($entityMap->getTableName())
-            ->columns($entityMap->getColumns())
+            ->into($map->tableName())
+            ->columns($map->columns())
             ->values($values)
             ->execute();
 
@@ -127,8 +130,8 @@ abstract class Entity implements JsonSerializable
             return false;
         }
 
-        if (count($entityMap->getPrimaryKeys()) == 1) {
-            $this->{$entityMap->getPrimaryKey(0)} = $connection->lastInsertId();
+        if (count($map->primaryKeys()) == 1) {
+            $this->{$map->primaryKey(0)} = $connection->lastInsertId();
         }
 
         return $this->createdRecently = true;
@@ -141,20 +144,20 @@ abstract class Entity implements JsonSerializable
      */
     public function update(Connection $connection = null)
     {
-        $connection = $connection ?: $this->connection;
+        $connection = $connection ? : $this->connection;
 
-        $entityMap = $this->getEntityMap();
-        $values    = [];
-        foreach ($entityMap->getColumnMap() as $property) {
+        $map    = $this->getMap();
+        $values = [];
+        foreach ($map->columnMap() as $property) {
             $values[] = $this->{$property};
         }
         $update = $connection->update()
-            ->table($entityMap->getTableName())
-            ->columns($entityMap->getColumns())
+            ->table($map->tableName())
+            ->columns($map->columns())
             ->setParameters($values);
 
-        foreach ($entityMap->getPrimaryKeys() as $idx => $key) {
-            $update->andWhere($key . ' = ?', $this->{$key});
+        foreach ($map->primaryKeys() as $idx => $key) {
+            $update->andWhere($idx . ' = ?', $this->{$key});
         }
 
 
@@ -163,22 +166,22 @@ abstract class Entity implements JsonSerializable
 
     /**
      * @param Connection|null $connection
-     * @param null|mixed $primaryKey Null to use the set primary key, other the given primary key
+     * @param null|mixed      $primaryKey Null to use the set primary key, other the given primary key
      *
      * @return bool True if the entity was successfully read (populated)
      */
     public function read(Connection $connection = null, $primaryKey = null)
     {
-        $connection = $connection ?: $this->connection;
+        $connection = $connection ? : $this->connection;
 
-        $entityMap = $this->getEntityMap();
-        $select    = $connection->select()->columns('*')->from($entityMap->getTableName(), 't')->limit(1);
+        $map    = $this->getMap();
+        $select = $connection->select()->columns('*')->from($map->tableName(), 't')->limit(1);
 
         if (null !== $primaryKey && !is_array($primaryKey)) {
-            $primaryKey = array_combine(array_keys($entityMap->getPrimaryKeys()), [$primaryKey]);
+            $primaryKey = array_combine(array_keys($map->primaryKeys()), [$primaryKey]);
         }
-        foreach ($entityMap->getPrimaryKeys() as $idx => $key) {
-            $select->andWhere('t.' . $key . ' = ?', null !== $primaryKey ? $primaryKey[$idx] : $this->{$key});
+        foreach ($map->primaryKeys() as $idx => $key) {
+            $select->andWhere('t.' . $idx . ' = ?', null !== $primaryKey ? $primaryKey[$idx] : $this->{$key});
         }
 
         $row = $select->execute()->fetch(PDO::FETCH_ASSOC, PDO::FETCH_ORI_FIRST);
@@ -193,18 +196,22 @@ abstract class Entity implements JsonSerializable
 
     /**
      * @param Connection|null $connection
+     * @param null|mixed      $primaryKey Null to use the set primary key, other the given primary key
      *
      * @return bool True if entity was successfully deleted
      */
-    public function delete(Connection $connection = null)
+    public function delete(Connection $connection = null, $primaryKey = null)
     {
-        $connection = $connection ?: $this->connection;
+        $connection = $connection ? : $this->connection;
 
-        $entityMap = $this->getEntityMap();
-        $delete    = $connection->delete()->from($entityMap->getTableName());
+        $map    = $this->getMap();
+        $delete = $connection->delete()->from($map->tableName());
 
-        foreach ($entityMap->getPrimaryKeys() as $key) {
-            $delete->andWhere($key . '= ?', $this->{$key});
+        if (null !== $primaryKey && !is_array($primaryKey)) {
+            $primaryKey = array_combine(array_keys($map->primaryKeys()), [$primaryKey]);
+        }
+        foreach ($map->primaryKeys() as $idx => $key) {
+            $delete->andWhere($idx . ' = ?', null !== $primaryKey ? $primaryKey[$idx] : $this->{$key});
         }
 
         return false !== $delete->execute();
@@ -224,7 +231,7 @@ abstract class Entity implements JsonSerializable
     public function toArray()
     {
         $properties = [];
-        foreach ($this->getEntityMap()->getColumnMap() as $property) {
+        foreach ($this->getMap()->columnMap() as $property) {
             if (in_array($property, $this->hidden)) {
                 continue;
             }

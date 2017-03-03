@@ -167,19 +167,13 @@ class Connection
     /**
      * @param string $statement The SQL statement to prepare and execute.
      *                          Data inside the query should be properly escaped.
-     * @param int    $mode      The fetch mode must be one of the PDO::FETCH_* constants.
-     * @param null   $arg3      The second and following parameters are the same as the parameters for
-     *                          PDOStatement::setFetchMode.
-     * @param array  $ctorargs  [optional]
-     *                          Arguments of custom class constructor when the mode parameter is set to
-     *                          PDO::FETCH_CLASS.
      *
      * @return \PDOStatement
      * @see \PDO::query()
      */
-    public function query($statement, $mode = \PDO::ATTR_DEFAULT_FETCH_MODE, $arg3 = null, array $ctorargs = array())
+    public function query($statement)
     {
-        return $this->pdo->query($statement, $mode, $arg3, $ctorargs);
+        return $this->pdo->query($statement);
     }
 
     /**

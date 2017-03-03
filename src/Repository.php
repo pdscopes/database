@@ -47,7 +47,7 @@ class Repository
 
         /** @var Entity $prototype */
         $prototype       = $this->reflection->newInstance();
-        $this->entityMap = $prototype->getEntityMap();
+        $this->entityMap = $prototype->getMap();
     }
 
     /**
@@ -58,7 +58,7 @@ class Repository
      */
     public function findBy(array $columns = [], array $order = [])
     {
-        $select = $this->connection->select()->columns('*')->from($this->entityMap->getTableName(), 't');
+        $select = $this->connection->select()->columns('*')->from($this->entityMap->tableName(), 't');
 
         foreach ($columns as $column => $value) {
             $select->andWhere('t.'.$column.' = ?', $value);
@@ -82,10 +82,10 @@ class Repository
      */
     public function findOneBy(array $columns = [], array $order = [])
     {
-        $select = $this->connection->select()->columns('*')->from($this->entityMap->getTableName(), 't')->limit(1);
+        $select = $this->connection->select()->columns('*')->from($this->entityMap->tableName(), 't')->limit(1);
 
         foreach ($columns as $column => $value) {
-            $select->andWhere('t.'.$column.' = :'.$column, [$column => $value]);
+            $select->andWhere('t.'.$column.' = ?', $value);
         }
         $select->orderBy($order);
 

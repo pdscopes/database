@@ -58,8 +58,7 @@ abstract class Relation
         $this->clause        = $clause;
         $this->entityAlias   = $entityAlias;
         $this->relativeAlias = $relativeAlias;
-
-        $this->select = new Select($entity->connection);
+        $this->select        = $entity->connection->select();
     }
 
     /**
@@ -75,6 +74,18 @@ abstract class Relation
         $this->select->join($table, $on, $alias, $type);
 
         return $this;
+    }
+
+    /**
+     * @param string      $table Database table to join
+     * @param string      $on    Clause to join the table on
+     * @param null|string $alias Alias for the table
+     *
+     * @return Relation
+     */
+    public function leftJoin($table, $on, $alias = null)
+    {
+        return $this->join($table, $on, $alias, Select::JOIN_LEFT);
     }
 
     /**
@@ -165,13 +176,14 @@ abstract class Relation
      */
     public function query()
     {
-        $relativeTable = $this->relative->getEntityMap()->getTableName();
-        $entityTable   = $this->entity->getEntityMap()->getTableName();
+        $relativeTable = $this->relative->getMap()->tableName();
+        $entityTable   = $this->entity->getMap()->tableName();
         $relativeAlias = null !== $this->relativeAlias ? $this->relativeAlias : $relativeTable;
         $entityAlias   = null !== $this->entityAlias ? $this->entityAlias : $entityTable;
 
         // Select from the relative table
-        $select = (clone $this->select)
+        $select = (clone $this->select);
+        $select
             ->columns($relativeAlias . '.*')
             ->from($relativeTable, $relativeAlias);
 
@@ -179,7 +191,7 @@ abstract class Relation
         $select->join($entityTable, $this->clause, $entityAlias);
 
         // Construct the where clause(s)
-        foreach ($this->entity->getEntityMap()->getPrimaryKeys() as $dbKey => $entityKey) {
+        foreach ($this->entity->getMap()->primaryKeys() as $dbKey => $entityKey) {
             $select->andWhere($entityAlias.'.'.$dbKey.' = :'.$dbKey, [$dbKey => $this->entity->{$entityKey}]);
         }
 
