@@ -58,17 +58,17 @@ class Repository
      */
     public function findBy(array $columns = [], array $order = [])
     {
-        $select = $this->connection->select()->columns()->from($this->entityMap->getTableName(), 't');
+        $select = $this->connection->select()->columns('*')->from($this->entityMap->getTableName(), 't');
 
         foreach ($columns as $column => $value) {
-            $select->where('t.'.$column.' = ?', $value);
+            $select->andWhere('t.'.$column.' = ?', $value);
         }
         $select->orderBy($order);
 
         $stmt  = $select->execute();
         $items = [];
         while (($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
-            $items[] = $this->reflection->newInstanceArgs([$row]);
+            $items[] = $this->reflection->newInstanceArgs([$this->connection, $row]);
         }
 
         return $items;
@@ -82,16 +82,16 @@ class Repository
      */
     public function findOneBy(array $columns = [], array $order = [])
     {
-        $select = $this->connection->select()->columns()->from($this->entityMap->getTableName(), 't')->limit(1);
+        $select = $this->connection->select()->columns('*')->from($this->entityMap->getTableName(), 't')->limit(1);
 
         foreach ($columns as $column => $value) {
-            $select->where('t.'.$column.' = :'.$column, [$column => $value]);
+            $select->andWhere('t.'.$column.' = :'.$column, [$column => $value]);
         }
         $select->orderBy($order);
 
         $stmt = $select->execute();
         if (($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
-            return $this->reflection->newInstanceArgs([$row]);
+            return $this->reflection->newInstanceArgs([$this->connection, $row]);
         }
 
         return null;

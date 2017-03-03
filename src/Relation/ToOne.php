@@ -28,7 +28,7 @@ class ToOne extends Relation
         }
 
         if (($row = $statement->fetch(PDO::FETCH_ASSOC))) {
-            return $reflection->newInstanceArgs([$row]);
+            return $reflection->newInstanceArgs([$this->entity->connection, $row]);
         }
 
         return null;

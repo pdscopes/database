@@ -29,7 +29,7 @@ class ToMany extends Relation
 
         $items = [];
         while (($row = $statement->fetch(PDO::FETCH_ASSOC))) {
-            $items[] = $reflection->newInstanceArgs([$row]);
+            $items[] = $reflection->newInstanceArgs([$this->entity->connection, $row]);
         }
 
         return $items;

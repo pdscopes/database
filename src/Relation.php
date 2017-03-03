@@ -180,7 +180,7 @@ abstract class Relation
 
         // Construct the where clause(s)
         foreach ($this->entity->getEntityMap()->getPrimaryKeys() as $dbKey => $entityKey) {
-            $select->where($entityAlias.'.'.$dbKey.' = :'.$dbKey, [$dbKey => $this->entity->{$entityKey}]);
+            $select->andWhere($entityAlias.'.'.$dbKey.' = :'.$dbKey, [$dbKey => $this->entity->{$entityKey}]);
         }
 
         return $select;

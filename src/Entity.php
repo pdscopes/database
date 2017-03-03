@@ -154,7 +154,7 @@ abstract class Entity implements JsonSerializable
             ->setParameters($values);
 
         foreach ($entityMap->getPrimaryKeys() as $idx => $key) {
-            $update->where($key . ' = ?', $this->{$key});
+            $update->andWhere($key . ' = ?', $this->{$key});
         }
 
 
@@ -172,13 +172,13 @@ abstract class Entity implements JsonSerializable
         $connection = $connection ?: $this->connection;
 
         $entityMap = $this->getEntityMap();
-        $select    = $connection->select()->columns()->from($entityMap->getTableName(), 't')->limit(1);
+        $select    = $connection->select()->columns('*')->from($entityMap->getTableName(), 't')->limit(1);
 
         if (null !== $primaryKey && !is_array($primaryKey)) {
             $primaryKey = array_combine(array_keys($entityMap->getPrimaryKeys()), [$primaryKey]);
         }
         foreach ($entityMap->getPrimaryKeys() as $idx => $key) {
-            $select->where('t.' . $key . ' = ?', null !== $primaryKey ? $primaryKey[$idx] : $this->{$key});
+            $select->andWhere('t.' . $key . ' = ?', null !== $primaryKey ? $primaryKey[$idx] : $this->{$key});
         }
 
         $row = $select->execute()->fetch(PDO::FETCH_ASSOC, PDO::FETCH_ORI_FIRST);
