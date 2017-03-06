@@ -23,11 +23,6 @@ class Update extends Statement
     protected $columns;
 
     /**
-     * @var string[]
-     */
-    protected $parameters;
-
-    /**
      * @var Clause
      */
     protected $where;
@@ -185,16 +180,7 @@ class Update extends Statement
      */
     public function execute(array $parameters = null)
     {
-        $statement = null;
-        if (empty($this->parameters) && empty($parameters)) {
-            $statement = $this->connection->query($this->toSql());
-        } else {
-            $statement = $this->connection->prepare($this->toSql());
-            $this->bindParameters($statement, $parameters ? : $this->parameters);
-            if (false === $statement->execute()) {
-                return false;
-            }
-        }
+        $statement = parent::execute($parameters);
         $this->parameters = [];
 
         return $statement;

@@ -3,6 +3,7 @@
 namespace MadeSimple\Database\QueryBuilder;
 
 use MadeSimple\Database\Connection;
+use MadeSimple\Database\Exception\ExecutionException;
 use PDO;
 use PDOStatement;
 
@@ -18,6 +19,11 @@ abstract class Statement
      * @var Connection
      */
     protected $connection;
+
+    /**
+     * @var array
+     */
+    protected $parameters;
 
     /**
      * Statement constructor.
@@ -42,7 +48,27 @@ abstract class Statement
      *
      * @return PDOStatement|false FALSE on failure
      */
-    public abstract function execute(array $parameters = null);
+    public function execute(array $parameters = null)
+    {
+        $parameters = $parameters ? : $this->parameters;
+
+        try {
+            if (empty($parameters)) {
+                $statement = $this->connection->query($this->toSql());
+            } else {
+                $statement = $this->connection->prepare($this->toSql());
+                $this->bindParameters($statement, $parameters ? : $this->parameters);
+                if (false === $statement->execute()) {
+                    return false;
+                }
+            }
+
+            return $statement;
+        }
+        catch (\PDOException $e) {
+            throw new ExecutionException($e, $this->toSql(), $parameters);
+        }
+    }
 
     /**
      * @return string
@@ -99,7 +125,7 @@ abstract class Statement
     {
         $index = 0;
         foreach ($parameters as $name => $value) {
-            $name = is_int($name) ? ++$index : ':'.$name;
+            $name = is_int($name) ? ++$index : ':' . $name;
             switch (gettype($value)) {
                 case 'array':
                     $value = array_map([$this, 'quote'], $value);

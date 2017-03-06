@@ -54,11 +54,6 @@ class Select extends Statement
     protected $limit;
 
     /**
-     * @var array
-     */
-    protected $parameters;
-
-    /**
      * Select constructor.
      *
      * @param Connection $connection
@@ -370,25 +365,6 @@ class Select extends Statement
         $this->limit = null === $start ? $range : $start . ', ' . $range;
 
         return $this;
-    }
-
-    /**
-     * {@InheritDoc}
-     */
-    public function execute(array $parameters = null)
-    {
-        $statement = null;
-        if (empty($this->parameters) && empty($parameters)) {
-            $statement = $this->connection->query($this->toSql());
-        } else {
-            $statement = $this->connection->prepare($this->toSql());
-            $this->bindParameters($statement, $parameters ? : $this->parameters);
-            if (false === $statement->execute()) {
-                return false;
-            }
-        }
-
-        return $statement;
     }
 
     /**
