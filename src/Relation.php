@@ -67,7 +67,7 @@ abstract class Relation
      * @param null|string $alias Alias for the table
      * @param string      $type  JOIN_DEFAULT|JOIN_LEFT|JOIN_RIGHT|JOIN_INNER|JOIN_FULL
      *
-     * @return Relation
+     * @return static
      */
     public function join($table, $on, $alias = null, $type = Select::JOIN_DEFAULT)
     {
@@ -81,7 +81,7 @@ abstract class Relation
      * @param string      $on    Clause to join the table on
      * @param null|string $alias Alias for the table
      *
-     * @return Relation
+     * @return static
      */
     public function leftJoin($table, $on, $alias = null)
     {
@@ -93,7 +93,7 @@ abstract class Relation
      * @param string      $on    Clause to join the table on
      * @param null|string $alias Alias for the table
      *
-     * @return Relation
+     * @return static
      */
     public function rightJoin($table, $on, $alias = null)
     {
@@ -105,7 +105,7 @@ abstract class Relation
      * @param string      $on    Clause to join the table on
      * @param null|string $alias Alias for the table
      *
-     * @return Relation
+     * @return static
      */
     public function fullJoin($table, $on, $alias = null)
     {
@@ -117,7 +117,7 @@ abstract class Relation
      * @param string      $on    Clause to join the table on
      * @param null|string $alias Alias for the table
      *
-     * @return Relation
+     * @return static
      */
     public function innerJoin($table, $on, $alias = null)
     {
@@ -130,7 +130,7 @@ abstract class Relation
      * @param string      $clause    A where clause
      * @param array|mixed $parameter A single, array of, or associated mapping of parameters
      *
-     * @return Relation
+     * @return static
      */
     public function where($clause, $parameter = null)
     {
@@ -145,7 +145,7 @@ abstract class Relation
      * @param string      $clause    A where clause
      * @param array|mixed $parameter A single, array of, or associated mapping of parameters
      *
-     * @return Relation
+     * @return static
      */
     public function andWhere($clause, $parameter = null)
     {
@@ -160,7 +160,7 @@ abstract class Relation
      * @param string      $clause    A where clause
      * @param array|mixed $parameter A single, array of, or associated mapping of parameters
      *
-     * @return Relation
+     * @return static
      */
     public function orWhere($clause, $parameter = null)
     {

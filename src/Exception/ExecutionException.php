@@ -2,8 +2,6 @@
 
 namespace MadeSimple\Database\Exception;
 
-use Exception;
-
 /**
  * Class ExecutionException
  *
@@ -25,13 +23,13 @@ class ExecutionException extends \RuntimeException
     /**
      * ExecutionException constructor.
      *
-     * @param Exception $previous
-     * @param string    $sql
-     * @param array     $parameters
+     * @param \PDOException $previous
+     * @param string        $sql
+     * @param array         $parameters
      */
-    public function __construct(Exception $previous, $sql, $parameters)
+    public function __construct(\PDOException $previous, $sql, $parameters)
     {
-        parent::__construct($previous->getMessage(), $previous->getCode(), $previous);
+        parent::__construct("Failed to execute SQL: " . $sql, 0, $previous);
         $this->sql = $sql;
         $this->parameters = $parameters;
     }

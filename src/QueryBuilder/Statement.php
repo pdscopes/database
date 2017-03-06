@@ -33,6 +33,7 @@ abstract class Statement
     public function __construct(Connection $connection)
     {
         $this->setConnection($connection);
+        $this->parameters = [];
     }
 
     /**
@@ -41,6 +42,38 @@ abstract class Statement
     protected function setConnection(Connection $connection)
     {
         $this->connection = $connection;
+    }
+
+
+    /**
+     * @param null|string $name  Name of the parameter (used in select query)
+     * @param mixed       $value Value of the parameter (must be convertible to string)
+     *
+     * @return static
+     */
+    public function setParameter($name, $value)
+    {
+        if (null !== $name) {
+            $this->parameters[$name] = $value;
+        } else {
+            $this->parameters[] = $value;
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param array $parameters Associated mapping of parameter name to value
+     *
+     * @return static
+     */
+    public function setParameters(array $parameters)
+    {
+        foreach ($parameters as $name => $value) {
+            $this->setParameter(is_numeric($name) ? null : $name, $value);
+        }
+
+        return $this;
     }
 
     /**

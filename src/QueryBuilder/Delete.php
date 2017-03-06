@@ -12,15 +12,17 @@ use MadeSimple\Database\Connection;
  */
 class Delete extends Statement
 {
-    /**
-     * @var string[]
-     */
-    protected $table;
+    use WhereTrait;
 
     /**
-     * @var Clause
+     * @var string
      */
-    protected $where;
+    protected $tableName;
+
+    /**
+     * @var string
+     */
+    protected $tableAlias;
 
     /**
      * Delete constructor.
@@ -31,9 +33,7 @@ class Delete extends Statement
     {
         parent::__construct($connection);
 
-        $this->table      = [];
-        $this->where      = new Clause();
-        $this->parameters = [];
+        $this->where = new Clause();
     }
 
 
@@ -41,90 +41,12 @@ class Delete extends Statement
      * @param string      $table Database table name
      * @param null|string $alias Alias for the table name
      *
-     * @return Delete
+     * @return static
      */
     public function from($table, $alias = null)
     {
-        $this->table = [$alias ?: $table, $table];
-
-        return $this;
-    }
-
-    /**
-     * @param null|string $name  Name of the parameter (used in select query)
-     * @param mixed       $value Value of the parameter (must be convertible to string)
-     *
-     * @return Delete
-     */
-    public function setParameter($name, $value)
-    {
-        if (null !== $name) {
-            $this->parameters[$name] = $value;
-        } else {
-            $this->parameters[] = $value;
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param array $parameters Associated mapping of parameter name to value
-     *
-     * @return Delete
-     */
-    public function setParameters(array $parameters)
-    {
-        foreach ($parameters as $name => $value) {
-            $this->setParameter(is_numeric($name) ? null : $name, $value);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param string|\Closure $clause    A where clause or closure
-     * @param array|mixed     $parameter A single, array of, or associated mapping of parameters
-     *
-     * @return Delete
-     */
-    public function where($clause, $parameter = null)
-    {
-        $this->where->where($clause);
-        if (null !== $parameter) {
-            $this->setParameters(!is_array($parameter) ? [$parameter] : $parameter);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param string|\Closure $clause    A where clause or closure
-     * @param array|mixed     $parameter A single, array of, or associated mapping of parameters
-     *
-     * @return Delete
-     */
-    public function andWhere($clause, $parameter = null)
-    {
-        $this->where->andX($clause);
-        if (null !== $parameter) {
-            $this->setParameters(!is_array($parameter) ? [$parameter] : $parameter);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param string|\Closure $clause    A where clause or closure
-     * @param array|mixed     $parameter A single, array of, or associated mapping of parameters
-     *
-     * @return Delete
-     */
-    public function orWhere($clause, $parameter = null)
-    {
-        $this->where->orX($clause);
-        if (null !== $parameter) {
-            $this->setParameters(!is_array($parameter) ? [$parameter] : $parameter);
-        }
+        $this->tableName  = $table;
+        $this->tableAlias = $alias ? : $table;
 
         return $this;
     }
@@ -137,8 +59,8 @@ class Delete extends Statement
         $sql = 'DELETE ';
 
         // Add the from tables
-        $alias = $this->connection->quoteColumn($this->table[0]);
-        $table = $this->connection->quoteColumn($this->table[1]);
+        $table = $this->connection->quoteColumn($this->tableName);
+        $alias = $this->connection->quoteColumn($this->tableAlias);
         $sql .= $alias == $table ? 'FROM ' . $table : $alias . ' FROM ' . $table . ' AS ' . $alias;
 
         // Add possible where clause(s)

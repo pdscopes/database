@@ -12,7 +12,6 @@ use MadeSimple\Database\Connection;
  */
 class Insert extends Statement
 {
-
     /**
      * @var string
      */
@@ -32,14 +31,13 @@ class Insert extends Statement
     {
         parent::__construct($connection);
 
-        $this->columns    = [];
-        $this->parameters = [];
+        $this->columns = [];
     }
 
     /**
      * @param string $table Database table to insert into
      *
-     * @return Insert
+     * @return static
      */
     public function into($table)
     {
@@ -51,7 +49,7 @@ class Insert extends Statement
     /**
      * @param array ...$columns columns to be updated
      *
-     * @return Insert
+     * @return static
      */
     public function columns(... $columns)
     {
@@ -64,7 +62,7 @@ class Insert extends Statement
     /**
      * @param array ...$values
      *
-     * @return Insert
+     * @return static
      */
     public function values(... $values)
     {

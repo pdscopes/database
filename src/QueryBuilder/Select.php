@@ -12,6 +12,8 @@ use MadeSimple\Database\Connection;
  */
 class Select extends Statement
 {
+    use WhereTrait;
+
     const JOIN_DEFAULT = 'JOIN';
     const JOIN_LEFT    = 'LEFT JOIN';
     const JOIN_RIGHT   = 'RIGHT JOIN';
@@ -32,11 +34,6 @@ class Select extends Statement
      * @var string[][]
      */
     protected $join;
-
-    /**
-     * @var Clause
-     */
-    protected $where;
 
     /**
      * @var string[]
@@ -66,12 +63,9 @@ class Select extends Statement
         $this->from    = [];
         $this->join    = [];
         $this->where   = new Clause();
-
-        $this->group = [];
-        $this->order = [];
-        $this->limit = '';
-
-        $this->parameters = [];
+        $this->group   = [];
+        $this->order   = [];
+        $this->limit   = '';
     }
 
     /**
@@ -79,7 +73,7 @@ class Select extends Statement
      *
      * @param array ...$columns
      *
-     * @return $this
+     * @return static
      */
     public function columns(... $columns)
     {
@@ -93,7 +87,7 @@ class Select extends Statement
      *
      * @param array ...$columns
      *
-     * @return $this
+     * @return static
      */
     public function addColumns(... $columns)
     {
@@ -108,7 +102,7 @@ class Select extends Statement
      * @param string      $table Database table to select from
      * @param null|string $alias Alias for the table
      *
-     * @return Select
+     * @return static
      */
     public function from($table, $alias = null)
     {
@@ -126,7 +120,7 @@ class Select extends Statement
      * @param string      $table Database table to select from
      * @param null|string $alias Alias for the table
      *
-     * @return $this
+     * @return static
      */
     public function addFrom($table, $alias = null)
     {
@@ -144,7 +138,7 @@ class Select extends Statement
      * @param string      $on    Clause to join the table on
      * @param null|string $alias Alias for the table
      *
-     * @return Select
+     * @return static
      */
     public function leftJoin($table, $on, $alias = null)
     {
@@ -164,7 +158,7 @@ class Select extends Statement
      * @see self::JOIN_FULL
      * @see columns()
      *
-     * @return Select
+     * @return static
      */
     public function join($table, $on, $alias = null, $type = self::JOIN_DEFAULT)
     {
@@ -186,7 +180,7 @@ class Select extends Statement
      * @param string      $on    Clause to join the table on
      * @param null|string $alias Alias for the table
      *
-     * @return Select
+     * @return static
      */
     public function rightJoin($table, $on, $alias = null)
     {
@@ -198,7 +192,7 @@ class Select extends Statement
      * @param string      $on    Clause to join the table on
      * @param null|string $alias Alias for the table
      *
-     * @return Select
+     * @return static
      */
     public function fullJoin($table, $on, $alias = null)
     {
@@ -210,7 +204,7 @@ class Select extends Statement
      * @param string      $on    Clause to join the table on
      * @param null|string $alias Alias for the table
      *
-     * @return Select
+     * @return static
      */
     public function innerJoin($table, $on, $alias = null)
     {
@@ -218,90 +212,11 @@ class Select extends Statement
     }
 
     /**
-     * @param null|string $name  Name of the parameter (used in select query)
-     * @param mixed       $value Value of the parameter (must be convertible to string)
-     *
-     * @return Select
-     */
-    public function setParameter($name, $value)
-    {
-        if (null !== $name) {
-            $this->parameters[$name] = $value;
-        } else {
-            $this->parameters[] = $value;
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param array $parameters Associated mapping of parameter name to value
-     *
-     * @return Select
-     */
-    public function setParameters(array $parameters)
-    {
-        foreach ($parameters as $name => $value) {
-            $this->setParameter(is_numeric($name) ? null : $name, $value);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param string|\Closure $clause    A where clause or closure
-     * @param array|mixed     $parameter A single, array of, or associated mapping of parameters
-     *
-     * @return Select
-     */
-    public function where($clause, $parameter = null)
-    {
-        $this->where->where($clause);
-        if (null !== $parameter) {
-            $this->setParameters(!is_array($parameter) ? [$parameter] : $parameter);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param string|\Closure $clause    A where clause or closure
-     * @param array|mixed     $parameter A single, array of, or associated mapping of parameters
-     *
-     * @return Select
-     */
-    public function andWhere($clause, $parameter = null)
-    {
-        $this->where->andX($clause);
-        if (null !== $parameter) {
-            $this->setParameters(!is_array($parameter) ? [$parameter] : $parameter);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param string|\Closure $clause    A where clause or closure
-     * @param array|mixed     $parameter A single, array of, or associated mapping of parameters
-     *
-     * @return Select
-     */
-    public function orWhere($clause, $parameter = null)
-    {
-        $this->where->orX($clause);
-        if (null !== $parameter) {
-            $this->setParameters(!is_array($parameter) ? [$parameter] : $parameter);
-        }
-
-        return $this;
-    }
-
-    /**
      * Set the group by clauses to this select query.
      *
      * @param mixed $clauses Clauses to group by
      *
-     * @return Select
+     * @return static
      */
     public function groupBy(... $clauses)
     {
@@ -315,7 +230,7 @@ class Select extends Statement
      *
      * @param mixed $clauses Clauses to group by
      *
-     * @return Select
+     * @return static
      */
     public function addGroupBy(... $clauses)
     {
@@ -329,7 +244,7 @@ class Select extends Statement
      *
      * @param mixed $clauses Clauses to order by
      *
-     * @return Select
+     * @return static
      */
     public function orderBy(... $clauses)
     {
@@ -343,7 +258,7 @@ class Select extends Statement
      *
      * @param mixed $clauses Clauses to order by
      *
-     * @return Select
+     * @return static
      */
     public function addOrderBy(... $clauses)
     {
@@ -358,7 +273,7 @@ class Select extends Statement
      * @param int      $range The range of rows to be returned
      * @param null|int $start The starting row of the returned rows
      *
-     * @return Select
+     * @return static
      */
     public function limit($range, $start = null)
     {

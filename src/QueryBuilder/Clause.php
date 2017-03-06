@@ -13,6 +13,17 @@ class Clause
     protected $subClauses = [];
 
     /**
+     * @param string $column
+     * @param array $values
+     *
+     * @return string
+     */
+    public static function inX($column, $values)
+    {
+        return $column . ' IN (' . implode(' , ', array_fill(0, count($values), '?')) . ')';
+    }
+
+    /**
      * Clause constructor.
      *
      * @param null|string $clause
@@ -77,9 +88,11 @@ class Clause
             list ($conjunction, $subClause) = $item;
             if ($subClause instanceof \Closure) {
                 $subClause = $subClause(new Clause());
-                $subClause = '(' . $subClause->flatten() . ')';
             }
-            $subClause = ($conjunction ? ' '.$conjunction.' ' : '') . $subClause;
+            if ($subClause instanceof Clause) {
+                $subClause = '(' . $subClause . ')';
+            }
+            $subClause = ($conjunction ? ' ' . $conjunction . ' ' : '') . $subClause;
 
             return $carry . $subClause;
         }, '');
@@ -91,5 +104,13 @@ class Clause
     public function isEmpty()
     {
         return empty($this->subClauses);
+    }
+
+    /**
+     * @return string
+     */
+    function __toString()
+    {
+        return $this->flatten();
     }
 }

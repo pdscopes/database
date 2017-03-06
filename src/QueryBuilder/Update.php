@@ -12,20 +12,22 @@ use MadeSimple\Database\Connection;
  */
 class Update extends Statement
 {
+    use WhereTrait;
+
     /**
-     * @var string[]
+     * @var string
      */
-    protected $table;
+    protected $tableName;
+
+    /**
+     * @var string
+     */
+    protected $tableAlias;
 
     /**
      * @var array
      */
     protected $columns;
-
-    /**
-     * @var Clause
-     */
-    protected $where;
 
     /**
      * Update constructor.
@@ -36,20 +38,20 @@ class Update extends Statement
     {
         parent::__construct($connection);
 
-        $this->columns    = [];
-        $this->parameters = [];
-        $this->where      = new Clause();
+        $this->columns = [];
+        $this->where   = new Clause();
     }
 
     /**
      * @param string      $table Database table name
      * @param null|string $alias Alias for the table name
      *
-     * @return Update
+     * @return static
      */
     public function table($table, $alias = null)
     {
-        $this->table = [$alias ?: $table, $table];
+        $this->tableName  = $table;
+        $this->tableAlias = $alias ? : $table;
 
         return $this;
     }
@@ -58,7 +60,7 @@ class Update extends Statement
      * @param string $column
      * @param mixed  $value
      *
-     * @return Update
+     * @return static
      */
     public function set($column, $value)
     {
@@ -71,7 +73,7 @@ class Update extends Statement
     /**
      * @param array ...$columns columns to be updated
      *
-     * @return Update
+     * @return static
      */
     public function columns(... $columns)
     {
@@ -85,7 +87,7 @@ class Update extends Statement
     /**
      * @param array ...$values
      *
-     * @return Update
+     * @return static
      */
     public function values(... $values)
     {
@@ -93,85 +95,6 @@ class Update extends Statement
         array_walk_recursive($values, function ($v) use (&$flattened) { $flattened[] = $v; });
 
         return $this->setParameters($flattened);
-    }
-
-    /**
-     * @param null|string $name  Name of the parameter (used in select query)
-     * @param mixed       $value Value of the parameter (must be convertible to string)
-     *
-     * @return Update
-     */
-    public function setParameter($name, $value)
-    {
-        if (null !== $name) {
-            $this->parameters[$name] = $value;
-        } else {
-            $this->parameters[] = $value;
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param array $parameters Associated mapping of parameter name to value
-     *
-     * @return Update
-     */
-    public function setParameters(array $parameters)
-    {
-        foreach ($parameters as $name => $value) {
-            $this->setParameter(is_numeric($name) ? null : $name, $value);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param string|\Closure $clause    A where clause or closure
-     * @param array|mixed     $parameter A single, array of, or associated mapping of parameters
-     *
-     * @return Update
-     */
-    public function where($clause, $parameter = null)
-    {
-        $this->where->where($clause);
-        if (null !== $parameter) {
-            $this->setParameters(!is_array($parameter) ? [$parameter] : $parameter);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param string|\Closure $clause    A where clause or closure
-     * @param array|mixed     $parameter A single, array of, or associated mapping of parameters
-     *
-     * @return Update
-     */
-    public function andWhere($clause, $parameter = null)
-    {
-        $this->where->andX($clause);
-        if (null !== $parameter) {
-            $this->setParameters(!is_array($parameter) ? [$parameter] : $parameter);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param string|\Closure $clause    A where clause or closure
-     * @param array|mixed     $parameter A single, array of, or associated mapping of parameters
-     *
-     * @return Update
-     */
-    public function orWhere($clause, $parameter = null)
-    {
-        $this->where->orX($clause);
-        if (null !== $parameter) {
-            $this->setParameters(!is_array($parameter) ? [$parameter] : $parameter);
-        }
-
-        return $this;
     }
 
     /**
@@ -194,8 +117,8 @@ class Update extends Statement
         $sql = 'UPDATE ';
 
         // Set the table
-        $alias = $this->connection->quoteColumn($this->table[0]);
-        $table = $this->connection->quoteColumn($this->table[1]);
+        $table = $this->connection->quoteColumn($this->tableName);
+        $alias = $this->connection->quoteColumn($this->tableAlias);
         $sql .= $alias == $table ? $table : $table . ' AS ' . $alias;
 
         // Set the SET
