@@ -2,17 +2,13 @@
 
 namespace MadeSimple\Database;
 
-use MadeSimple\Database\Connection\MySQL;
-use MadeSimple\Database\Connection\SQLite;
-use MadeSimple\Database\QueryBuilder as Qb;
-
 /**
  * Class Connection
  *
  * @package MadeSimple\Database
  * @author  Peter Scopes
  */
-class Connection
+abstract class Connection
 {
     /**
      * @var \PDO
@@ -30,6 +26,24 @@ class Connection
     protected $transactions;
 
     /**
+     * @param \PDO $pdo
+     *
+     * @return Connection
+     */
+    public static function factory(\PDO $pdo)
+    {
+        switch ($pdo->getAttribute(\PDO::ATTR_DRIVER_NAME)) {
+            case 'mysql':
+                return new MySQL\Connection($pdo);
+            case 'sqlite':
+                return new SQLite\Connection($pdo);
+
+            default:
+                throw new \InvalidArgumentException('Unsupported PDO driver');
+        }
+    }
+
+    /**
      * Connection constructor.
      *
      * @param \PDO $pdo
@@ -37,47 +51,100 @@ class Connection
     public function __construct(\PDO $pdo)
     {
         $this->pdo = $pdo;
-
-        switch ($pdo->getAttribute(\PDO::ATTR_DRIVER_NAME)) {
-            case 'mysql':
-                $this->columnQuote = MySQL::$columnQuote;
-                break;
-            case 'sqlite':
-                $this->columnQuote = SQLite::$columnQuote;
-                break;
-        }
     }
 
     /**
-     * @return Qb\Select
+     * Retrieve a database connection attribute.
+     *
+     * @param int $attribute
+     *
+     * @return mixed
+     */
+    public function getAttribute($attribute)
+    {
+        return $this->pdo->getAttribute($attribute);
+    }
+
+    /**
+     * Set an attribute.
+     *
+     * @param int   $attribute
+     * @param mixed $value
+     *
+     * @return bool
+     */
+    public function setAttribute($attribute, $value)
+    {
+        return $this->pdo->setAttribute($attribute, $value);
+    }
+
+    /**
+     * @param \Closure|null $callable
+     *
+     * @return Statement\Table\Create
+     */
+    public abstract function create($callable = null);
+
+    /**
+     * @param \Closure|null $callable
+     *
+     * @return Statement\Table\Alter
+     */
+    public function alter($callable = null)
+    {
+        $alter = new Statement\Table\Alter($this);
+        if ($callable instanceof \Closure) {
+            call_user_func_array($callable, [$alter]);
+        }
+        return $alter;
+    }
+
+    /**
+     * @return Statement\Table\Truncate
+     */
+    public function truncate()
+    {
+        return new Statement\Table\Truncate($this);
+    }
+
+    /**
+     * @return Statement\Table\Drop
+     */
+    public function drop()
+    {
+        return new Statement\Table\Drop($this);
+    }
+
+    /**
+     * @return Statement\Query\Select
      */
     public function select()
     {
-        return new Qb\Select($this);
+        return new Statement\Query\Select($this);
     }
 
     /**
-     * @return Qb\Insert
+     * @return Statement\Query\Insert
      */
     public function insert()
     {
-        return new Qb\Insert($this);
+        return new Statement\Query\Insert($this);
     }
 
     /**
-     * @return Qb\Update
+     * @return Statement\Query\Update
      */
     public function update()
     {
-        return new Qb\Update($this);
+        return new Statement\Query\Update($this);
     }
 
     /**
-     * @return Qb\Delete
+     * @return Statement\Query\Delete
      */
     public function delete()
     {
-        return new Qb\Delete($this);
+        return new Statement\Query\Delete($this);
     }
 
 
@@ -100,6 +167,15 @@ class Connection
         }
 
         return false;
+    }
+
+    /**
+     * @return bool
+     * @see \PDO::inTransaction()
+     */
+    public function inTransaction()
+    {
+        return $this->pdo->inTransaction();
     }
 
     /**
@@ -149,6 +225,20 @@ class Connection
     }
 
     /**
+     * Execute an SQL statement and return the number of affected rows.
+     *
+     * @param string $statement The SQL statement to prepare and execute.
+     *                          Data inside the query should be properly escaped.
+     *
+     * @return int
+     * @see \PDO::exec()
+     */
+    public function exec($statement)
+    {
+        return $this->pdo->exec($statement);
+    }
+
+    /**
      * @param string $statement      This must be a valid SQL statement for the target database server.
      * @param array  $driver_options [optional]
      *                               This array holds one or more key=>value pairs to set attribute values for the
@@ -187,7 +277,6 @@ class Connection
     {
         return $this->pdo->quote($string, $parameterType);
     }
-
 
     /**
      * @param string $clause

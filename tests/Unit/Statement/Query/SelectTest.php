@@ -1,9 +1,9 @@
 <?php
 
-namespace Tests\Unit\QueryBuilder;
+namespace Tests\Unit\Query;
 
-use MadeSimple\Database\QueryBuilder\Clause;
-use MadeSimple\Database\QueryBuilder\Select;
+use MadeSimple\Database\Statement\Query\Clause;
+use MadeSimple\Database\Statement\Query\Select;
 use Tests\MockConnection;
 use Tests\TestCase;
 

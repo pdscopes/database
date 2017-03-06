@@ -1,16 +1,17 @@
 <?php
 
-namespace MadeSimple\Database\QueryBuilder;
+namespace MadeSimple\Database\Statement\Query;
 
 use MadeSimple\Database\Connection;
+use MadeSimple\Database\Statement\Query;
 
 /**
  * Class Update
  *
- * @package MadeSimple\Database\QueryBuilder
+ * @package MadeSimple\Database\Statement\Query
  * @author  Peter Scopes
  */
-class Update extends Statement
+class Update extends Query
 {
     use WhereTrait;
 
@@ -39,7 +40,7 @@ class Update extends Statement
         parent::__construct($connection);
 
         $this->columns = [];
-        $this->where   = new Clause();
+        $this->where   = new Clause($connection);
     }
 
     /**
@@ -129,7 +130,7 @@ class Update extends Statement
 
         // Add possible where clause(s)
         if (!$this->where->isEmpty()) {
-            $sql .= "\nWHERE " . $this->connection->quoteClause($this->where->flatten());
+            $sql .= "\nWHERE " . $this->where->flatten();
         }
 
         return $sql;

@@ -1,16 +1,17 @@
 <?php
 
-namespace MadeSimple\Database\QueryBuilder;
+namespace MadeSimple\Database\Statement\Query;
 
 use MadeSimple\Database\Connection;
+use MadeSimple\Database\Statement\Query;
 
 /**
  * Class Insert
  *
- * @package MadeSimple\Database\QueryBuilder
+ * @package MadeSimple\Database\Statement\Query
  * @author  Peter Scopes
  */
-class Insert extends Statement
+class Insert extends Query
 {
     /**
      * @var string

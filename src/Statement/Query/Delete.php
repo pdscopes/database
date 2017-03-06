@@ -1,16 +1,17 @@
 <?php
 
-namespace MadeSimple\Database\QueryBuilder;
+namespace MadeSimple\Database\Statement\Query;
 
 use MadeSimple\Database\Connection;
+use MadeSimple\Database\Statement\Query;
 
 /**
  * Class Delete
  *
- * @package MadeSimple\Database\QueryBuilder
+ * @package MadeSimple\Database\Statement\Query
  * @author  Peter Scopes
  */
-class Delete extends Statement
+class Delete extends Query
 {
     use WhereTrait;
 
@@ -33,7 +34,7 @@ class Delete extends Statement
     {
         parent::__construct($connection);
 
-        $this->where = new Clause();
+        $this->where = new Clause($connection);
     }
 
 
@@ -65,7 +66,7 @@ class Delete extends Statement
 
         // Add possible where clause(s)
         if (!$this->where->isEmpty()) {
-            $sql .= "\nWHERE " . $this->connection->quoteClause($this->where->flatten());
+            $sql .= "\nWHERE " . $this->where->flatten();
         }
 
         return $sql;

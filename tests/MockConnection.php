@@ -17,4 +17,9 @@ class MockConnection extends Connection
         $this->pdo         = $pdo;
         $this->columnQuote = '`';
     }
+
+    public  function create($callable = null)
+    {
+        // TODO: Implement table() method.
+    }
 }

@@ -1,11 +1,11 @@
 <?php
 
-namespace MadeSimple\Database\QueryBuilder;
+namespace MadeSimple\Database\Statement\Query;
 
 /**
  * Class WhereTrait
  *
- * @package MadeSimple\Database\QueryBuilder
+ * @package MadeSimple\Database\Statement\Query
  * @author  Peter Scopes
  */
 trait WhereTrait

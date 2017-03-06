@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests\Unit\QueryBuilder;
+namespace Tests\Unit\Query;
 
-use MadeSimple\Database\QueryBuilder\Insert;
+use MadeSimple\Database\Statement\Query\Insert;
 use Tests\MockConnection;
 use Tests\TestCase;
 

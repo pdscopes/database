@@ -1,13 +1,11 @@
 <?php
 
-namespace MadeSimple\Database\Migration;
-
-use MadeSimple\Database\Connection;
+namespace MadeSimple\Database;
 
 /**
  * Class Migration
  *
- * @package MadeSimple\Database\Migration
+ * @package MadeSimple\Database
  * @author  Peter Scopes
  */
 interface Migration

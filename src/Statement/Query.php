@@ -1,19 +1,19 @@
 <?php
 
-namespace MadeSimple\Database\QueryBuilder;
+namespace MadeSimple\Database\Statement;
 
 use MadeSimple\Database\Connection;
-use MadeSimple\Database\Exception\ExecutionException;
+use MadeSimple\Database\Statement;
 use PDO;
 use PDOStatement;
 
 /**
  * Class Statement
  *
- * @package MadeSimple\Database\QueryBuilder
+ * @package MadeSimple\Database\Statement
  * @author  Peter Scopes
  */
-abstract class Statement
+abstract class Query implements Statement
 {
     /**
      * @var Connection

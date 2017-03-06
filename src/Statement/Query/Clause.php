@@ -1,15 +1,25 @@
 <?php
 
-namespace MadeSimple\Database\QueryBuilder;
+namespace MadeSimple\Database\Statement\Query;
+
+use MadeSimple\Database\Connection;
 
 /**
  * Class Clause
  *
- * @package MadeSimple\Database\QueryBuilder
+ * @package MadeSimple\Database\Statement\Query
  * @author  Peter Scopes
  */
 class Clause
 {
+    /**
+     * @var Connection
+     */
+    protected $connection;
+
+    /**
+     * @var array
+     */
     protected $subClauses = [];
 
     /**
@@ -26,10 +36,13 @@ class Clause
     /**
      * Clause constructor.
      *
+     * @param Connection  $connection
      * @param null|string $clause
      */
-    public function __construct($clause = null)
+    public function __construct(Connection $connection, $clause = null)
     {
+        $this->connection = $connection;
+
         if (null !== $clause) {
             $this->subClauses[] = [null, $clause];
         }
@@ -87,14 +100,14 @@ class Clause
         return array_reduce($this->subClauses, function ($carry, $item) {
             list ($conjunction, $subClause) = $item;
             if ($subClause instanceof \Closure) {
-                $subClause = $subClause(new Clause());
+                $subClause = $subClause(new Clause($this->connection));
             }
             if ($subClause instanceof Clause) {
                 $subClause = '(' . $subClause . ')';
             }
             $subClause = ($conjunction ? ' ' . $conjunction . ' ' : '') . $subClause;
 
-            return $carry . $subClause;
+            return $carry . $this->connection->quoteClause($subClause);
         }, '');
     }
 

@@ -5,7 +5,7 @@ namespace Tests\Unit;
 use MadeSimple\Database\Connection;
 use MadeSimple\Database\Entity;
 use MadeSimple\Database\EntityMap;
-use MadeSimple\Database\QueryBuilder\Select;
+use MadeSimple\Database\Statement\Query\Select;
 use MadeSimple\Database\Repository;
 use Tests\TestCase;
 

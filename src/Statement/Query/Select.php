@@ -1,16 +1,17 @@
 <?php
 
-namespace MadeSimple\Database\QueryBuilder;
+namespace MadeSimple\Database\Statement\Query;
 
 use MadeSimple\Database\Connection;
+use MadeSimple\Database\Statement\Query;
 
 /**
  * Class Select
  *
- * @package MadeSimple\Database\QueryBuilder
+ * @package MadeSimple\Database\Statement\Query
  * @author  Peter Scopes
  */
-class Select extends Statement
+class Select extends Query
 {
     use WhereTrait;
 
@@ -62,7 +63,7 @@ class Select extends Statement
         $this->columns = ['*'];
         $this->from    = [];
         $this->join    = [];
-        $this->where   = new Clause();
+        $this->where   = new Clause($connection);
         $this->group   = [];
         $this->order   = [];
         $this->limit   = '';
@@ -314,7 +315,7 @@ class Select extends Statement
 
         // If where
         if (!$this->where->isEmpty()) {
-            $sql .= "\n".'WHERE ' . $this->connection->quoteClause($this->where->flatten());
+            $sql .= "\n".'WHERE ' . $this->where->flatten();
         }
 
         // If group

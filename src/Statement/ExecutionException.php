@@ -1,11 +1,11 @@
 <?php
 
-namespace MadeSimple\Database\Exception;
+namespace MadeSimple\Database\Statement;
 
 /**
  * Class ExecutionException
  *
- * @package MadeSimple\Database\Exception
+ * @package MadeSimple\Database\Statement
  * @author  Peter Scopes
  */
 class ExecutionException extends \RuntimeException

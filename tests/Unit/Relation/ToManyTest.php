@@ -5,7 +5,7 @@ namespace Tests\Unit\Relation;
 use MadeSimple\Database\Connection;
 use MadeSimple\Database\Entity;
 use MadeSimple\Database\EntityMap;
-use MadeSimple\Database\QueryBuilder\Select;
+use MadeSimple\Database\Statement\Query\Select;
 use MadeSimple\Database\Relation\ToMany;
 use Tests\TestCase;
 

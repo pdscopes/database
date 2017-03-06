@@ -5,7 +5,7 @@ namespace Tests\Unit\Relation;
 use MadeSimple\Database\Connection;
 use MadeSimple\Database\Entity;
 use MadeSimple\Database\EntityMap;
-use MadeSimple\Database\QueryBuilder\Select;
+use MadeSimple\Database\Statement\Query\Select;
 use MadeSimple\Database\Relation\ToOne;
 use Tests\TestCase;
 
@@ -63,6 +63,7 @@ class ToOneTest extends TestCase
 
         $relation = new ToOne($this->entity, ToOneRelatedEntity::class, 'd.ID = f.id', 'd', 'f');
         $this->entity->id = 5;
+        /** @var ToOneRelatedEntity $related */
         $related = $relation->fetch();
 
         $this->assertInstanceOf(ToOneRelatedEntity::class, $related);

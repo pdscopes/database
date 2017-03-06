@@ -2,7 +2,8 @@
 
 namespace Tests\Unit;
 
-use MadeSimple\Database\QueryBuilder as Qb;
+use MadeSimple\Database\Statement\Table;
+use MadeSimple\Database\Statement\Query;
 use Tests\MockConnection;
 use Tests\TestCase;
 
@@ -28,12 +29,59 @@ class ConnectionTest extends TestCase
 
 
     /**
+     * Test connection get attribute
+     */
+    public function testGetAttribute()
+    {
+        $this->mockPdo->shouldReceive('getAttribute')->once()->with(5)->andReturn('value');
+        $connection = new MockConnection($this->mockPdo);
+        $this->assertEquals('value', $connection->getAttribute(5));
+    }
+
+    /**
+     * Test connection set attribute.
+     */
+    public function testSetAttribute()
+    {
+        $this->mockPdo->shouldReceive('setAttribute')->once()->with(5, 'value')->andReturn(true);
+        $connection = new MockConnection($this->mockPdo);
+        $this->assertTrue($connection->setAttribute(5, 'value'));
+    }
+
+    /**
+     * Test connection alter.
+     */
+    public function testAlert()
+    {
+        $alter = (new MockConnection($this->mockPdo))->alter();
+        $this->assertInstanceOf(Table\Alter::class, $alter);
+    }
+
+    /**
+     * Test connection truncate.
+     */
+    public function testTruncate()
+    {
+        $truncate = (new MockConnection($this->mockPdo))->truncate();
+        $this->assertInstanceOf(Table\Truncate::class, $truncate);
+    }
+
+    /**
+     * Test connection drop.
+     */
+    public function testDrop()
+    {
+        $drop = (new MockConnection($this->mockPdo))->drop();
+        $this->assertInstanceOf(Table\Drop::class, $drop);
+    }
+
+    /**
      * Test connection select.
      */
     public function testSelect()
     {
         $select = (new MockConnection($this->mockPdo))->select();
-        $this->assertInstanceOf(Qb\Select::class, $select);
+        $this->assertInstanceOf(Query\Select::class, $select);
     }
 
     /**
@@ -42,7 +90,7 @@ class ConnectionTest extends TestCase
     public function testInsert()
     {
         $select = (new MockConnection($this->mockPdo))->insert();
-        $this->assertInstanceOf(Qb\Insert::class, $select);
+        $this->assertInstanceOf(Query\Insert::class, $select);
     }
 
     /**
@@ -51,7 +99,7 @@ class ConnectionTest extends TestCase
     public function testUpdate()
     {
         $select = (new MockConnection($this->mockPdo))->update();
-        $this->assertInstanceOf(Qb\Update::class, $select);
+        $this->assertInstanceOf(Query\Update::class, $select);
     }
 
     /**
@@ -60,7 +108,7 @@ class ConnectionTest extends TestCase
     public function testDelete()
     {
         $select = (new MockConnection($this->mockPdo))->delete();
-        $this->assertInstanceOf(Qb\Delete::class, $select);
+        $this->assertInstanceOf(Query\Delete::class, $select);
     }
 
 
@@ -81,6 +129,16 @@ class ConnectionTest extends TestCase
         $this->assertTrue($connection->beginTransaction());
         $this->assertTrue($connection->commit());
         $this->assertTrue($connection->commit());
+    }
+
+    /**
+     * Test connection in transaction.
+     */
+    public function testInTransaction()
+    {
+        $this->mockPdo->shouldReceive('inTransaction')->once()->andReturn(true);
+        $connection = new MockConnection($this->mockPdo);
+        $this->assertTrue($connection->inTransaction());
     }
 
     /**
@@ -189,6 +247,17 @@ class ConnectionTest extends TestCase
 
         $connection = new MockConnection($this->mockPdo);
         $this->assertEquals('insert_id', $connection->lastInsertId('name'));
+    }
+
+    /**
+     * Test connection exec.
+     */
+    public function testExec()
+    {
+        $this->mockPdo->shouldReceive('exec')->once()->with('statement')->andReturn($this->mockPdoStatement);
+
+        $connection = new MockConnection($this->mockPdo);
+        $this->assertEquals($this->mockPdoStatement, $connection->exec('statement'));
     }
 
     /**

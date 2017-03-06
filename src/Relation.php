@@ -2,7 +2,7 @@
 
 namespace MadeSimple\Database;
 
-use MadeSimple\Database\QueryBuilder\Select;
+use MadeSimple\Database\Statement\Query\Select;
 
 /**
  * Class Relation

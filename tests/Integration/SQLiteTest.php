@@ -5,22 +5,26 @@ namespace Tests\Integration;
 use MadeSimple\Database\Connection;
 use MadeSimple\Database\Entity;
 use MadeSimple\Database\EntityMap;
-use MadeSimple\Database\Migration\Migration;
+use MadeSimple\Database\Migration;
 use MadeSimple\Database\Repository;
+use MadeSimple\Database\Statement\Table\Create;
 use Tests\TestCase;
 
 class SQLiteTest extends TestCase
 {
     public function test()
     {
-        $pdo        = new \PDO('sqlite::memory:');
-        $connection = new Connection($pdo);
+        $pdo = new \PDO('sqlite::memory:');
+        $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+
+        $connection = Connection::factory($pdo);
         $migration  = new SQLiteTestMigration();
 
         // Migrate up
         $migration->up($connection);
-        $statement = $pdo->query('SELECT * FROM "sqlite_master" WHERE "type"=\'table\'');
-        $rows = $statement->fetchAll(\PDO::FETCH_ASSOC);
+        $rows = $connection->select()
+            ->from('sqlite_master')->where('type = ?', 'table')->andWhere('name = ?', 'table1')
+            ->execute()->fetchAll(\PDO::FETCH_ASSOC);
         $this->assertCount(1, $rows);
         $this->assertEquals('table1', $rows[0]['name']);
 
@@ -63,8 +67,9 @@ class SQLiteTest extends TestCase
 
         // Migrate down
         $migration->dn($connection);
-        $statement = $pdo->query('SELECT * FROM "sqlite_master" WHERE "type"=\'table\'');
-        $rows = $statement->fetchAll(\PDO::FETCH_ASSOC);
+        $rows = $connection->select()
+            ->from('sqlite_master')->where('type = ?', 'table')->andWhere('name = \'table1\'')
+            ->execute()->fetchAll(\PDO::FETCH_ASSOC);
         $this->assertCount(0, $rows);
     }
 }
@@ -72,12 +77,17 @@ class SQLiteTestMigration implements Migration
 {
     function up(Connection $connection)
     {
-        $connection->query('CREATE TABLE "table1" ("ID" PRIMARY KEY, "db_value")');
+        $table = $connection->create(function (Create $table) {
+            $table->name('table1');
+            $table->column('ID')->extras('PRIMARY KEY');
+            $table->column('db_value');
+        });
+        $connection->query($table->toSql());
     }
 
     function dn(Connection $connection)
     {
-        $connection->query('DROP TABLE "table1"');
+        $connection->drop()->table('table1')->execute();
     }
 }
 class SQLiteTestEntity extends Entity
