@@ -30,6 +30,6 @@
         }
     },
     "bin": [
-        "database"
+        "bin/database"
     ]
 }
