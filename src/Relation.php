@@ -170,6 +170,58 @@ abstract class Relation
     }
 
     /**
+     * @see Select::groupBy()
+     * @param array ...$clauses
+     *
+     * @return static
+     */
+    public function groupBy(... $clauses)
+    {
+        $this->select->groupBy($clauses);
+
+        return $this;
+    }
+
+    /**
+     * @see Select::addGroupBy()
+     * @param array ...$clauses
+     *
+     * @return static
+     */
+    public function addGroupBy(... $clauses)
+    {
+        $this->select->addGroupBy($clauses);
+
+        return $this;
+    }
+
+    /**
+     * @see Select::orderBy()
+     * @param array ...$clauses
+     *
+     * @return static
+     */
+    public function orderBy(... $clauses)
+    {
+        $this->select->orderBy($clauses);
+
+        return $this;
+    }
+
+    /**
+     * @see Select::addOrderBy()
+     * @param array ...$clauses
+     *
+     * @return static
+     */
+    public function addOrderBy(... $clauses)
+    {
+        $this->select->addOrderBy($clauses);
+
+        return $this;
+    }
+
+    /**
      * Construct the select query.
      *
      * @return Select

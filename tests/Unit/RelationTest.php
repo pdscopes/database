@@ -136,6 +136,50 @@ class RelationTest extends TestCase
     }
 
     /**
+     * Test adding a group by to the relation.
+     */
+    public function testGroupBy()
+    {
+        $this->mockSelect->shouldReceive('groupBy')->once()->with(['clause']);
+
+        $relation = new DummyRelation($this->entity, RelatedEntity::class, 'd.ID = f.id', 'd', 'f');
+        $this->assertEquals($relation, $relation->groupBy('clause'));
+    }
+
+    /**
+     * Test adding an add group by to the relation.
+     */
+    public function testAddGroupBy()
+    {
+        $this->mockSelect->shouldReceive('addGroupBy')->once()->with(['clause']);
+
+        $relation = new DummyRelation($this->entity, RelatedEntity::class, 'd.ID = f.id', 'd', 'f');
+        $this->assertEquals($relation, $relation->addGroupBy('clause'));
+    }
+
+    /**
+     * Test adding an order by to the relation.
+     */
+    public function testOrderBy()
+    {
+        $this->mockSelect->shouldReceive('orderBy')->once()->with(['clause']);
+
+        $relation = new DummyRelation($this->entity, RelatedEntity::class, 'd.ID = f.id', 'd', 'f');
+        $this->assertEquals($relation, $relation->orderBy('clause'));
+    }
+
+    /**
+     * Test adding an add order by to the relation.
+     */
+    public function testAddOrderBy()
+    {
+        $this->mockSelect->shouldReceive('addOrderBy')->once()->with(['clause']);
+
+        $relation = new DummyRelation($this->entity, RelatedEntity::class, 'd.ID = f.id', 'd', 'f');
+        $this->assertEquals($relation, $relation->addOrderBy('clause'));
+    }
+
+    /**
      * Test a relation basic query.
      */
     public function testQuery()
