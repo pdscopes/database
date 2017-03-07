@@ -48,6 +48,28 @@ class RelationTest extends TestCase
     }
 
     /**
+     * Test setting the columns on the relation.
+     */
+    public function testColumns()
+    {
+        $this->mockSelect->shouldReceive('columns')->once()->with(['columns']);
+
+        $relation = new DummyRelation($this->entity, RelatedEntity::class, 'd.ID = f.id', 'd', 'f');
+        $this->assertEquals($relation, $relation->columns('columns'));
+    }
+
+    /**
+     * Test adding columns to the relation.
+     */
+    public function testAddColumns()
+    {
+        $this->mockSelect->shouldReceive('addColumns')->once()->with(['columns']);
+
+        $relation = new DummyRelation($this->entity, RelatedEntity::class, 'd.ID = f.id', 'd', 'f');
+        $this->assertEquals($relation, $relation->addColumns('columns'));
+    }
+
+    /**
      * Test adding a join onto the relation.
      */
     public function testJoin()

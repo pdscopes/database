@@ -62,6 +62,30 @@ abstract class Relation
     }
 
     /**
+     * @param array ...$columns
+     *
+     * @return static
+     */
+    public function columns(... $columns)
+    {
+        $this->select->columns($columns);
+
+        return $this;
+    }
+
+    /**
+     * @param array ...$columns
+     *
+     * @return static
+     */
+    public function addColumns(... $columns)
+    {
+        $this->select->addColumns($columns);
+
+        return $this;
+    }
+
+    /**
      * @param string      $table Database table to join
      * @param string      $on    Clause to join the table on
      * @param null|string $alias Alias for the table
