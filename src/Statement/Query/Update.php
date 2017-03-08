@@ -123,14 +123,14 @@ class Update extends Query
         $sql .= $alias == $table ? $table : $table . ' AS ' . $alias;
 
         // Set the SET
-        $sql .= "\nSET\n";
-        $sql .= implode(",\n", array_map(function ($col, $val) {
+        $sql .= ' SET ';
+        $sql .= implode(', ', array_map(function ($col, $val) {
             return $this->connection->quoteColumn($col) . ' = ' . $val;
         }, array_keys($this->columns), $this->columns));
 
         // Add possible where clause(s)
         if (!$this->where->isEmpty()) {
-            $sql .= "\nWHERE " . $this->where->flatten();
+            $sql .= ' WHERE ' . $this->where->flatten();
         }
 
         return $sql;

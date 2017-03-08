@@ -43,7 +43,7 @@ class SelectTest extends TestCase
      */
     public function testColumns($columns)
     {
-        $sql    = "SELECT `id`\nFROM `table`";
+        $sql    = 'SELECT `id` FROM `table`';
         $select = (new Select($this->mockConnection))->columns($columns)->from('table');
         $this->assertEquals($sql, $select->toSql());
     }
@@ -57,7 +57,7 @@ class SelectTest extends TestCase
      */
     public function testAddColumns($columns)
     {
-        $sql    = "SELECT *,`id`\nFROM `table`";
+        $sql    = 'SELECT *,`id` FROM `table`';
         $select = (new Select($this->mockConnection))->addColumns($columns)->from('table');
         $this->assertEquals($sql, $select->toSql());
     }
@@ -67,7 +67,7 @@ class SelectTest extends TestCase
      */
     public function testFromWithoutAlias()
     {
-        $sql    = "SELECT *\nFROM `table`";
+        $sql    = 'SELECT * FROM `table`';
         $select = (new Select($this->mockConnection))->from('old')->from('table');
         $this->assertEquals($sql, $select->toSql());
     }
@@ -77,7 +77,7 @@ class SelectTest extends TestCase
      */
     public function testFromWithAlias()
     {
-        $sql    = "SELECT *\nFROM `table` AS `t`";
+        $sql    = 'SELECT * FROM `table` AS `t`';
         $select = (new Select($this->mockConnection))->from('old')->from('table', 't');
         $this->assertEquals($sql, $select->toSql());
     }
@@ -87,7 +87,7 @@ class SelectTest extends TestCase
      */
     public function testAddFromWithoutAlias()
     {
-        $sql    = "SELECT *\nFROM `table1`,`table2`";
+        $sql    = 'SELECT * FROM `table1`,`table2`';
         $select = (new Select($this->mockConnection))->from('table1')->addFrom('table2');
         $this->assertEquals($sql, $select->toSql());
     }
@@ -97,7 +97,7 @@ class SelectTest extends TestCase
      */
     public function testAddFromWithAlias()
     {
-        $sql    = "SELECT *\nFROM `table1`,`table2` AS `t2`";
+        $sql    = 'SELECT * FROM `table1`,`table2` AS `t2`';
         $select = (new Select($this->mockConnection))->from('table1')->addFrom('table2', 't2');
         $this->assertEquals($sql, $select->toSql());
     }
@@ -107,7 +107,7 @@ class SelectTest extends TestCase
      */
     public function testJoinWithoutAlias()
     {
-        $sql    = "SELECT *\nFROM `table`\nJOIN `join` ON `join`.`tableId` = `table`.`id`";
+        $sql    = 'SELECT * FROM `table` JOIN `join` ON `join`.`tableId` = `table`.`id`';
         $select = (new Select($this->mockConnection))->from('table')->join('join', 'join.tableId = table.id');
         $this->assertEquals($sql, $select->toSql());
     }
@@ -117,7 +117,7 @@ class SelectTest extends TestCase
      */
     public function testJoinWithAlias()
     {
-        $sql    = "SELECT *\nFROM `table`\nJOIN `join` AS `j` ON `j`.`tableId` = `table`.`id`";
+        $sql    = 'SELECT * FROM `table` JOIN `join` AS `j` ON `j`.`tableId` = `table`.`id`';
         $select = (new Select($this->mockConnection))->from('table')->join('join', 'j.tableId = table.id', 'j');
         $this->assertEquals($sql, $select->toSql());
     }
@@ -127,7 +127,7 @@ class SelectTest extends TestCase
      */
     public function testLeftJoin()
     {
-        $sql    = "SELECT *\nFROM `table`\nLEFT JOIN `join` ON `join`.`tableId` = `table`.`id`";
+        $sql    = 'SELECT * FROM `table` LEFT JOIN `join` ON `join`.`tableId` = `table`.`id`';
         $select = (new Select($this->mockConnection))->from('table')->leftJoin('join', 'join.tableId = table.id');
         $this->assertEquals($sql, $select->toSql());
     }
@@ -137,7 +137,7 @@ class SelectTest extends TestCase
      */
     public function testRightJoin()
     {
-        $sql    = "SELECT *\nFROM `table`\nRIGHT JOIN `join` ON `join`.`tableId` = `table`.`id`";
+        $sql    = 'SELECT * FROM `table` RIGHT JOIN `join` ON `join`.`tableId` = `table`.`id`';
         $select = (new Select($this->mockConnection))->from('table')->rightJoin('join', 'join.tableId = table.id');
         $this->assertEquals($sql, $select->toSql());
     }
@@ -147,7 +147,7 @@ class SelectTest extends TestCase
      */
     public function testFullJoin()
     {
-        $sql    = "SELECT *\nFROM `table`\nFULL JOIN `join` ON `join`.`tableId` = `table`.`id`";
+        $sql    = 'SELECT * FROM `table` FULL JOIN `join` ON `join`.`tableId` = `table`.`id`';
         $select = (new Select($this->mockConnection))->from('table')->fullJoin('join', 'join.tableId = table.id');
         $this->assertEquals($sql, $select->toSql());
     }
@@ -157,7 +157,7 @@ class SelectTest extends TestCase
      */
     public function testInnerJoin()
     {
-        $sql    = "SELECT *\nFROM `table`\nINNER JOIN `join` ON `join`.`tableId` = `table`.`id`";
+        $sql    = 'SELECT * FROM `table` INNER JOIN `join` ON `join`.`tableId` = `table`.`id`';
         $select = (new Select($this->mockConnection))->from('table')->innerJoin('join', 'join.tableId = table.id');
         $this->assertEquals($sql, $select->toSql());
     }
@@ -167,7 +167,7 @@ class SelectTest extends TestCase
      */
     public function testSetParameter()
     {
-        $sql = "SELECT *\nFROM `table`\nWHERE `foo` = :bar";
+        $sql = 'SELECT * FROM `table` WHERE `foo` = :bar';
 
         $this->mockPdo->shouldReceive('prepare')->once()->with($sql, [])->andReturn($this->mockPdoStatement);
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(':bar', 1, \PDO::PARAM_INT)->andReturn(true);
@@ -182,7 +182,7 @@ class SelectTest extends TestCase
      */
     public function testSetParametersWildcard()
     {
-        $sql = "SELECT *\nFROM `table`\nWHERE `foo` = ?";
+        $sql = 'SELECT * FROM `table` WHERE `foo` = ?';
 
         $this->mockPdo->shouldReceive('prepare')->once()->with($sql, [])->andReturn($this->mockPdoStatement);
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(1, 1, \PDO::PARAM_INT)->andReturn(true);
@@ -197,7 +197,7 @@ class SelectTest extends TestCase
      */
     public function testSetParametersNamed()
     {
-        $sql = "SELECT *\nFROM `table`\nWHERE `foo` = :bar";
+        $sql = 'SELECT * FROM `table` WHERE `foo` = :bar';
 
         $this->mockPdo->shouldReceive('prepare')->once()->with($sql, [])->andReturn($this->mockPdoStatement);
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(':bar', 1, \PDO::PARAM_INT)->andReturn(true);
@@ -212,7 +212,7 @@ class SelectTest extends TestCase
      */
     public function testWhereWithoutParameters()
     {
-        $sql    = "SELECT *\nFROM `table`\nWHERE `foo` = 1";
+        $sql    = 'SELECT * FROM `table` WHERE `foo` = 1';
         $select = (new Select($this->mockConnection))->from('table')->where('foo = 1');
         $this->assertEquals($sql, $select->toSql());
     }
@@ -222,7 +222,7 @@ class SelectTest extends TestCase
      */
     public function testWhereWithWildcardParameter()
     {
-        $sql    = "SELECT *\nFROM `table`\nWHERE `foo` = ?";
+        $sql    = 'SELECT * FROM `table` WHERE `foo` = ?';
         $select = (new Select($this->mockConnection))->from('table')->where('foo = ?');
 
         $this->assertEquals($sql, $select->toSql());
@@ -233,7 +233,7 @@ class SelectTest extends TestCase
      */
     public function testWhereWithNamedParameter()
     {
-        $sql    = "SELECT *\nFROM `table`\nWHERE `foo` = :bar";
+        $sql    = 'SELECT * FROM `table` WHERE `foo` = :bar';
         $select = (new Select($this->mockConnection))->from('table')->where('foo = :bar');
 
         $this->assertEquals($sql, $select->toSql());
@@ -244,7 +244,7 @@ class SelectTest extends TestCase
      */
     public function testWhereWithClosure()
     {
-        $sql = "SELECT *\nFROM `table`\nWHERE ((`foo` = :foo OR `bar` = :bar) AND `baz` = :qux)";
+        $sql = 'SELECT * FROM `table` WHERE ((`foo` = :foo OR `bar` = :bar) AND `baz` = :qux)';
 
         $this->mockPdo->shouldReceive('prepare')->once()->with($sql, [])->andReturn($this->mockPdoStatement);
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(':foo', 2, \PDO::PARAM_INT)->andReturn(true);
@@ -282,7 +282,7 @@ class SelectTest extends TestCase
      */
     public function testAndWhere()
     {
-        $sql    = "SELECT *\nFROM `table`\nWHERE `foo` IS TRUE AND `bar` = ? AND (`baz` = :qux)";
+        $sql    = 'SELECT * FROM `table` WHERE `foo` IS TRUE AND `bar` = ? AND (`baz` = :qux)';
         $select = (new Select($this->mockConnection))
             ->from('table')
             ->where('foo IS TRUE')
@@ -300,7 +300,7 @@ class SelectTest extends TestCase
      */
     public function testOrWhere()
     {
-        $sql    = "SELECT *\nFROM `table`\nWHERE `foo` IS NULL OR `bar` = ? OR (`baz` = :qux)";
+        $sql    = 'SELECT * FROM `table` WHERE `foo` IS NULL OR `bar` = ? OR (`baz` = :qux)';
         $select = (new Select($this->mockConnection))
             ->from('table')
             ->where('foo IS NULL')
@@ -321,7 +321,7 @@ class SelectTest extends TestCase
      */
     public function testGroupBy($clauses)
     {
-        $sql    = "SELECT *\nFROM `table`\nGROUP BY `id`";
+        $sql    = 'SELECT * FROM `table` GROUP BY `id`';
         $select = (new Select($this->mockConnection))->from('table')->groupBy($clauses);
         $this->assertEquals($sql, $select->toSql());
     }
@@ -335,7 +335,7 @@ class SelectTest extends TestCase
      */
     public function testAddGroupBy($clauses)
     {
-        $sql    = "SELECT *\nFROM `table`\nGROUP BY `foo`,`id`";
+        $sql    = 'SELECT * FROM `table` GROUP BY `foo`,`id`';
         $select = (new Select($this->mockConnection))->from('table')->groupBy('foo')->addGroupBy($clauses);
         $this->assertEquals($sql, $select->toSql());
     }
@@ -349,7 +349,7 @@ class SelectTest extends TestCase
      */
     public function testOrderBy($clauses)
     {
-        $sql    = "SELECT *\nFROM `table`\nORDER BY `id` ASC";
+        $sql    = 'SELECT * FROM `table` ORDER BY `id` ASC';
         $select = (new Select($this->mockConnection))->from('table')->orderBy($clauses);
         $this->assertEquals($sql, $select->toSql());
     }
@@ -363,7 +363,7 @@ class SelectTest extends TestCase
      */
     public function testAddOrderBy($clauses)
     {
-        $sql    = "SELECT *\nFROM `table`\nORDER BY `foo`,`id` ASC";
+        $sql    = 'SELECT * FROM `table` ORDER BY `foo`,`id` ASC';
         $select = (new Select($this->mockConnection))->from('table')->orderBy('foo')->addOrderBy($clauses);
         $this->assertEquals($sql, $select->toSql());
     }
@@ -373,7 +373,7 @@ class SelectTest extends TestCase
      */
     public function testLimitRange()
     {
-        $sql    = "SELECT *\nFROM `table`\nLIMIT 15";
+        $sql    = 'SELECT * FROM `table` LIMIT 15';
         $select = (new Select($this->mockConnection))->from('table')->limit(15);
         $this->assertEquals($sql, $select->toSql());
     }
@@ -383,7 +383,7 @@ class SelectTest extends TestCase
      */
     public function testLimitRangeAndStart()
     {
-        $sql    = "SELECT *\nFROM `table`\nLIMIT 5, 15";
+        $sql    = 'SELECT * FROM `table` LIMIT 5, 15';
         $select = (new Select($this->mockConnection))->from('table')->limit(15, 5);
         $this->assertEquals($sql, $select->toSql());
     }

@@ -96,14 +96,14 @@ class Insert extends Query
 
         // Add the columns
         if (!empty($this->columns)) {
-            $sql .= "\n(" . implode(',', array_map([$this->connection, 'quoteColumn'], array_unique($this->columns))) . ')';
+            $sql .= ' (' . implode(',', array_map([$this->connection, 'quoteColumn'], array_unique($this->columns))) . ')';
         }
 
         // Add the values
         if (!empty($this->parameters)) {
             $sql .=
-                "\nVALUES\n(" .
-                implode("),\n(", array_fill(0, count($this->parameters) / count($this->columns), implode(',', array_fill(0, count($this->columns), '?')))) .
+                ' VALUES (' .
+                implode('), (', array_fill(0, count($this->parameters) / count($this->columns), implode(',', array_fill(0, count($this->columns), '?')))) .
                 ')';
         }
 

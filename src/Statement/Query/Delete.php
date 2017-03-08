@@ -66,7 +66,7 @@ class Delete extends Query
 
         // Add possible where clause(s)
         if (!$this->where->isEmpty()) {
-            $sql .= "\nWHERE " . $this->where->flatten();
+            $sql .= ' WHERE ' . $this->where->flatten();
         }
 
         return $sql;

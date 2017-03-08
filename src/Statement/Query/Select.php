@@ -303,29 +303,29 @@ class Select extends Query
                 $this->connection->quoteColumn($table) . ' AS ' . $this->connection->quoteColumn($alias);
         }
         $tables = array_unique($tables);
-        $sql   .= "\nFROM " . implode(',', array_unique($tables));
+        $sql   .= ' FROM ' . implode(',', array_unique($tables));
 
         // If joins
         foreach ($this->join as $alias => $j) {
             $sql .=
-                "\n" . $j['type'] . ' ' . $this->connection->quoteColumn($j['table']) .
+                ' ' . $j['type'] . ' ' . $this->connection->quoteColumn($j['table']) .
                 ($alias == $j['table'] ? '' : ' AS ' . $this->connection->quoteColumn($alias)) . ' ON ' .
                 $this->connection->quoteClause($j['on']);
         }
 
         // If where
         if (!$this->where->isEmpty()) {
-            $sql .= "\n".'WHERE ' . $this->where->flatten();
+            $sql .= ' '.'WHERE ' . $this->where->flatten();
         }
 
         // If group
         if (!empty($this->group)) {
-            $sql .= "\n".'GROUP BY ' . implode(',', array_map([$this->connection, 'quoteColumn'], $this->group));
+            $sql .= ' '.'GROUP BY ' . implode(',', array_map([$this->connection, 'quoteColumn'], $this->group));
         }
 
         // If order
         if (!empty($this->order)) {
-            $sql .= "\n".'ORDER BY ' .
+            $sql .= ' '.'ORDER BY ' .
                 implode(',', array_map(function ($e) {
                     list ($c, $d) =  explode(' ', $e.' ', 2);
                     return $this->connection->quoteColumn($c) . (empty($d) ? '' : ' '.trim(strtoupper($d)));
@@ -334,7 +334,7 @@ class Select extends Query
 
         // If limit
         if (!empty($this->limit)) {
-            $sql .= "\n".'LIMIT ' . $this->limit;
+            $sql .= ' '.'LIMIT ' . $this->limit;
         }
 
         return $sql;

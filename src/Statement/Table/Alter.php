@@ -60,7 +60,7 @@ class Alter implements Statement
     public function toSql()
     {
         $sql = 'ALTER TABLE ' . $this->name;
-        $sql .= "\n" . $this->action;
+        $sql .= ' ' . $this->action;
         return $sql;
     }
 

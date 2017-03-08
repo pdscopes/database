@@ -39,7 +39,7 @@ class UpdateTest extends TestCase
      */
     public function testTableWithoutAlias()
     {
-        $sql    = "UPDATE `table`\nSET\n`foo` = ?";
+        $sql    = 'UPDATE `table` SET `foo` = ?';
         $update = (new Update($this->mockConnection))->table('table')->columns('foo');
 
         $this->assertEquals($sql, $update->toSql());
@@ -50,7 +50,7 @@ class UpdateTest extends TestCase
      */
     public function testTableWithAlias()
     {
-        $sql    = "UPDATE `table` AS `t`\nSET\n`foo` = ?";
+        $sql    = 'UPDATE `table` AS `t` SET `foo` = ?';
         $update = (new Update($this->mockConnection))->table('table', 't')->columns('foo');
 
         $this->assertEquals($sql, $update->toSql());
@@ -61,7 +61,7 @@ class UpdateTest extends TestCase
      */
     public function testSet()
     {
-        $sql    = "UPDATE `table`\nSET\n`foo` = :foo,\n`bar` = :bar";
+        $sql    = 'UPDATE `table` SET `foo` = :foo, `bar` = :bar';
         $update = (new Update($this->mockConnection))->table('table')->set('foo', 1)->set('bar', 2);
 
         $this->assertEquals($sql, $update->toSql());
@@ -72,7 +72,7 @@ class UpdateTest extends TestCase
      */
     public function testColumnsSingle()
     {
-        $sql    = "UPDATE `table`\nSET\n`foo` = ?";
+        $sql    = 'UPDATE `table` SET `foo` = ?';
         $update = (new Update($this->mockConnection))->table('table')->columns('foo');
 
         $this->assertEquals($sql, $update->toSql());
@@ -83,7 +83,7 @@ class UpdateTest extends TestCase
      */
     public function testColumnsMultiple()
     {
-        $sql    = "UPDATE `table`\nSET\n`foo` = ?,\n`bar` = ?";
+        $sql    = 'UPDATE `table` SET `foo` = ?, `bar` = ?';
         $update = (new Update($this->mockConnection))->table('table')->columns('foo', 'bar');
 
         $this->assertEquals($sql, $update->toSql());
@@ -94,7 +94,7 @@ class UpdateTest extends TestCase
      */
     public function testColumnsArray()
     {
-        $sql    = "UPDATE `table`\nSET\n`foo` = ?,\n`bar` = ?";
+        $sql    = 'UPDATE `table` SET `foo` = ?, `bar` = ?';
         $update = (new Update($this->mockConnection))->table('table')->columns(['foo', 'bar']);
 
         $this->assertEquals($sql, $update->toSql());
@@ -105,7 +105,7 @@ class UpdateTest extends TestCase
      */
     public function testValuesSingle()
     {
-        $sql    = "UPDATE `table`\nSET\n`foo` = ?";
+        $sql    = 'UPDATE `table` SET `foo` = ?';
 
         $this->mockPdo->shouldReceive('prepare')->once()->with($sql, [])->andReturn($this->mockPdoStatement);
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(1, 2, \PDO::PARAM_INT)->andReturn(true);
@@ -122,7 +122,7 @@ class UpdateTest extends TestCase
      */
     public function testValuesMultiple()
     {
-        $sql    = "UPDATE `table`\nSET\n`foo` = ?,\n`bar` = ?";
+        $sql    = 'UPDATE `table` SET `foo` = ?, `bar` = ?';
 
         $this->mockPdo->shouldReceive('prepare')->once()->with($sql, [])->andReturn($this->mockPdoStatement);
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(1, 2, \PDO::PARAM_INT)->andReturn(true);
@@ -140,7 +140,7 @@ class UpdateTest extends TestCase
      */
     public function testValuesArray()
     {
-        $sql    = "UPDATE `table`\nSET\n`foo` = ?,\n`bar` = ?";
+        $sql    = 'UPDATE `table` SET `foo` = ?, `bar` = ?';
 
         $this->mockPdo->shouldReceive('prepare')->once()->with($sql, [])->andReturn($this->mockPdoStatement);
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(1, 2, \PDO::PARAM_INT)->andReturn(true);
@@ -158,7 +158,7 @@ class UpdateTest extends TestCase
      */
     public function testSetParameter()
     {
-        $sql = "UPDATE `table`\nSET\n`foo` = :foo";
+        $sql = 'UPDATE `table` SET `foo` = :foo';
 
         $this->mockPdo->shouldReceive('prepare')->once()->with($sql, [])->andReturn($this->mockPdoStatement);
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(':foo', 1, \PDO::PARAM_INT)->andReturn(true);
@@ -173,7 +173,7 @@ class UpdateTest extends TestCase
      */
     public function testSetParametersWildcard()
     {
-        $sql = "UPDATE `table`\nSET\n`foo` = ?";
+        $sql = 'UPDATE `table` SET `foo` = ?';
 
         $this->mockPdo->shouldReceive('prepare')->once()->with($sql, [])->andReturn($this->mockPdoStatement);
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(1, 1, \PDO::PARAM_INT)->andReturn(true);
@@ -188,7 +188,7 @@ class UpdateTest extends TestCase
      */
     public function testSetParametersNamed()
     {
-        $sql = "UPDATE `table`\nSET\n`foo` = :foo";
+        $sql = 'UPDATE `table` SET `foo` = :foo';
 
         $this->mockPdo->shouldReceive('prepare')->once()->with($sql, [])->andReturn($this->mockPdoStatement);
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(':foo', 1, \PDO::PARAM_INT)->andReturn(true);
@@ -203,7 +203,7 @@ class UpdateTest extends TestCase
      */
     public function testWhereWithoutParameters()
     {
-        $sql    = "UPDATE `table`\nSET\n`bar` = :bar\nWHERE `foo` IS TRUE";
+        $sql    = 'UPDATE `table` SET `bar` = :bar WHERE `foo` IS TRUE';
         $update = (new Update($this->mockConnection))->table('table')->set('bar', 'foo')->where('foo IS TRUE');
         $this->assertEquals($sql, $update->toSql());
     }
@@ -213,7 +213,7 @@ class UpdateTest extends TestCase
      */
     public function testWhereWithWildcardParameter()
     {
-        $sql    = "UPDATE `table`\nSET\n`bar` = :bar\nWHERE `foo` = ?";
+        $sql    = 'UPDATE `table` SET `bar` = :bar WHERE `foo` = ?';
         $update = (new Update($this->mockConnection))->table('table')->set('bar', 'foo')->where('foo = ?');
 
         $this->assertEquals($sql, $update->toSql());
@@ -224,7 +224,7 @@ class UpdateTest extends TestCase
      */
     public function testWhereWithNamedParameter()
     {
-        $sql    = "UPDATE `table`\nSET\n`bar` = :bar\nWHERE `foo` = :foo";
+        $sql    = 'UPDATE `table` SET `bar` = :bar WHERE `foo` = :foo';
         $update = (new Update($this->mockConnection))->table('table')->set('bar', 'foo')->where('foo = :foo');
 
         $this->assertEquals($sql, $update->toSql());
@@ -235,7 +235,7 @@ class UpdateTest extends TestCase
      */
     public function testWhereWithClosure()
     {
-        $sql = "UPDATE `table`\nSET\n`qux` = :qux\nWHERE ((`foo` = :foo OR `bar` = :bar) AND `baz` = :baz)";
+        $sql = 'UPDATE `table` SET `qux` = :qux WHERE ((`foo` = :foo OR `bar` = :bar) AND `baz` = :baz)';
 
         $this->mockPdo->shouldReceive('prepare')->once()->with($sql, [])->andReturn($this->mockPdoStatement);
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(':foo', 2, \PDO::PARAM_INT)->andReturn(true);
@@ -272,7 +272,7 @@ class UpdateTest extends TestCase
      */
     public function testAndWhere()
     {
-        $sql    = "UPDATE `table`\nSET\n`qux` = :qux\nWHERE `foo` IS TRUE AND `bar` = ? AND (`baz` = :baz)";
+        $sql    = 'UPDATE `table` SET `qux` = :qux WHERE `foo` IS TRUE AND `bar` = ? AND (`baz` = :baz)';
         $update = (new Update($this->mockConnection))
             ->table('table')
             ->set('qux', 1)
@@ -290,7 +290,7 @@ class UpdateTest extends TestCase
      */
     public function testOrWhere()
     {
-        $sql    = "UPDATE `table`\nSET\n`qux` = :qux\nWHERE `foo` IS NULL OR `bar` = ? OR (`baz` = :baz)";
+        $sql    = 'UPDATE `table` SET `qux` = :qux WHERE `foo` IS NULL OR `bar` = ? OR (`baz` = :baz)';
         $update = (new Update($this->mockConnection))
             ->table('table')
             ->set('qux', 1)
