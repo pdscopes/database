@@ -375,7 +375,7 @@ class SingleKeyEntity extends Entity
         return new EntityMap(
             'dummy',
             ['ID' => 'id'],
-            ['ID' => 'id', 'first_name' => 'firstName', 'last_name' => 'lastName']
+            ['first_name' => 'firstName', 'last_name' => 'lastName']
         );
     }
 }
@@ -390,7 +390,7 @@ class CompositeKeyEntity extends Entity
         return new EntityMap(
             'dummy_link',
             ['user_id' => 'userId', 'company_id' => 'companyId'],
-            ['user_id' => 'userId', 'company_id' => 'companyId', 'value' => 'value']
+            ['value' => 'value']
         );
     }
 }

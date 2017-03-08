@@ -230,7 +230,7 @@ class RelationEntity extends Entity
 
     public  function getMap()
     {
-        return new EntityMap('entity', ['ID' => 'id'], ['ID' => 'id', 'db_value' => 'value']);
+        return new EntityMap('entity', ['ID' => 'id'], ['db_value' => 'value']);
     }
 }
 class RelatedEntity extends Entity
@@ -240,6 +240,6 @@ class RelatedEntity extends Entity
 
     public  function getMap()
     {
-        return new EntityMap('related', ['ID' => 'id'], ['ID' => 'id', 'db_value' => 'value']);
+        return new EntityMap('related', ['ID' => 'id'], ['db_value' => 'value']);
     }
 }

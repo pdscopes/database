@@ -97,6 +97,6 @@ class SQLiteTestEntity extends Entity
 
     public  function getMap()
     {
-        return new EntityMap('table1', ['ID' => 'id'], ['ID' => 'id', 'db_value' => 'value']);
+        return new EntityMap('table1', ['ID' => 'id'], ['db_value' => 'value']);
     }
 }

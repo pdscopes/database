@@ -19,26 +19,28 @@ class EntityMapTest extends TestCase
     /**
      * Test getting the primary keys.
      *
-     * @param array $keys
-     * @dataProvider primaryKeysDataProvider
+     * @param array $keyMap
+     *
+     * @dataProvider keyMapDataProvider
      */
-    public function testPrimaryKeys($keys)
+    public function testPrimaryKeys($keyMap)
     {
-        $entityMap = new EntityMap('', $keys, []);
-        $this->assertEquals($keys, $entityMap->primaryKeys());
+        $entityMap = new EntityMap('', $keyMap, []);
+        $this->assertEquals($keyMap, $entityMap->primaryKeys());
     }
 
     /**
      * Test getting a particular primary key.
      *
-     * @param array   $keys
+     * @param array   $keyMap
      * @param integer $index
      * @param string  $key
-     * @dataProvider primaryKeysDataProvider
+     *
+     * @dataProvider keyMapDataProvider
      */
-    public function testPrimaryKey($keys, $index, $key)
+    public function testPrimaryKey($keyMap, $index, $key)
     {
-        $entityMap = new EntityMap('', $keys, []);
+        $entityMap = new EntityMap('', $keyMap, []);
         $this->assertEquals($key, $entityMap->primaryKey($index));
     }
 
@@ -57,7 +59,8 @@ class EntityMapTest extends TestCase
     /**
      * Test getting the database columns.
      *
-     * @param $columnMap
+     * @param array $columnMap
+     *
      * @dataProvider columnMapDataProvider
      */
     public function testColumns($columnMap)
@@ -66,8 +69,21 @@ class EntityMapTest extends TestCase
         $this->assertEquals(array_keys($columnMap), $entityMap->columns());
     }
 
+    /**
+     * Test getting the entity properties.
+     *
+     * @param array $columnMap
+     *
+     * @dataProvider columnMapDataProvider
+     */
+    public function testProperties($columnMap)
+    {
+        $entityMap = new EntityMap('', [], $columnMap);
+        $this->assertEquals(array_values($columnMap), $entityMap->properties());
+    }
 
-    public function primaryKeysDataProvider()
+
+    public function keyMapDataProvider()
     {
         return [
             [['id' => 'id'], 0, 'id'],

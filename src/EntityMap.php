@@ -18,7 +18,7 @@ class EntityMap
     /**
      * @var string[]
      */
-    protected $primaryKeys;
+    protected $keyMap;
 
     /**
      * @var string[]
@@ -28,15 +28,15 @@ class EntityMap
     /**
      * DatabaseMap constructor.
      *
-     * @param string   $tableName
-     * @param string[] $primaryKey
-     * @param string[] $columnMap
+     * @param string   $tableName DB table name
+     * @param string[] $keyMap    Map of DB keys to Entity properties
+     * @param string[] $columnMap Map of DB columns to Entity properties (merged with $keyMap)
      */
-    public function __construct($tableName, array $primaryKey, array $columnMap)
+    public function __construct($tableName, array $keyMap, array $columnMap)
     {
-        $this->tableName   = $tableName;
-        $this->primaryKeys = $primaryKey;
-        $this->columnMap   = $columnMap;
+        $this->tableName = $tableName;
+        $this->keyMap    = $keyMap;
+        $this->columnMap = array_replace($keyMap, $columnMap, $keyMap);
     }
 
     /**
@@ -52,7 +52,7 @@ class EntityMap
      */
     public function primaryKeys()
     {
-        return $this->primaryKeys;
+        return $this->keyMap;
     }
 
     /**
@@ -62,7 +62,7 @@ class EntityMap
      */
     public function primaryKey($index)
     {
-        return array_values(array_slice($this->primaryKeys, $index, 1))[0];
+        return array_values(array_slice($this->keyMap, $index, 1))[0];
     }
 
     /**
@@ -74,10 +74,18 @@ class EntityMap
     }
 
     /**
-     * @return string[]
+     * @return string[] DB columns
      */
     public function columns()
     {
         return array_keys($this->columnMap);
+    }
+
+    /**
+     * @return string[] Entity properties
+     */
+    public function properties()
+    {
+        return array_values($this->columnMap);
     }
 }

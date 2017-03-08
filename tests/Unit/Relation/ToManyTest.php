@@ -76,7 +76,7 @@ class ToManyEntity extends Entity
 
     public  function getMap()
     {
-        return new EntityMap('entity', ['ID' => 'id'], ['ID' => 'id', 'db_value' => 'value']);
+        return new EntityMap('entity', ['ID' => 'id'], ['db_value' => 'value']);
     }
 }
 class ToManyRelatedEntity extends Entity
@@ -86,6 +86,6 @@ class ToManyRelatedEntity extends Entity
 
     public  function getMap()
     {
-        return new EntityMap('related', ['ID' => 'id'], ['ID' => 'id', 'db_value' => 'value']);
+        return new EntityMap('related', ['ID' => 'id'], ['db_value' => 'value']);
     }
 }

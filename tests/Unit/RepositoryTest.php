@@ -216,6 +216,6 @@ class RepositoryEntity extends Entity
     public $value;
     public  function getMap()
     {
-        return new EntityMap('repo', ['ID' => 'id'], ['ID' => 'id', 'db_value' => 'value']);
+        return new EntityMap('repo', ['ID' => 'id'], ['db_value' => 'value']);
     }
 }

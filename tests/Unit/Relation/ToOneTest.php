@@ -78,7 +78,7 @@ class ToOneEntity extends Entity
 
     public  function getMap()
     {
-        return new EntityMap('entity', ['ID' => 'id'], ['ID' => 'id', 'db_value' => 'value']);
+        return new EntityMap('entity', ['ID' => 'id'], ['db_value' => 'value']);
     }
 }
 class ToOneRelatedEntity extends Entity
@@ -88,6 +88,6 @@ class ToOneRelatedEntity extends Entity
 
     public  function getMap()
     {
-        return new EntityMap('related', ['ID' => 'id'], ['ID' => 'id', 'db_value' => 'value']);
+        return new EntityMap('related', ['ID' => 'id'], ['db_value' => 'value']);
     }
 }
