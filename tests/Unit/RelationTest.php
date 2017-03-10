@@ -35,7 +35,13 @@ class RelationTest extends TestCase
 
         $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($this->mockSelect);
 
+        $this->mockSelect->shouldReceive('columns')->once()->with('f.*')->andReturnSelf();
+        $this->mockSelect->shouldReceive('from')->once()->with('related', 'f')->andReturnSelf();
+        $this->mockSelect->shouldReceive('join')->once()->with('entity', 'd.ID = f.id', 'd')->andReturnSelf();
+        $this->mockSelect->shouldReceive('andWhere')->once()->with('d.ID = :ID', ['ID' => 5])->andReturnSelf();
+
         $this->entity = new RelationEntity($this->mockConnection);
+        $this->entity->id = 5;
     }
 
 
@@ -206,12 +212,6 @@ class RelationTest extends TestCase
      */
     public function testQuery()
     {
-        $this->mockSelect->shouldReceive('columns')->once()->with('f.*')->andReturnSelf();
-        $this->mockSelect->shouldReceive('from')->once()->with('related', 'f')->andReturnSelf();
-        $this->mockSelect->shouldReceive('join')->once()->with('entity', 'd.ID = f.id', 'd')->andReturnSelf();
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('d.ID = :ID', ['ID' => 5])->andReturnSelf();
-
-        $this->entity->id = 5;
         $relation = new DummyRelation($this->entity, RelatedEntity::class, 'd.ID = f.id', 'd', 'f');
         $this->assertInstanceOf(Select::class, $relation->query());
     }

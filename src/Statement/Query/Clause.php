@@ -34,6 +34,17 @@ class Clause
     }
 
     /**
+     * @param string $column
+     * @param array $values
+     *
+     * @return string
+     */
+    public static function notInX($column, $values)
+    {
+        return $column . ' NOT IN (' . implode(' , ', array_fill(0, count($values), '?')) . ')';
+    }
+
+    /**
      * Clause constructor.
      *
      * @param Connection  $connection

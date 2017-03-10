@@ -61,8 +61,8 @@ class ToOneTest extends TestCase
 
         $this->mockPdoStatement->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC)->andReturn($data);
 
-        $relation = new ToOne($this->entity, ToOneRelatedEntity::class, 'd.ID = f.id', 'd', 'f');
         $this->entity->id = 5;
+        $relation = new ToOne($this->entity, ToOneRelatedEntity::class, 'd.ID = f.id', 'd', 'f');
         /** @var ToOneRelatedEntity $related */
         $related = $relation->fetch();
 

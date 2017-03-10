@@ -36,6 +36,15 @@ class ClauseTest extends TestCase
     }
 
     /**
+     * Test create an NOT IN clause.
+     */
+    public function testNotInX()
+    {
+        $values = [1, 2, 3];
+        $this->assertEquals('column NOT IN (? , ? , ?)', Clause::notInX('column', $values));
+    }
+
+    /**
      * Test the where clause.
      */
     public function testWhere()

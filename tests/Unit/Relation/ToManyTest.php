@@ -60,8 +60,8 @@ class ToManyTest extends TestCase
 
         $this->mockPdoStatement->shouldReceive('fetch')->times(2)->with(\PDO::FETCH_ASSOC)->andReturnValues([$data, null]);
 
-        $relation = new ToMany($this->entity, ToManyRelatedEntity::class, 'd.ID = f.id', 'd', 'f');
         $this->entity->id = 5;
+        $relation = new ToMany($this->entity, ToManyRelatedEntity::class, 'd.ID = f.id', 'd', 'f');
         $items = $relation->fetch();
 
         $this->assertInternalType('array', $items);

@@ -2,6 +2,7 @@
 
 namespace MadeSimple\Database;
 
+use MadeSimple\Database\Statement\Query;
 use MadeSimple\Database\Statement\Query\Select;
 
 /**
@@ -40,7 +41,7 @@ abstract class Relation
     /**
      * @var Select
      */
-    protected $select;
+    protected $query;
 
     /**
      * Relation constructor.
@@ -58,7 +59,38 @@ abstract class Relation
         $this->clause        = $clause;
         $this->entityAlias   = $entityAlias;
         $this->relativeAlias = $relativeAlias;
-        $this->select        = $entity->connection->select();
+        $this->query         = $this->initialiseQuery($entity->connection);
+    }
+
+    /**
+     * Initialise the relations query.
+     *
+     * @param Connection $connection
+     *
+     * @return Query
+     */
+    protected function initialiseQuery(Connection $connection)
+    {
+        $select = $connection->select();
+
+        $relativeTable = $this->relative->getMap()->tableName();
+        $entityTable   = $this->entity->getMap()->tableName();
+        $relativeAlias = null !== $this->relativeAlias ? $this->relativeAlias : $relativeTable;
+        $entityAlias   = null !== $this->entityAlias ? $this->entityAlias : $entityTable;
+
+        // Select from the relative table
+        $select
+            ->columns($relativeAlias . '.*')
+            ->from($relativeTable, $relativeAlias)
+            // Join on the entity table
+            ->join($entityTable, $this->clause, $entityAlias);
+
+        // Construct the where clause(s)
+        foreach ($this->entity->getMap()->primaryKeys() as $dbKey => $entityKey) {
+            $select->andWhere($entityAlias.'.'.$dbKey.' = :'.$dbKey, [$dbKey => $this->entity->{$entityKey}]);
+        }
+
+        return $select;
     }
 
     /**
@@ -68,7 +100,7 @@ abstract class Relation
      */
     public function columns(... $columns)
     {
-        $this->select->columns($columns);
+        $this->query->columns($columns);
 
         return $this;
     }
@@ -80,7 +112,7 @@ abstract class Relation
      */
     public function addColumns(... $columns)
     {
-        $this->select->addColumns($columns);
+        $this->query->addColumns($columns);
 
         return $this;
     }
@@ -95,7 +127,7 @@ abstract class Relation
      */
     public function join($table, $on, $alias = null, $type = Select::JOIN_DEFAULT)
     {
-        $this->select->join($table, $on, $alias, $type);
+        $this->query->join($table, $on, $alias, $type);
 
         return $this;
     }
@@ -158,7 +190,7 @@ abstract class Relation
      */
     public function where($clause, $parameter = null)
     {
-        $this->select->where($clause, $parameter);
+        $this->query->where($clause, $parameter);
 
         return $this;
     }
@@ -173,7 +205,7 @@ abstract class Relation
      */
     public function andWhere($clause, $parameter = null)
     {
-        $this->select->andWhere($clause, $parameter);
+        $this->query->andWhere($clause, $parameter);
 
         return $this;
     }
@@ -188,7 +220,7 @@ abstract class Relation
      */
     public function orWhere($clause, $parameter = null)
     {
-        $this->select->orWhere($clause, $parameter);
+        $this->query->orWhere($clause, $parameter);
 
         return $this;
     }
@@ -201,7 +233,7 @@ abstract class Relation
      */
     public function groupBy(... $clauses)
     {
-        $this->select->groupBy($clauses);
+        $this->query->groupBy($clauses);
 
         return $this;
     }
@@ -214,7 +246,7 @@ abstract class Relation
      */
     public function addGroupBy(... $clauses)
     {
-        $this->select->addGroupBy($clauses);
+        $this->query->addGroupBy($clauses);
 
         return $this;
     }
@@ -227,7 +259,7 @@ abstract class Relation
      */
     public function orderBy(... $clauses)
     {
-        $this->select->orderBy($clauses);
+        $this->query->orderBy($clauses);
 
         return $this;
     }
@@ -240,7 +272,7 @@ abstract class Relation
      */
     public function addOrderBy(... $clauses)
     {
-        $this->select->addOrderBy($clauses);
+        $this->query->addOrderBy($clauses);
 
         return $this;
     }
@@ -252,26 +284,7 @@ abstract class Relation
      */
     public function query()
     {
-        $relativeTable = $this->relative->getMap()->tableName();
-        $entityTable   = $this->entity->getMap()->tableName();
-        $relativeAlias = null !== $this->relativeAlias ? $this->relativeAlias : $relativeTable;
-        $entityAlias   = null !== $this->entityAlias ? $this->entityAlias : $entityTable;
-
-        // Select from the relative table
-        $select = (clone $this->select);
-        $select
-            ->columns($relativeAlias . '.*')
-            ->from($relativeTable, $relativeAlias);
-
-        // Join on the entity table
-        $select->join($entityTable, $this->clause, $entityAlias);
-
-        // Construct the where clause(s)
-        foreach ($this->entity->getMap()->primaryKeys() as $dbKey => $entityKey) {
-            $select->andWhere($entityAlias.'.'.$dbKey.' = :'.$dbKey, [$dbKey => $this->entity->{$entityKey}]);
-        }
-
-        return $select;
+        return (clone $this->query);
     }
 
     /**
