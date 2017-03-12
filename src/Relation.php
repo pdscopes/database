@@ -63,8 +63,11 @@ abstract class Relation
     }
 
     /**
-     * Initialise the relations query.
+     * Initialise the relations query so that select columns and where clauses can be added to or replaced after the
+     * construction. We delay the join onto the related table until query is called so that intermediate joins can be
+     * added (allowing for relations through other related tables).
      *
+     * @see Relation::query()
      * @param Connection $connection
      *
      * @return Query
@@ -81,9 +84,7 @@ abstract class Relation
         // Select from the relative table
         $select
             ->columns($relativeAlias . '.*')
-            ->from($relativeTable, $relativeAlias)
-            // Join on the entity table
-            ->join($entityTable, $this->clause, $entityAlias);
+            ->from($relativeTable, $relativeAlias);
 
         // Construct the where clause(s)
         foreach ($this->entity->getMap()->primaryKeys() as $dbKey => $entityKey) {
@@ -284,7 +285,12 @@ abstract class Relation
      */
     public function query()
     {
-        return (clone $this->query);
+        $entityTable = $this->entity->getMap()->tableName();
+        $entityAlias = null !== $this->entityAlias ? $this->entityAlias : $entityTable;
+        $query = (clone $this->query);
+        return $query
+            // Join on the entity table
+            ->join($entityTable, $this->clause, $entityAlias);;
     }
 
     /**

@@ -37,7 +37,6 @@ class RelationTest extends TestCase
 
         $this->mockSelect->shouldReceive('columns')->once()->with('f.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('related', 'f')->andReturnSelf();
-        $this->mockSelect->shouldReceive('join')->once()->with('entity', 'd.ID = f.id', 'd')->andReturnSelf();
         $this->mockSelect->shouldReceive('andWhere')->once()->with('d.ID = :ID', ['ID' => 5])->andReturnSelf();
 
         $this->entity = new RelationEntity($this->mockConnection);
@@ -212,6 +211,7 @@ class RelationTest extends TestCase
      */
     public function testQuery()
     {
+        $this->mockSelect->shouldReceive('join')->once()->with('entity', 'd.ID = f.id', 'd')->andReturnSelf();
         $relation = new DummyRelation($this->entity, RelatedEntity::class, 'd.ID = f.id', 'd', 'f');
         $this->assertInstanceOf(Select::class, $relation->query());
     }
