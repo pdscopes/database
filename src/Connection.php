@@ -308,7 +308,7 @@ abstract class Connection
                 // Is this a function?
                 $function = '';
                 if ($pos > 0 && ' ' !== $modClause{$pos - 1}) {
-                    $pos      = strrpos(substr($modClause, 0, $pos), ' ') + 1;
+                    $pos      = strrpos(substr($modClause, 0, $pos), ' ');
                     $function = substr($modClause, $pos, ($i - $pos) - (strlen($subClause) + 2));
                 }
 
@@ -364,6 +364,11 @@ abstract class Connection
      */
     public function quoteColumn($column)
     {
+        // If entirely uppercase do not quote
+        if (strtoupper($column) === $column) {
+            return $column;
+        }
+
         $str = $column;
 
         // Only consider non function parts

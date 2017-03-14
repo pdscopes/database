@@ -360,6 +360,8 @@ class ConnectionTest extends TestCase
             ['(`foo` = ?) OR (`bar` = ? AND `qux` = ?)', '(foo = ?) OR (bar = ? AND qux = ?)'],
 
             ['((`foo` = ? AND `baz` = ?) OR `bar` = ? AND `qux` = ?)', '((foo = ? AND baz = ?) OR bar = ? AND qux = ?)'],
+
+            ['ABS(TIMESTAMPDIFF(DAY , `date` , ?)) <= 10', 'ABS(TIMESTAMPDIFF(DAY, date, ?)) <= 10']
         ];
     }
 
