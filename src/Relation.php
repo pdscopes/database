@@ -59,12 +59,14 @@ abstract class Relation
      */
     public function __construct($entity, $relative, $clause, $entityAlias = null, $relativeAlias = null)
     {
+        $relative = new $relative();
+
         $this->entity        = $entity;
-        $this->relative      = new $relative();
+        $this->relative      = $relative;
         $this->clause        = $clause;
         $this->entityAlias   = $entityAlias;
         $this->relativeAlias = $relativeAlias;
-        $this->query         = $this->initialiseQuery($entity->pool->get(static::$connection));
+        $this->query         = $this->initialiseQuery($entity->pool->get($relative::$connection));
     }
 
     /**
