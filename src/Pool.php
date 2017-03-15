@@ -27,13 +27,16 @@ class Pool
      */
     function __construct(... $connections)
     {
+        $this->connections = [];
         array_walk_recursive($connections, function ($e, $k) {
             if (!$e instanceof Connection) {
                 throw new \InvalidArgumentException('Pool only accepts Connections');
             }
             $this->connections[$k] = $e;
         });
-        $this->default = array_keys($this->connections)[0];
+        if (!empty($connections)) {
+            $this->default = array_keys($this->connections)[0];
+        }
     }
 
     /**
@@ -62,6 +65,9 @@ class Pool
      */
     public function set($name, Connection $connection)
     {
+        if (empty($this->connections)) {
+            $this->setDefault($name);
+        }
         $this->connections[$name] = $connection;
     }
 }
