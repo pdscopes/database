@@ -14,9 +14,14 @@ use PDO;
 abstract class Entity implements JsonSerializable
 {
     /**
-     * @var Connection
+     * @var string
      */
-    public $connection;
+    public static $connection = null;
+
+    /**
+     * @var Pool
+     */
+    public $pool;
 
     /**
      * @var bool True if create has been called
@@ -48,15 +53,24 @@ abstract class Entity implements JsonSerializable
     /**
      * Entity constructor.
      *
-     * @param Connection|null $connection
-     * @param array|null      $row
+     * @param Pool|null  $pool
+     * @param array|null $row
      */
-    public function __construct(Connection $connection = null, array $row = null)
+    public function __construct(Pool $pool = null, array $row = null)
     {
-        $this->connection = $connection;
+        $this->pool = $pool;
+
         if (null !== $row) {
             $this->populate($row);
         }
+    }
+
+    /**
+     * @param Pool $pool
+     */
+    public function setPool(Pool $pool)
+    {
+        $this->pool = $pool;
     }
 
     /**
@@ -113,7 +127,7 @@ abstract class Entity implements JsonSerializable
      */
     public function create(Connection $connection = null)
     {
-        $connection = $connection ? : $this->connection;
+        $connection = $connection ? : $this->pool->get(static::$connection);
 
         $map    = $this->getMap();
         $values = [];
@@ -144,7 +158,7 @@ abstract class Entity implements JsonSerializable
      */
     public function update(Connection $connection = null)
     {
-        $connection = $connection ? : $this->connection;
+        $connection = $connection ? : $this->pool->get(static::$connection);
 
         $map    = $this->getMap();
         $values = [];
@@ -172,7 +186,7 @@ abstract class Entity implements JsonSerializable
      */
     public function read(Connection $connection = null, $primaryKey = null)
     {
-        $connection = $connection ? : $this->connection;
+        $connection = $connection ? : $this->pool->get(static::$connection);
 
         $map    = $this->getMap();
         $select = $connection->select()->columns('*')->from($map->tableName(), 't')->limit(1);
@@ -202,7 +216,7 @@ abstract class Entity implements JsonSerializable
      */
     public function delete(Connection $connection = null, $primaryKey = null)
     {
-        $connection = $connection ? : $this->connection;
+        $connection = $connection ? : $this->pool->get(static::$connection);
 
         $map    = $this->getMap();
         $delete = $connection->delete()->from($map->tableName());

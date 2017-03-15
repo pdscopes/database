@@ -14,6 +14,11 @@ use ReflectionClass;
 class Repository
 {
     /**
+     * @var Pool
+     */
+    protected $pool;
+
+    /**
      * @var Connection
      */
     protected $connection;
@@ -36,14 +41,15 @@ class Repository
     /**
      * Repository constructor.
      *
-     * @param Connection $connection
-     * @param string     $className
+     * @param Pool   $pool
+     * @param string $className
      */
-    public function __construct(Connection $connection, $className)
+    public function __construct(Pool $pool, $className)
     {
-        $this->connection = $connection;
+        $this->pool       = $pool;
         $this->className  = $className;
         $this->reflection = new ReflectionClass($className);
+        $this->connection = $pool->get($this->reflection->getStaticPropertyValue('connection'));
 
         /** @var Entity $prototype */
         $prototype       = $this->reflection->newInstance();
@@ -68,7 +74,7 @@ class Repository
         $stmt  = $select->execute();
         $items = [];
         while (($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
-            $items[] = $this->reflection->newInstanceArgs([$this->connection, $row]);
+            $items[] = $this->reflection->newInstanceArgs([$this->pool, $row]);
         }
 
         return $items;
@@ -91,7 +97,7 @@ class Repository
 
         $stmt = $select->execute();
         if (($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
-            return $this->reflection->newInstanceArgs([$this->connection, $row]);
+            return $this->reflection->newInstanceArgs([$this->pool, $row]);
         }
 
         return null;

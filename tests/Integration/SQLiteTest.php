@@ -6,6 +6,7 @@ use MadeSimple\Database\Connection;
 use MadeSimple\Database\Entity;
 use MadeSimple\Database\EntityMap;
 use MadeSimple\Database\Migration;
+use MadeSimple\Database\Pool;
 use MadeSimple\Database\Repository;
 use MadeSimple\Database\Statement\Table\Create;
 use Tests\TestCase;
@@ -18,6 +19,7 @@ class SQLiteTest extends TestCase
         $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
         $connection = Connection::factory($pdo);
+        $pool       = new Pool($connection);
         $migration  = new SQLiteTestMigration();
 
         // Migrate up
@@ -32,12 +34,12 @@ class SQLiteTest extends TestCase
         $connection->insert()->into('table1')->columns('ID', 'db_value')->values(['1', 'a'], ['2', 'b'])->execute();
 
         // Read entity
-        $entity1 = new SQLiteTestEntity($connection);
+        $entity1 = new SQLiteTestEntity($pool);
         $this->assertTrue($entity1->read(null, '1'));
         $this->assertEquals('a', $entity1->value);
 
         // Repository
-        $repository = new Repository($connection, SQLiteTestEntity::class);
+        $repository = new Repository($pool, SQLiteTestEntity::class);
         $items = $repository->findBy();
         $this->assertCount(2, $items);
         $this->assertEquals('1', $items[0]->id);

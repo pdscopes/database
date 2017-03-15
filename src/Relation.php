@@ -14,6 +14,11 @@ use MadeSimple\Database\Statement\Query\Select;
 abstract class Relation
 {
     /**
+     * @var string
+     */
+    protected static $connection = null;
+
+    /**
      * @var Entity
      */
     protected $entity;
@@ -59,7 +64,7 @@ abstract class Relation
         $this->clause        = $clause;
         $this->entityAlias   = $entityAlias;
         $this->relativeAlias = $relativeAlias;
-        $this->query         = $this->initialiseQuery($entity->connection);
+        $this->query         = $this->initialiseQuery($entity->pool->get(static::$connection));
     }
 
     /**
@@ -290,7 +295,7 @@ abstract class Relation
         $query = (clone $this->query);
         return $query
             // Join on the entity table
-            ->join($entityTable, $this->clause, $entityAlias);;
+            ->join($entityTable, $this->clause, $entityAlias);
     }
 
     /**

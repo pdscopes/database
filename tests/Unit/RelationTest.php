@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use MadeSimple\Database\Connection;
 use MadeSimple\Database\Entity;
 use MadeSimple\Database\EntityMap;
+use MadeSimple\Database\Pool;
 use MadeSimple\Database\Statement\Query\Select;
 use MadeSimple\Database\Relation;
 use Tests\TestCase;
@@ -22,6 +23,11 @@ class RelationTest extends TestCase
     private $mockConnection;
 
     /**
+     * @var \Mockery\Mock|Pool
+     */
+    private $mockPool;
+
+    /**
      * @var RelationEntity
      */
     private $entity;
@@ -32,6 +38,9 @@ class RelationTest extends TestCase
 
         $this->mockSelect     = \Mockery::mock(Select::class);
         $this->mockConnection = \Mockery::mock(Connection::class);
+        $this->mockPool       = \Mockery::mock(Pool::class);
+
+        $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
 
         $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($this->mockSelect);
 
@@ -39,7 +48,7 @@ class RelationTest extends TestCase
         $this->mockSelect->shouldReceive('from')->once()->with('related', 'f')->andReturnSelf();
         $this->mockSelect->shouldReceive('andWhere')->once()->with('d.ID = :ID', ['ID' => 5])->andReturnSelf();
 
-        $this->entity = new RelationEntity($this->mockConnection);
+        $this->entity = new RelationEntity($this->mockPool);
         $this->entity->id = 5;
     }
 

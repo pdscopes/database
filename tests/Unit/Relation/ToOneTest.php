@@ -5,6 +5,7 @@ namespace Tests\Unit\Relation;
 use MadeSimple\Database\Connection;
 use MadeSimple\Database\Entity;
 use MadeSimple\Database\EntityMap;
+use MadeSimple\Database\Pool;
 use MadeSimple\Database\Statement\Query\Select;
 use MadeSimple\Database\Relation\ToOne;
 use Tests\TestCase;
@@ -27,6 +28,11 @@ class ToOneTest extends TestCase
     private $mockConnection;
 
     /**
+     * @var \Mockery\Mock|Pool
+     */
+    private $mockPool;
+
+    /**
      * @var ToOneEntity
      */
     private $entity;
@@ -38,10 +44,12 @@ class ToOneTest extends TestCase
         $this->mockPdoStatement = \Mockery::mock(\PDOStatement::class);
         $this->mockSelect       = \Mockery::mock(Select::class);
         $this->mockConnection   = \Mockery::mock(Connection::class);
+        $this->mockPool         = \Mockery::mock(Pool::class);
 
+        $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
         $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($this->mockSelect);
 
-        $this->entity = new ToOneEntity($this->mockConnection);
+        $this->entity = new ToOneEntity($this->mockPool);
     }
 
 

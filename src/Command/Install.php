@@ -2,6 +2,8 @@
 
 namespace MadeSimple\Database\Command;
 
+use MadeSimple\Database\MySQL;
+use MadeSimple\Database\SQLite;
 use Symfony\Component\Console\Command\LockableTrait;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -48,7 +50,7 @@ class Install extends Migrate
         // Create the migrations table
         switch ($connection->getAttribute(\PDO::ATTR_DRIVER_NAME)) {
             case 'mysql':
-                $table = $connection->create(function (\MadeSimple\Database\MySQL\Statement\Table\Create $table) {
+                $table = $connection->create(function (MySQL\Statement\Table\Create $table) {
                     $table->name('migrations');
                     $table->column('id')->type('int(11)')->extras('unsigned NOT NULL AUTO_INCREMENT, PRIMARY KEY (`id`)');
                     $table->column('fileName')->type('char(255)')->extras('NOT NULL');
@@ -58,7 +60,7 @@ class Install extends Migrate
                 });
                 break;
             case 'sqlite':
-                $table = $connection->create(function (\MadeSimple\Database\SQLite\Statement\Table\Create $table) {
+                $table = $connection->create(function (SQLite\Statement\Table\Create $table) {
                     $table->name('migrations');
                     $table->column('id')->extras('PRIMARY KEY');
                     $table->column('fileName');
