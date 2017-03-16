@@ -88,4 +88,14 @@ class EntityMap
     {
         return array_values($this->columnMap);
     }
+
+    /**
+     * @param string $column
+     *
+     * @return string
+     */
+    public function property($column)
+    {
+        return $this->columnMap[$column];
+    }
 }

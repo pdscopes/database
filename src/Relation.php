@@ -29,19 +29,19 @@ abstract class Relation
     protected $entityAlias;
 
     /**
-     * @var Entity
+     * @var string
      */
     protected $relative;
 
     /**
-     * @var string
+     * @var string[]
      */
-    protected $relativeAlias;
+    protected $keys;
 
     /**
      * @var string
      */
-    protected $clause;
+    protected $relatedColumn;
 
     /**
      * @var Select
@@ -51,19 +51,17 @@ abstract class Relation
     /**
      * Relation constructor.
      *
-     * @param Entity      $entity
-     * @param string      $relative
-     * @param string      $clause
-     * @param null|string $entityAlias
-     * @param null|string $relativeAlias
+     * @param Entity       $entity
+     * @param string       $relative
+     * @param string|array $keys
+     * @param null|string  $entityAlias
+     * @param null|string  $relativeAlias
      */
-    public function __construct($entity, $relative, $clause, $entityAlias = null, $relativeAlias = null)
+    public function __construct($entity, $relative, $keys, $entityAlias = null, $relativeAlias = null)
     {
-        $relative = new $relative();
-
         $this->entity        = $entity;
         $this->relative      = $relative;
-        $this->clause        = $clause;
+        $this->keys          = (array) $keys;
         $this->entityAlias   = $entityAlias;
         $this->relativeAlias = $relativeAlias;
         $this->query         = $this->initialiseQuery($entity->pool->get($relative::$connection));
@@ -79,27 +77,7 @@ abstract class Relation
      *
      * @return Query
      */
-    protected function initialiseQuery(Connection $connection)
-    {
-        $select = $connection->select();
-
-        $relativeTable = $this->relative->getMap()->tableName();
-        $entityTable   = $this->entity->getMap()->tableName();
-        $relativeAlias = null !== $this->relativeAlias ? $this->relativeAlias : $relativeTable;
-        $entityAlias   = null !== $this->entityAlias ? $this->entityAlias : $entityTable;
-
-        // Select from the relative table
-        $select
-            ->columns($relativeAlias . '.*')
-            ->from($relativeTable, $relativeAlias);
-
-        // Construct the where clause(s)
-        foreach ($this->entity->getMap()->primaryKeys() as $dbKey => $entityKey) {
-            $select->andWhere($entityAlias.'.'.$dbKey.' = :'.$dbKey, [$dbKey => $this->entity->{$entityKey}]);
-        }
-
-        return $select;
-    }
+    protected abstract function initialiseQuery(Connection $connection);
 
     /**
      * @param array ...$columns
@@ -292,12 +270,7 @@ abstract class Relation
      */
     public function query()
     {
-        $entityTable = $this->entity->getMap()->tableName();
-        $entityAlias = null !== $this->entityAlias ? $this->entityAlias : $entityTable;
-        $query = (clone $this->query);
-        return $query
-            // Join on the entity table
-            ->join($entityTable, $this->clause, $entityAlias);
+        return (clone $this->query);
     }
 
     /**
