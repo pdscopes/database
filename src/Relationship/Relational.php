@@ -31,7 +31,7 @@ trait Relational
                 throw new \InvalidArgumentException('No such relationship: ' . $relationship);
             }
 
-            $this->relationships[$relationship] = call_user_func_array([$this, $relationship], $args);
+            $this->relationships[$relationship] = call_user_func_array([$this, $relationship], $args)->fetch();
         }
 
         return $this->relationships[$relationship];
