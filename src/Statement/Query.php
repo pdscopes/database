@@ -18,7 +18,7 @@ abstract class Query implements Statement
     /**
      * @var Connection
      */
-    protected $connection;
+    public $connection;
 
     /**
      * @var array
@@ -30,7 +30,7 @@ abstract class Query implements Statement
      *
      * @param Connection $connection
      */
-    public function __construct(Connection $connection)
+    public function __construct(Connection $connection = null)
     {
         $this->setConnection($connection);
         $this->parameters = [];
@@ -39,7 +39,7 @@ abstract class Query implements Statement
     /**
      * @param Connection $connection
      */
-    protected function setConnection(Connection $connection)
+    public function setConnection(Connection $connection = null)
     {
         $this->connection = $connection;
     }

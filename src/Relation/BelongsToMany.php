@@ -38,7 +38,7 @@ class BelongsToMany extends Relation
         $select = $connection->select()->columns($relativeAlias . '.*')->from($relativeTable, $relativeAlias);
 
         // Construct the where clause(s)
-        foreach (array_keys($relative->getMap()->primaryKeys()) as $k => $dbColumn) {
+        foreach (array_slice(array_keys($relative->getMap()->primaryKeys()), 0, count($this->keys)) as $k => $dbColumn) {
             $value = $this->entity->{$entityMap->property($this->keys[$k])};
             $select->andWhere($relativeAlias . '.' . $dbColumn . ' = :' . $dbColumn, [$dbColumn => $value]);
         }

@@ -56,7 +56,7 @@ class Select extends Query
      *
      * @param Connection $connection
      */
-    public function __construct(Connection $connection)
+    public function __construct(Connection $connection = null)
     {
         parent::__construct($connection);
 
@@ -135,22 +135,10 @@ class Select extends Query
     }
 
     /**
-     * @param string      $table Database table to join
-     * @param string      $on    Clause to join the table on
-     * @param null|string $alias Alias for the table
-     *
-     * @return static
-     */
-    public function leftJoin($table, $on, $alias = null)
-    {
-        return $this->join($table, $on, $alias, self::JOIN_LEFT);
-    }
-
-    /**
-     * @param string      $table Database table to join
-     * @param string      $on    Clause to join the table on
-     * @param null|string $alias Alias for the table
-     * @param string      $type  Select::JOIN_*
+     * @param string        $table Database table to join
+     * @param string|Clause $on    Clause to join the table on
+     * @param null|string   $alias Alias for the table
+     * @param string        $type  Select::JOIN_*
      *
      * @see self::JOIN_DEFAULT
      * @see self::JOIN_LEFT
@@ -177,9 +165,21 @@ class Select extends Query
     }
 
     /**
-     * @param string      $table Database table to join
-     * @param string      $on    Clause to join the table on
-     * @param null|string $alias Alias for the table
+     * @param string        $table Database table to join
+     * @param string|Clause $on    Clause to join the table on
+     * @param null|string   $alias Alias for the table
+     *
+     * @return static
+     */
+    public function leftJoin($table, $on, $alias = null)
+    {
+        return $this->join($table, $on, $alias, self::JOIN_LEFT);
+    }
+
+    /**
+     * @param string        $table Database table to join
+     * @param string|Clause $on    Clause to join the table on
+     * @param null|string   $alias Alias for the table
      *
      * @return static
      */
@@ -189,9 +189,9 @@ class Select extends Query
     }
 
     /**
-     * @param string      $table Database table to join
-     * @param string      $on    Clause to join the table on
-     * @param null|string $alias Alias for the table
+     * @param string        $table Database table to join
+     * @param string|Clause $on    Clause to join the table on
+     * @param null|string   $alias Alias for the table
      *
      * @return static
      */
@@ -201,9 +201,9 @@ class Select extends Query
     }
 
     /**
-     * @param string      $table Database table to join
-     * @param string      $on    Clause to join the table on
-     * @param null|string $alias Alias for the table
+     * @param string        $table Database table to join
+     * @param string|Clause $on    Clause to join the table on
+     * @param null|string   $alias Alias for the table
      *
      * @return static
      */
@@ -310,7 +310,7 @@ class Select extends Query
             $sql .=
                 ' ' . $j['type'] . ' ' . $this->connection->quoteColumn($j['table']) .
                 ($alias == $j['table'] ? '' : ' AS ' . $this->connection->quoteColumn($alias)) . ' ON ' .
-                $this->connection->quoteClause($j['on']);
+                ($j['on'] instanceof Clause ? $j['on']->flatten() : $this->connection->quoteClause($j['on']));
         }
 
         // If where

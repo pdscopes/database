@@ -35,7 +35,7 @@ class Update extends Query
      *
      * @param Connection $connection
      */
-    public function __construct(Connection $connection)
+    public function __construct(Connection $connection = null)
     {
         parent::__construct($connection);
 
