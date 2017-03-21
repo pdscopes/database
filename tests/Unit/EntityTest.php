@@ -246,7 +246,7 @@ class EntityTest extends TestCase
 
         $entity = new SingleKeyEntity($this->mockPool);
 
-        $this->assertTrue($entity->read(null, 5));
+        $this->assertTrue($entity->read(5));
         $this->assertEquals(5, $entity->id);
         $this->assertEquals('Test', $entity->firstName);
         $this->assertEquals('Person', $entity->lastName);
@@ -275,7 +275,7 @@ class EntityTest extends TestCase
 
         $entity = new CompositeKeyEntity($this->mockPool);
 
-        $this->assertTrue($entity->read(null, ['user_id' => 5, 'company_id' => 7]));
+        $this->assertTrue($entity->read(['user_id' => 5, 'company_id' => 7]));
         $this->assertEquals(5, $entity->userId);
         $this->assertEquals(7, $entity->companyId);
         $this->assertEquals('value', $entity->value);
@@ -293,7 +293,7 @@ class EntityTest extends TestCase
         $this->mockConnection->shouldReceive('execute')->once()->withNoArgs()->andReturnSelf();
 
         $entity = new SingleKeyEntity($this->mockPool);
-        $this->assertTrue($entity->delete(null, 5));
+        $this->assertTrue($entity->delete(5));
     }
 
     /**
@@ -309,7 +309,7 @@ class EntityTest extends TestCase
         $this->mockConnection->shouldReceive('execute')->once()->withNoArgs()->andReturnSelf();
 
         $entity = new CompositeKeyEntity($this->mockPool);
-        $this->assertTrue($entity->delete(null, ['user_id' => 5, 'company_id' => 7]));
+        $this->assertTrue($entity->delete(['user_id' => 5, 'company_id' => 7]));
     }
 
 
@@ -342,7 +342,7 @@ class EntityTest extends TestCase
     /**
      * Test entity properties are casted with converted to an array.
      */
-    public function testCastProperty()
+    public function testToArrayCastProperty()
     {
         $entity = new CastedEntity($this->mockPool, [
             'int'     => '5',
@@ -358,6 +358,7 @@ class EntityTest extends TestCase
         ]);
 
         $array = $entity->toArray();
+        $this->assertTrue(is_array($entity->toArray()));
         $this->assertTrue(is_int($array['int']));
         $this->assertTrue(is_integer($array['integer']));
         $this->assertTrue(is_bool($array['bool']));
@@ -368,6 +369,36 @@ class EntityTest extends TestCase
         $this->assertTrue(is_string($array['string']));
         $this->assertTrue(is_array($array['array']));
         $this->assertTrue(is_array($array['json']));
+    }
+
+    /**
+     * Test entity cast.
+     */
+    public function testCast()
+    {
+        $entity = new CastedEntity($this->mockPool, [
+            'int'     => '5',
+            'integer' => '7',
+            'bool'    => '1',
+            'boolean' => '1',
+            'double'  => '1.1',
+            'float'   => '1.2',
+            'real'    => '1.3',
+            'string'  => 5,
+            'array'   => 'array',
+            'json'    => '{"mapped": "property"}',
+        ]);
+
+        $this->assertTrue(is_int($entity->cast('int')));
+        $this->assertTrue(is_integer($entity->cast('integer')));
+        $this->assertTrue(is_bool($entity->cast('bool')));
+        $this->assertTrue(is_bool($entity->cast('boolean')));
+        $this->assertTrue(is_double($entity->cast('double')));
+        $this->assertTrue(is_float($entity->cast('float')));
+        $this->assertTrue(is_real($entity->cast('real')));
+        $this->assertTrue(is_string($entity->cast('string')));
+        $this->assertTrue(is_array($entity->cast('array')));
+        $this->assertTrue(is_array($entity->cast('json')));
     }
 
 

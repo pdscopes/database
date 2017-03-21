@@ -67,10 +67,14 @@ abstract class Entity implements JsonSerializable
 
     /**
      * @param Pool $pool
+     *
+     * @return Entity
      */
     public function setPool(Pool $pool)
     {
         $this->pool = $pool;
+
+        return $this;
     }
 
     /**
@@ -99,11 +103,9 @@ abstract class Entity implements JsonSerializable
     /**
      * Creates the entity if the primary key(s) are null, otherwise updates the entity.
      *
-     * @param Connection|null $connection
-     *
      * @return bool True if the entity was successfully persisted
      */
-    public function persist(Connection $connection = null)
+    public function persist()
     {
         $map = $this->getMap();
         if (count($map->primaryKeys()) != 1) {
@@ -117,17 +119,15 @@ abstract class Entity implements JsonSerializable
             }, true
         );
 
-        return $notExists ? $this->create($connection) : $this->update($connection);
+        return $notExists ? $this->create() : $this->update();
     }
 
     /**
-     * @param Connection|null $connection
-     *
      * @return bool True if the entity was successfully created
      */
-    public function create(Connection $connection = null)
+    public function create()
     {
-        $connection = $connection ? : $this->pool->get(static::$connection);
+        $connection = $this->pool->get(static::$connection);
 
         $map    = $this->getMap();
         $values = [];
@@ -144,7 +144,7 @@ abstract class Entity implements JsonSerializable
             return false;
         }
 
-        if (count($map->primaryKeys()) == 1) {
+        if (count($map->primaryKeys()) === 1 && null === $this->{$map->primaryKey(0)}) {
             $this->{$map->primaryKey(0)} = $connection->lastInsertId();
         }
 
@@ -152,13 +152,11 @@ abstract class Entity implements JsonSerializable
     }
 
     /**
-     * @param Connection|null $connection
-     *
      * @return bool True if the entity was successfully updated
      */
-    public function update(Connection $connection = null)
+    public function update()
     {
-        $connection = $connection ? : $this->pool->get(static::$connection);
+        $connection = $this->pool->get(static::$connection);
 
         $map    = $this->getMap();
         $values = [];
@@ -179,14 +177,13 @@ abstract class Entity implements JsonSerializable
     }
 
     /**
-     * @param Connection|null $connection
-     * @param null|mixed      $primaryKey Null to use the set primary key, other the given primary key
+     * @param null|mixed $primaryKey Null to use the set primary key, other the given primary key
      *
      * @return bool True if the entity was successfully read (populated)
      */
-    public function read(Connection $connection = null, $primaryKey = null)
+    public function read($primaryKey = null)
     {
-        $connection = $connection ? : $this->pool->get(static::$connection);
+        $connection = $this->pool->get(static::$connection);
 
         $map    = $this->getMap();
         $select = $connection->select()->columns('*')->from($map->tableName(), 't')->limit(1);
@@ -209,14 +206,13 @@ abstract class Entity implements JsonSerializable
     }
 
     /**
-     * @param Connection|null $connection
-     * @param null|mixed      $primaryKey Null to use the set primary key, other the given primary key
+     * @param null|mixed $primaryKey Null to use the set primary key, other the given primary key
      *
      * @return bool True if entity was successfully deleted
      */
-    public function delete(Connection $connection = null, $primaryKey = null)
+    public function delete($primaryKey = null)
     {
-        $connection = $connection ? : $this->pool->get(static::$connection);
+        $connection = $this->pool->get(static::$connection);
 
         $map    = $this->getMap();
         $delete = $connection->delete()->from($map->tableName());
@@ -249,10 +245,10 @@ abstract class Entity implements JsonSerializable
             if (in_array($property, $this->hidden)) {
                 continue;
             }
-            $properties[$property] = $this->castProperty($property);
+            $properties[$property] = $this->cast($property);
         }
         foreach ($this->visible as $property) {
-            $properties[$property] = $this->castProperty($property);
+            $properties[$property] = $this->cast($property);
 
         }
 
@@ -265,7 +261,7 @@ abstract class Entity implements JsonSerializable
      *
      * @return array|float|null|string
      */
-    protected function castProperty($property, $default = null)
+    public function cast($property, $default = null)
     {
         if (!isset($this->{$property})) {
             return $default;

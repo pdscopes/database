@@ -47,9 +47,9 @@ class SQLiteTest extends TestCase
 
         // Read users
         $user = new SQLiteTestUserEntity($pool);
-        $this->assertTrue($user->read(null, '456'));
+        $this->assertTrue($user->read('456'));
         $this->assertEquals('user2', $user->username);
-        $this->assertTrue($user->read(null, '123'));
+        $this->assertTrue($user->read('123'));
         $this->assertEquals('user1', $user->username);
 
 
