@@ -228,6 +228,27 @@ abstract class Entity implements JsonSerializable
     }
 
     /**
+     * @param array $columns Mapping from column name to value
+     *
+     * @return bool True if the entity was successfully found (populated)
+     */
+    public function find(array $columns)
+    {
+        $connection = $this->pool->get(static::$connection);
+
+        $map    = $this->getMap();
+        $select = $connection->select()->columns('*')->from($map->tableName(), 't')->limit(1);
+
+        foreach ($columns as $column => $value) {
+            $select->andWhere('t.' . $column . ' = ?', $value);
+        }
+
+        $row = $select->execute()->fetch(PDO::FETCH_ASSOC, PDO::FETCH_ORI_FIRST);
+
+        return $row && $this->populate($row);
+    }
+
+    /**
      * {@InheritDoc}
      */
     public function jsonSerialize()

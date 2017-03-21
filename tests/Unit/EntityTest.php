@@ -312,6 +312,35 @@ class EntityTest extends TestCase
         $this->assertTrue($entity->delete(['user_id' => 5, 'company_id' => 7]));
     }
 
+    /**
+     * Test find with non-primary, unique column.
+     */
+    public function testFind()
+    {
+        $row = [
+            'ID'         => 5,
+            'UUID'       => '123',
+            'first_name' => 'Test',
+            'last_name'  => 'Person',
+        ];
+
+        $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
+        $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturnSelf();
+        $this->mockConnection->shouldReceive('columns')->once()->with('*')->andReturnSelf();
+        $this->mockConnection->shouldReceive('from')->once()->with('dummy', 't')->andReturnSelf();
+        $this->mockConnection->shouldReceive('limit')->once()->with(1)->andReturnSelf();
+        $this->mockConnection->shouldReceive('andWhere')->once()->with('t.UUID = ?', '123');
+        $this->mockConnection->shouldReceive('execute')->once()->withNoArgs()->andReturnSelf();
+        $this->mockConnection->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC, \PDO::FETCH_ORI_FIRST)->andReturn($row);
+
+        $entity = new SingleKeyEntity($this->mockPool);
+
+        $this->assertTrue($entity->find(['UUID' => '123']));
+        $this->assertEquals(5, $entity->id);
+        $this->assertEquals('Test', $entity->firstName);
+        $this->assertEquals('Person', $entity->lastName);
+    }
+
 
     /**
      * Test to array.

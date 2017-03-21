@@ -52,6 +52,12 @@ class SQLiteTest extends TestCase
         $this->assertTrue($user->read('123'));
         $this->assertEquals('user1', $user->username);
 
+        // Find users
+        $this->assertTrue($user->find(['UUID' => '456']));
+        $this->assertEquals('user2', $user->username);
+        $this->assertTrue($user->find(['UUID' => '123']));
+        $this->assertEquals('user1', $user->username);
+
 
         // Has relationship
         /** @var SQLiteTestPostEntity $post */
