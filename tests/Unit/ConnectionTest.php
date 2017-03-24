@@ -310,22 +310,6 @@ class ConnectionTest extends TestCase
         $this->assertEquals($expected, $connection->quoteClause($clause));
     }
 
-    /**
-     * Test different clause quotations.
-     *
-     * @param string $expected
-     * @param string $clause
-     *
-     * @dataProvider quoteColumnDataProvider
-     */
-    public function testQuoteColumn($expected, $clause)
-    {
-        $connection = new MockConnection($this->mockPdo);
-
-        $this->assertEquals($expected, $connection->quoteColumn($clause));
-    }
-
-
     public function quoteClauseDataProvider()
     {
         return [
@@ -333,17 +317,17 @@ class ConnectionTest extends TestCase
             ['`foo` IS TRUE', 'foo IS TRUE'],
             ['`foo` IS FALSE', 'foo IS FALSE'],
 
-            ['`foo` IS  NOT NULL', 'foo IS NOT NULL'],
-            ['`foo` IS  NOT TRUE', 'foo IS NOT TRUE'],
-            ['`foo` IS  NOT FALSE', 'foo IS NOT FALSE'],
+            ['`foo` IS NOT NULL', 'foo IS NOT NULL'],
+            ['`foo` IS NOT TRUE', 'foo IS NOT TRUE'],
+            ['`foo` IS NOT FALSE', 'foo IS NOT FALSE'],
 
             ['`foo` LIKE ?', 'foo LIKE ?'],
             ['`foo` IN (?)', 'foo IN (?)'],
-            ['`foo` IN (? , ?)', 'foo IN (?, ?)'],
-            ['`foo` IN (? , ? , ?)', 'foo IN (?, ?, ?)'],
-            ['`foo` IN (? , ?)', 'foo IN (?,?)'],
-            ['`foo` IN (:a , :b)', 'foo IN (:a, :b)'],
-            ['`foo` IN (:a , :b)', 'foo IN (:a,:b)'],
+            ['`foo` IN (?, ?)', 'foo IN (?, ?)'],
+            ['`foo` IN (?, ?, ?)', 'foo IN (?, ?, ?)'],
+            ['`foo` IN (?,?)', 'foo IN (?,?)'],
+            ['`foo` IN (:a, :b)', 'foo IN (:a, :b)'],
+            ['`foo` IN (:a,:b)', 'foo IN (:a,:b)'],
 
             ['`foo` = 1', 'foo = 1'],
             ['`foo` = ?', 'foo = ?'],
@@ -361,13 +345,8 @@ class ConnectionTest extends TestCase
 
             ['((`foo` = ? AND `baz` = ?) OR `bar` = ? AND `qux` = ?)', '((foo = ? AND baz = ?) OR bar = ? AND qux = ?)'],
 
-            ['ABS(TIMESTAMPDIFF(DAY , `date` , ?)) <= 10', 'ABS(TIMESTAMPDIFF(DAY, date, ?)) <= 10']
-        ];
-    }
+            ['ABS(TIMESTAMPDIFF(DAY, `date`, ?)) <= 10', 'ABS(TIMESTAMPDIFF(DAY, date, ?)) <= 10'],
 
-    public function quoteColumnDataProvider()
-    {
-        return [
             ['`foo`', 'foo'],
             ['`table`.`foo`', 'table.foo'],
 

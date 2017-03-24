@@ -104,9 +104,21 @@ class Clause
     }
 
     /**
+     * Flatten $this Clause and quote using $this connection.
+     *
      * @return string
      */
     public function flatten()
+    {
+        return $this->connection->quoteClause($this->reduce());
+    }
+
+    /**
+     * Reduce the complex Clause into a string.
+     *
+     * @return string
+     */
+    protected function reduce()
     {
         return array_reduce($this->subClauses, function ($carry, $item) {
             list ($conjunction, $subClause) = $item;
@@ -114,11 +126,11 @@ class Clause
                 $subClause = $subClause(new Clause($this->connection));
             }
             if ($subClause instanceof Clause) {
-                $subClause = '(' . $subClause . ')';
+                $subClause = '(' . $subClause->reduce() . ')';
             }
             $subClause = ($conjunction ? ' ' . $conjunction . ' ' : '') . $subClause;
 
-            return $carry . $this->connection->quoteClause($subClause);
+            return $carry . $subClause;
         }, '');
     }
 

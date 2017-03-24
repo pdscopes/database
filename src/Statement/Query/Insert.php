@@ -92,11 +92,11 @@ class Insert extends Query
         $sql = 'INSERT ';
 
         // Set the table
-        $sql .= 'INTO ' . $this->connection->quoteColumn($this->table);
+        $sql .= 'INTO ' . $this->connection->quoteClause($this->table);
 
         // Add the columns
         if (!empty($this->columns)) {
-            $sql .= ' (' . implode(',', array_map([$this->connection, 'quoteColumn'], array_unique($this->columns))) . ')';
+            $sql .= ' (' . implode(',', array_map([$this->connection, 'quoteClause'], array_unique($this->columns))) . ')';
         }
 
         // Add the values

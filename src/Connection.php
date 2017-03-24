@@ -285,103 +285,20 @@ abstract class Connection
      */
     public function quoteClause($clause)
     {
-        $clause = trim($clause);
-
-        // Check for sub clauses
-        if (false !== ($pos = strpos($clause, '('))) {
-            $modClause  = $clause;
-            $subClauses = [];
-            while (false !== ($pos = strpos($modClause, '('))) {
-                $depth = 1;
-                for ($i = $pos + 1; $i < strlen($modClause) && $depth > 0; $i++) {
-                    if ('(' === $modClause{$i}) {
-                        $depth++;
-                    }
-                    if (')' === $modClause{$i}) {
-                        $depth--;
-                    }
-                }
-
-                // Extract the sub clause
-                $subClause = substr($modClause, $pos + 1, ($i - $pos) - 2);
-
-                // Is this a function?
-                $function = '';
-                if ($pos > 0 && ' ' !== $modClause{$pos - 1}) {
-                    $pos      = strrpos(substr($modClause, 0, $pos), ' ');
-                    $function = substr($modClause, $pos, ($i - $pos) - (strlen($subClause) + 2));
-                }
-
-                $count                    = count($subClauses);
-                $modClause                = str_replace($function . '(' . $subClause . ')', '$' . $count, $modClause);
-                $subClauses['$' . $count] = $function . '(' . static::quoteClause($subClause) . ')';
+        $words    = str_word_count($clause, 2, ':_0123456789'/*.$this->columnQuote*/);
+        $position = 0;
+        $quoted   = '';
+        foreach ($words as $location => $word) {
+            if (':' === $word{0}) {
+                continue;
             }
-
-            $modClause = static::quoteClause($modClause);
-            foreach ($subClauses as $k => $subClause) {
-                $modClause = str_replace($k, $subClause, $modClause);
-            }
-
-            return $modClause;
+            $quoted .= substr($clause, $position, ($location - $position));
+            $quoted .= strtoupper($word) === $word ? $word : $this->applyQuote($word);
+            $position = $location + strlen($word);
         }
+        $quoted .= substr($clause, $position);
 
-        // Handle operators
-        $arithmeticOperators = ['+', '-', '*', '/', '%', ','];
-        $comparisonOperators = ['>=', '<=', '!=', '<>', '!<', '!>', '=', '>', '<'];
-        $logicalOperators    =
-            ['AND', '&&', 'OR', '||', 'IS', 'ALL', 'ANY', 'BETWEEN', 'EXISTS', 'IN', 'LIKE', 'NOT', 'UNIQUE'];
-        foreach (array_merge($arithmeticOperators, $comparisonOperators, $logicalOperators) as $operator) {
-            if (false !== strpos($clause, $operator)) {
-                return implode(' ' . $operator .
-                    ' ', array_map([$this, 'quoteClause'], explode($operator, $clause))
-                );
-            }
-        }
-
-        // Check that this should be quoted
-        $logicalValues = ['NULL', 'TRUE', 'FALSE'];
-        if (
-            0 === strpos($clause, ':') ||
-            0 === strpos($clause, '"') ||
-            0 === strpos($clause, '\'') ||
-            0 === strpos($clause, '$') ||
-            in_array($clause, $logicalValues) ||
-            '?' === $clause ||
-            is_numeric($clause)
-        ) {
-            return $clause;
-        }
-
-        return static::quoteColumn($clause);
-    }
-
-    /**
-     * Applies quotes to the column.
-     *
-     * @param string $column
-     *
-     * @return string
-     */
-    public function quoteColumn($column)
-    {
-        // If entirely uppercase do not quote
-        if (strtoupper($column) === $column) {
-            return $column;
-        }
-
-        $str = $column;
-
-        // Only consider non function parts
-        if ((false !== $lBracket= strrpos($column, '(')) && (false !== $rBracket = strpos($column, ')'))) {
-            $str = substr($column, $lBracket + 1, $rBracket - $lBracket - 1);
-        } elseif (false !== $lSpace = strrpos($column, ' ')) {
-            $str = substr($column, $lSpace + 1);
-        }
-
-        // Apply quotes
-        $quoted = implode('.', array_map([$this, 'applyQuote'], explode('.', $str)));
-
-        return str_replace($str, $quoted, $column);
+        return $quoted;
     }
 
     /**

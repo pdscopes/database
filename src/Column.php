@@ -81,6 +81,6 @@ class Column
      */
     function __toString()
     {
-        return $this->connection->quoteColumn($this->name) . ' ' . $this->type . ' ' . $this->extras;
+        return $this->connection->quoteClause($this->name) . ' ' . $this->type . ' ' . $this->extras;
     }
 }

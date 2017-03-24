@@ -118,14 +118,14 @@ class Update extends Query
         $sql = 'UPDATE ';
 
         // Set the table
-        $table = $this->connection->quoteColumn($this->tableName);
-        $alias = $this->connection->quoteColumn($this->tableAlias);
+        $table = $this->connection->quoteClause($this->tableName);
+        $alias = $this->connection->quoteClause($this->tableAlias);
         $sql .= $alias == $table ? $table : $table . ' AS ' . $alias;
 
         // Set the SET
         $sql .= ' SET ';
         $sql .= implode(', ', array_map(function ($col, $val) {
-            return $this->connection->quoteColumn($col) . ' = ' . $val;
+            return $this->connection->quoteClause($col) . ' = ' . $val;
         }, array_keys($this->columns), $this->columns));
 
         // Add possible where clause(s)

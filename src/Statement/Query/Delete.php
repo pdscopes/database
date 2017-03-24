@@ -60,8 +60,8 @@ class Delete extends Query
         $sql = 'DELETE ';
 
         // Add the from tables
-        $table = $this->connection->quoteColumn($this->tableName);
-        $alias = $this->connection->quoteColumn($this->tableAlias);
+        $table = $this->connection->quoteClause($this->tableName);
+        $alias = $this->connection->quoteClause($this->tableAlias);
         $sql .= $alias == $table ? 'FROM ' . $table : $alias . ' FROM ' . $table . ' AS ' . $alias;
 
         // Add possible where clause(s)

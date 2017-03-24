@@ -293,14 +293,14 @@ class Select extends Query
         $sql = 'SELECT ';
 
         // Add the select columns
-        $sql .= implode(',', array_map([$this->connection, 'quoteColumn'], array_unique($this->columns)));
+        $sql .= implode(',', array_map([$this->connection, 'quoteClause'], array_unique($this->columns)));
 
         // Add the from tables
         $tables = [];
         foreach ($this->from as $alias => $table) {
             $tables[] = $alias == $table ?
-                $this->connection->quoteColumn($table) :
-                $this->connection->quoteColumn($table) . ' AS ' . $this->connection->quoteColumn($alias);
+                $this->connection->quoteClause($table) :
+                $this->connection->quoteClause($table) . ' AS ' . $this->connection->quoteClause($alias);
         }
         $tables = array_unique($tables);
         $sql   .= ' FROM ' . implode(',', array_unique($tables));
@@ -308,8 +308,8 @@ class Select extends Query
         // If joins
         foreach ($this->join as $alias => $j) {
             $sql .=
-                ' ' . $j['type'] . ' ' . $this->connection->quoteColumn($j['table']) .
-                ($alias == $j['table'] ? '' : ' AS ' . $this->connection->quoteColumn($alias)) . ' ON ' .
+                ' ' . $j['type'] . ' ' . $this->connection->quoteClause($j['table']) .
+                ($alias == $j['table'] ? '' : ' AS ' . $this->connection->quoteClause($alias)) . ' ON ' .
                 ($j['on'] instanceof Clause ? $j['on']->flatten() : $this->connection->quoteClause($j['on']));
         }
 
@@ -320,7 +320,7 @@ class Select extends Query
 
         // If group
         if (!empty($this->group)) {
-            $sql .= ' '.'GROUP BY ' . implode(',', array_map([$this->connection, 'quoteColumn'], $this->group));
+            $sql .= ' '.'GROUP BY ' . implode(',', array_map([$this->connection, 'quoteClause'], $this->group));
         }
 
         // If order
@@ -328,7 +328,7 @@ class Select extends Query
             $sql .= ' '.'ORDER BY ' .
                 implode(',', array_map(function ($e) {
                     list ($c, $d) =  explode(' ', $e.' ', 2);
-                    return $this->connection->quoteColumn($c) . (empty($d) ? '' : ' '.trim(strtoupper($d)));
+                    return $this->connection->quoteClause($c) . (empty($d) ? '' : ' '.trim(strtoupper($d)));
                 }, $this->order));
         }
 
