@@ -30,6 +30,7 @@ class Upgrade extends Migrate
             ->addOption('steps', 's', InputOption::VALUE_REQUIRED, 'Number of new migrations to perform', 1)
             ->addOption('all', 'a', InputOption::VALUE_NONE, 'Upgrade all of your new migrations')
             ->addUsage('sqlite:database.sqlite')
+            ->addUsage('DB_DSN DB_USER DB_PASS -e')
             ->addUsage('-p path/to/migration/files sqlite:database.sqlite')
             ->addUsage('-s 1 sqlite:database.sqlite');
     }
@@ -82,6 +83,8 @@ class Upgrade extends Migrate
                 if ($steps !== false && --$steps === 0) {
                     break;
                 }
+            } else {
+                $output->writeln('<error>Failed UP: ' . $file->getFilename() . '</error>');
             }
         }
 

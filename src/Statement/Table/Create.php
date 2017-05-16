@@ -35,6 +35,11 @@ abstract class Create implements Statement
     protected $columns;
 
     /**
+     * @var string[]
+     */
+    protected $primaryKeys;
+
+    /**
      * @var string
      */
     protected $extras;
@@ -51,9 +56,10 @@ abstract class Create implements Statement
      */
     public function __construct(Connection $connection)
     {
-        $this->connection = $connection;
-        $this->columns    = [];
-        $this->charset    = 'utf8';
+        $this->connection  = $connection;
+        $this->columns     = [];
+        $this->primaryKeys = [];
+        $this->charset     = 'utf8';
     }
 
     /**
@@ -70,6 +76,14 @@ abstract class Create implements Statement
      * @return Column
      */
     public abstract function column($name);
+
+    /**
+     * @param string|array $keys
+     */
+    public function primaryKeys($keys)
+    {
+        $this->primaryKeys = (array) $keys;
+    }
 
     /**
      * @param string $extras

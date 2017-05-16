@@ -25,7 +25,8 @@ class Install extends Migrate
             ->setName('migrate:install')
             ->setDescription('Install the database migrations table')
             ->setHelp('This command allows you to install the database migrations table')
-            ->addUsage('sqlite:database.sqlite');
+            ->addUsage('sqlite:database.sqlite')
+            ->addUsage('DB_DSN DB_USER DB_PASS -e');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -38,7 +39,7 @@ class Install extends Migrate
         // Connect to the database
         $connection = $this->connect($input);
 
-        // Create the migration table
+        // Check if the migrations table exists
         $batch = $this->batch($connection);
 
         if ($batch !== false) {
@@ -52,10 +53,11 @@ class Install extends Migrate
             case 'mysql':
                 $table = $connection->create(function (MySQL\Statement\Table\Create $table) {
                     $table->name('migrations');
-                    $table->column('id')->type('int(11)')->extras('unsigned NOT NULL AUTO_INCREMENT, PRIMARY KEY (`id`)');
+                    $table->column('id')->type('int(11)')->extras('unsigned NOT NULL AUTO_INCREMENT');
                     $table->column('fileName')->type('char(255)')->extras('NOT NULL');
                     $table->column('batch')->type('int(11)')->extras('unsigned NOT NULL');
                     $table->column('migratedAt')->type('datetime')->extras('NOT NULL');
+                    $table->primaryKeys('id');
                     $table->extras('ENGINE=InnoDB');
                 });
                 break;

@@ -7,6 +7,7 @@ use MadeSimple\Database\Migration;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
 
@@ -24,9 +25,10 @@ abstract class Migrate extends Command
     protected function configure()
     {
         $this
-            ->addArgument('dbDsn', InputArgument::REQUIRED, 'DSN for the database to run migration')
+            ->addArgument('dbDsn', InputArgument::REQUIRED, 'DSN for the database to run migration)')
             ->addArgument('dbUser', InputArgument::OPTIONAL, 'Username for the database')
-            ->addArgument('dbPass', InputArgument::OPTIONAL, 'Password for the database');
+            ->addArgument('dbPass', InputArgument::OPTIONAL, 'Password for the database')
+            ->addOption('dotenv', 'e', InputOption::VALUE_OPTIONAL, 'Load arguments from [.env] file', '.env');
     }
 
     /**
@@ -56,8 +58,23 @@ abstract class Migrate extends Command
      */
     protected function connect(InputInterface $input)
     {
+        // Retrieve input arguments
+        $dsn  = $input->getArgument('dbDsn');
+        $user = $input->getArgument('dbUser');
+        $pass = $input->getArgument('dbPass');
+
+        // If using dotenv file load and retrieve values
+        if ($input->hasOption('dotenv')) {
+            $dotenv = new \Dotenv\Dotenv(dirname(dirname(__DIR__)), $input->getOption('dotenv'));
+            $dotenv->load();
+
+            $dsn  = getenv($dsn);
+            $user = $user === null ? null : getenv($user);
+            $pass = $pass === null ? null : getenv($pass);
+        }
+
         // Create the pdo
-        $pdo = new \PDO($input->getArgument('dbDsn'), $input->getArgument('dbUser'), $input->getArgument('dbPass'));
+        $pdo = new \PDO($dsn, $user, $pass);
         $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
         return Connection::factory($pdo);
@@ -118,10 +135,14 @@ abstract class Migrate extends Command
      */
     protected function migrateUp(Connection $connection, $batch, $file)
     {
+        if (!file_exists($file)) {
+            return false;
+        }
+
         require $file;
 
         $fileName   = basename($file);
-        $className  = substr($fileName, strpos($fileName, '-') + 1, -4);
+        $className  = substr($fileName, strrpos($fileName, '-') + 1, -4);
         $reflection = new \ReflectionClass($className);
         $migration  = $reflection->newInstance();
 
@@ -146,10 +167,14 @@ abstract class Migrate extends Command
      */
     protected function migrateDn(Connection $connection, $batch, $file)
     {
+        if (!file_exists($file)) {
+            return false;
+        }
+
         require $file;
 
         $fileName   = basename($file);
-        $className  = substr($fileName, strpos($fileName, '-') + 1, -4);
+        $className  = substr($fileName, strrpos($fileName, '-') + 1, -4);
         $reflection = new \ReflectionClass($className);
         $migration  = $reflection->newInstance();
 

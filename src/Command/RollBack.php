@@ -29,6 +29,7 @@ class RollBack extends Migrate
             ->addOption('all', 'a', InputOption::VALUE_NONE, 'Rollback to before your first migration')
             ->addOption('path', 'p', InputOption::VALUE_REQUIRED, 'Path to your database migration files', 'database/migrations')
             ->addUsage('sqlite:database.sqlite')
+            ->addUsage('DB_DSN DB_USER DB_PASS -e')
             ->addUsage('--all path/to/migration/files sqlite:database.sqlite')
             ->addUsage('--batches 1 sqlite:database.sqlite');
     }
@@ -80,6 +81,8 @@ class RollBack extends Migrate
             foreach ($rows as $row) {
                 if ($this->migrateDn($connection, $batch, rtrim($path, '/') . '/' . $row['fileName'])) {
                     $output->writeln('Migrated DN: ' . $row['fileName']);
+                } else {
+                    $output->writeln('<error>Failed DN: ' . $row['fileName'] . '</error>');
                 }
             }
 

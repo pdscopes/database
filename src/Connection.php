@@ -289,7 +289,7 @@ abstract class Connection
         $position = 0;
         $quoted   = '';
         foreach ($words as $location => $word) {
-            if (':' === $word{0}) {
+            if (':' === $word{0} || '\'' === $word{0} || '"' === $word{0}) {
                 continue;
             }
             $quoted .= substr($clause, $position, ($location - $position));

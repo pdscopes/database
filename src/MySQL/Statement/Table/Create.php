@@ -29,9 +29,18 @@ class Create extends \MadeSimple\Database\Statement\Table\Create
     {
         $sql = 'CREATE TABLE ' . $this->name;
 
-        $sql .= " ( " . implode(', ', $this->columns) . " )";
+        $primaryKeys = '';
+        if (!empty($this->primaryKeys)) {
+            $primaryKeys = ', PRIMARY KEY (' . implode(',', array_map([$this->connection, 'quoteClause'], $this->primaryKeys)) . ')';
+        }
 
-        $sql .= " " . 'DEFAULT CHARSET='.$this->charset . ';';
+        $sql .= ' ( ' . implode(', ', $this->columns) . $primaryKeys . ' )';
+
+        if (!empty($this->extras)) {
+            $sql .= ' ' . $this->extras;
+        }
+
+        $sql .=  ' DEFAULT CHARSET='.$this->charset . ';';
 
         return $sql;
     }

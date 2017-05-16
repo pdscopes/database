@@ -24,7 +24,8 @@ class Uninstall extends Migrate
             ->setAliases(['migrate:remove'])
             ->setDescription('Uninstall the database migrations table')
             ->setHelp('This command allows you to uninstall the database migrations table')
-            ->addUsage('sqlite:database.sqlite');
+            ->addUsage('sqlite:database.sqlite')
+            ->addUsage('DB_DSN DB_USER DB_PASS -e');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
