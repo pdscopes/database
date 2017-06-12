@@ -27,7 +27,7 @@ class Create extends \MadeSimple\Database\Statement\Table\Create
 
     public  function toSql()
     {
-        $sql = 'CREATE TABLE ' . $this->name . ' ( ' . implode(', ', $this->columns) . ' )';
+        $sql = 'CREATE TABLE ' . $this->connection->quoteClause($this->name) . ' ( ' . implode(', ', $this->columns) . ' )';
 
         return $sql;
     }

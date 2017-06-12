@@ -3,7 +3,7 @@
 namespace MadeSimple\Database;
 
 /**
- * Class Migration
+ * Interface Migration
  *
  * @package MadeSimple\Database
  * @author  Peter Scopes

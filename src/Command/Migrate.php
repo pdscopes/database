@@ -186,4 +186,34 @@ abstract class Migrate extends Command
 
         return false;
     }
+
+    /**
+     * Sow seed.
+     *
+     * @param Connection $connection
+     * @param string     $file
+     *
+     * @return bool
+     */
+    protected function sowSeed(Connection $connection, $file)
+    {
+        if (!file_exists($file)) {
+            return false;
+        }
+
+        require $file;
+
+        $fileName   = basename($file);
+        $className  = substr($fileName, strrpos($fileName, '-') + 1, -4);
+        $reflection = new \ReflectionClass($className);
+        $seed  = $reflection->newInstance();
+
+        if ($seed instanceof \MadeSimple\Database\Seed) {
+            $seed->sow($connection);
+
+            return true;
+        }
+
+        return false;
+    }
 }

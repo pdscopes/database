@@ -52,7 +52,7 @@ class Drop implements Statement
      */
     public function toSql()
     {
-        return 'DROP TABLE ' . $this->table;
+        return 'DROP TABLE ' . $this->connection->quoteClause($this->table);
     }
 
     /**

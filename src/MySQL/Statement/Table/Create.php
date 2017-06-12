@@ -27,7 +27,7 @@ class Create extends \MadeSimple\Database\Statement\Table\Create
 
     public  function toSql()
     {
-        $sql = 'CREATE TABLE ' . $this->name;
+        $sql = 'CREATE TABLE ' . $this->connection->quoteClause($this->name);
 
         $primaryKeys = '';
         if (!empty($this->primaryKeys)) {
