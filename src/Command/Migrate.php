@@ -65,7 +65,7 @@ abstract class Migrate extends Command
 
         // If using dotenv file load and retrieve values
         if ($input->hasOption('dotenv')) {
-            $dotenv = new \Dotenv\Dotenv(dirname(dirname(__DIR__)), $input->getOption('dotenv'));
+            $dotenv = new \Dotenv\Dotenv(getcwd(), $input->getOption('dotenv'));
             $dotenv->load();
 
             $dsn  = getenv($dsn);
@@ -121,7 +121,6 @@ abstract class Migrate extends Command
 
         return (int) $latestBatch;
     }
-
 
 
     /**
