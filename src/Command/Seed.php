@@ -62,16 +62,11 @@ class Seed extends Migrate
         }
 
         // Perform upgrade
-        $steps  = $input->getOption('all') ? false : $input->getOption('steps');
         $finder = new Finder();
         $finder->files()->sortByName()->in($input->getOption('path'))->name('*.php');
         foreach ($finder as $file) {
             if($this->sowSeed($connection, $file)) {
                 $output->writeln('Seeded: ' . $file->getFilename());
-
-                if ($steps !== false && --$steps === 0) {
-                    break;
-                }
             } else {
                 $output->writeln('<error>Failed Seed: ' . $file->getFilename() . '</error>');
             }
