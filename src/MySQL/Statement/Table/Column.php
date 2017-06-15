@@ -24,7 +24,7 @@ class Column extends \MadeSimple\Database\Statement\Table\Column
     /**
      * @var  bool
      */
-    protected $autoIncrement;
+    protected $autoIncrement = false;
 
     /**
      * @var  string
@@ -401,7 +401,7 @@ class Column extends \MadeSimple\Database\Statement\Table\Column
      */
     function enum(array $values, $charset = null, $collate = null)
     {
-        $this->dataType = 'ENUM(' . implode(',', $values) . ')'
+        $this->dataType = 'ENUM(\'' . implode('\',\'', $values) . '\')'
             . (null !== $charset ? ' CHARACTER SET ' . $charset : '')
             . (null !== $collate ? ' COLLATE ' . $collate : '');
         return $this;
@@ -438,9 +438,18 @@ class Column extends \MadeSimple\Database\Statement\Table\Column
      *
      * @return $this
      */
-    function null($flag)
+    function null($flag = true)
     {
         $this->null = $flag;
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    function notNull()
+    {
+        $this->null = false;
         return $this;
     }
 
@@ -456,11 +465,20 @@ class Column extends \MadeSimple\Database\Statement\Table\Column
     }
 
     /**
+     * @return $this
+     */
+    function defaultNull()
+    {
+        $this->default = 'NULL';
+        return $this;
+    }
+
+    /**
      * @param bool $flag
      *
      * @return $this
      */
-    function autoIncrement($flag)
+    function autoIncrement($flag = true)
     {
         $this->autoIncrement = $flag;
         return $this;

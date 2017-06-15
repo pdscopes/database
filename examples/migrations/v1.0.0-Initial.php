@@ -15,12 +15,12 @@ class Initial implements Migration
     {
         $connection->create('user', function (Table\Create $table) {
             $table->ifNotExists(true);
-            $table->column('id')->int(11, true)->null(false)->autoIncrement(true);
-            $table->column('uuid')->char(36)->null(false);
-            $table->column('email')->char(255)->null(false);
-            $table->column('password')->char(255)->null(false);
-            $table->column('createdAt')->timestamp()->null(false)->defaultValue('CURRENT_TIMESTAMP');
-            $table->column('updatedAt')->timestamp()->null(false)->defaultValue('CURRENT_TIMESTAMP');
+            $table->column('id')->int(11, true)->notNull()->autoIncrement();
+            $table->column('uuid')->char(36)->notNull();
+            $table->column('email')->char(255)->notNull();
+            $table->column('password')->char(255)->notNull();
+            $table->column('createdAt')->timestamp()->notNull()->defaultValue('CURRENT_TIMESTAMP');
+            $table->column('updatedAt')->timestamp()->notNull()->defaultValue('CURRENT_TIMESTAMP');
 
 
             $table->primaryKey('id');
@@ -31,13 +31,13 @@ class Initial implements Migration
 
         $connection->create('post', function (Table\Create $table) {
             $table->ifNotExists(true);
-            $table->column('id')->int(11, true)->null(false)->autoIncrement(true);
-            $table->column('uuid')->char(36)->null(false);
+            $table->column('id')->int(11, true)->notNull()->autoIncrement();
+            $table->column('uuid')->char(36)->notNull();
             $table->column('userId')->int(11, true)->null(true);
-            $table->column('title')->char(255)->null(false);
-            $table->column('content')->text()->null(false);
-            $table->column('createdAt')->timestamp()->null(false)->defaultValue('CURRENT_TIMESTAMP');
-            $table->column('updatedAt')->timestamp()->null(false)->defaultValue('CURRENT_TIMESTAMP');
+            $table->column('title')->char(255)->notNull();
+            $table->column('content')->text()->notNull();
+            $table->column('createdAt')->timestamp()->notNull()->defaultValue('CURRENT_TIMESTAMP');
+            $table->column('updatedAt')->timestamp()->notNull()->defaultValue('CURRENT_TIMESTAMP');
 
 
             $table->primaryKey('id');
