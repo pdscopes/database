@@ -21,6 +21,15 @@ Created migrations table
 > vendor/bin/database migrate:upgrade DB_DSN DB_USER DB_PASS -p examples/migrations -e
 Migrated UP: v1.0.0-Initial.php
 ```
+or use can use the shortcut:
+```bash
+> composer install
+...
+> vendor/bin/database migrate DB_DSN DB_USER DB_PASS -p examples/migrations -e
+Created migrations table
+Migrated UP: v1.0.0-Initial.php
+```
+
 
 For example, on rollback a migration:
 ```bash

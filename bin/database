@@ -14,6 +14,7 @@ use Symfony\Component\Console\Application;
 use MadeSimple\Database\Command;
 
 $application = new Application();
+$application->add(new Command\Migrate());
 $application->add(new Command\Install());
 $application->add(new Command\Uninstall());
 $application->add(new Command\Upgrade());

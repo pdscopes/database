@@ -2,6 +2,9 @@
 
 namespace MadeSimple\Database\Command;
 
+use MadeSimple\Database\Connection;
+use MadeSimple\Database\Migration;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Command\LockableTrait;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -15,13 +18,13 @@ use Symfony\Component\Finder\Finder;
  * @package MadeSimple\Database\Command
  * @author  Peter Scopes
  */
-class Upgrade extends Migrate
+class Upgrade extends Command
 {
-    use LockableTrait;
+    use InteractsWithDatabaseMigrations, LockableTrait;
 
     protected function configure()
     {
-        parent::configure();
+        $this->configureDatabase();
         $this
             ->setName('migrate:upgrade')
             ->setDescription('Upgrade to your next database migration')
@@ -90,5 +93,40 @@ class Upgrade extends Migrate
 
         $this->release();
         return 0;
+    }
+
+
+    /**
+     * Migrate UP.
+     *
+     * @param Connection $connection
+     * @param int        $batch
+     * @param string     $file
+     *
+     * @return bool
+     */
+    protected function migrateUp(Connection $connection, $batch, $file)
+    {
+        if (!file_exists($file)) {
+            return false;
+        }
+
+        require $file;
+
+        $fileName   = basename($file);
+        $className  = substr($fileName, strrpos($fileName, '-') + 1, -4);
+        $reflection = new \ReflectionClass($className);
+        $migration  = $reflection->newInstance();
+
+        if ($migration instanceof Migration) {
+            $migration->up($connection);
+            $connection->insert()->into('migrations')
+                ->columns('fileName', 'batch', 'migratedAt')
+                ->values($fileName, $batch, date('Y-m-d H:i:s'))->execute();
+
+            return true;
+        }
+
+        return false;
     }
 }

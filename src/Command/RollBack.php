@@ -2,6 +2,9 @@
 
 namespace MadeSimple\Database\Command;
 
+use MadeSimple\Database\Connection;
+use MadeSimple\Database\Migration;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Command\LockableTrait;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -14,13 +17,13 @@ use Symfony\Component\Filesystem\Filesystem;
  * @package MadeSimple\Database\Command
  * @author  Peter Scopes
  */
-class RollBack extends Migrate
+class RollBack extends Command
 {
-    use LockableTrait;
+    use InteractsWithDatabaseMigrations, LockableTrait;
 
     protected function configure()
     {
-        parent::configure();
+        $this->configureDatabase();
         $this
             ->setName('migrate:rollback')
             ->setDescription('Rollback to your previous database migration')
@@ -93,5 +96,37 @@ class RollBack extends Migrate
 
         $this->release();
         return 0;
+    }
+
+    /**
+     * Migrate DOWN.
+     *
+     * @param Connection $connection
+     * @param int        $batch
+     * @param string     $file
+     *
+     * @return bool
+     */
+    protected function migrateDn(Connection $connection, $batch, $file)
+    {
+        if (!file_exists($file)) {
+            return false;
+        }
+
+        require $file;
+
+        $fileName   = basename($file);
+        $className  = substr($fileName, strrpos($fileName, '-') + 1, -4);
+        $reflection = new \ReflectionClass($className);
+        $migration  = $reflection->newInstance();
+
+        if ($migration instanceof Migration) {
+            $migration->dn($connection);
+            $connection->delete()->from('migrations')->where('fileName = ?', $fileName)->andWhere('batch = ?', $batch)->execute();
+
+            return true;
+        }
+
+        return false;
     }
 }

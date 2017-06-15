@@ -9,7 +9,7 @@ use MadeSimple\Database\Migration;
 use MadeSimple\Database\Pool;
 use MadeSimple\Database\Relationship;
 use MadeSimple\Database\Repository;
-use MadeSimple\Database\Statement\Table\Create;
+use MadeSimple\Database\SQLite\Statement\Table\Create;
 use Tests\TestCase;
 
 class SQLiteTest extends TestCase
@@ -118,27 +118,21 @@ class SQLiteTestMigration implements Migration
 {
     function up(Connection $connection)
     {
-        $table = $connection->create(function (Create $table) {
-            $table->name('user');
-            $table->column('UUID')->extras('PRIMARY KEY');
-            $table->column('user_name');
-        });
-        $connection->query($table->toSql());
+        $connection->create('user', function (Create $table) {
+            $table->column('UUID')->text()->primaryKey();
+            $table->column('user_name')->text();
+        })->execute();
 
-        $table = $connection->create(function (Create $table) {
-            $table->name('post');
-            $table->column('uuid')->extras('PRIMARY KEY');
-            $table->column('submitter_id');
-            $table->column('title');
-        });
-        $connection->query($table->toSql());
-        $table = $connection->create(function (Create $table) {
-            $table->name('comment');
-            $table->column('id')->extras('PRIMARY KEY');
-            $table->column('post_uuid');
-            $table->column('data');
-        });
-        $connection->query($table->toSql());
+        $connection->create('post', function (Create $table) {
+            $table->column('uuid')->text()->primaryKey();
+            $table->column('submitter_id')->integer();
+            $table->column('title')->text();
+        })->execute();
+        $connection->create('comment', function (Create $table) {
+            $table->column('id')->integer()->primaryKey();
+            $table->column('post_uuid')->text();
+            $table->column('data')->none();
+        })->execute();
     }
 
     function dn(Connection $connection)

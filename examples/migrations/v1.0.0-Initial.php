@@ -2,12 +2,8 @@
 
 use MadeSimple\Database\Connection;
 use MadeSimple\Database\Migration;
+use MadeSimple\Database\MySQL\Statement\Table;
 
-/**
- * Class Initial
- *
- * @author
- */
 class Initial implements Migration
 {
     /**
@@ -17,14 +13,37 @@ class Initial implements Migration
      */
     function up(Connection $connection)
     {
-        $table = $connection->create(function (\MadeSimple\Database\MySQL\Statement\Table\Create $table) {
-            $table->name('foo');
-            $table->column('id')->type('int(11)')->extras('unsigned NOT NULL AUTO_INCREMENT');
-            $table->column('bar')->type('varchar(255)')->extras('DEFAULT NULL');
-            $table->primaryKeys('id');
-            $table->extras('ENGINE=InnoDB');
-        });
-        $table->execute();
+        $connection->create('user', function (Table\Create $table) {
+            $table->ifNotExists(true);
+            $table->column('id')->int(11, true)->null(false)->autoIncrement(true);
+            $table->column('uuid')->char(36)->null(false);
+            $table->column('email')->char(255)->null(false);
+            $table->column('password')->char(255)->null(false);
+            $table->column('createdAt')->timestamp()->null(false)->defaultValue('CURRENT_TIMESTAMP');
+            $table->column('updatedAt')->timestamp()->null(false)->defaultValue('CURRENT_TIMESTAMP');
+
+
+            $table->primaryKey('id');
+            $table->unique('uuid');
+            $table->unique('email');
+            $table->engine('InnoDB');
+        })->execute();
+
+        $connection->create('post', function (Table\Create $table) {
+            $table->ifNotExists(true);
+            $table->column('id')->int(11, true)->null(false)->autoIncrement(true);
+            $table->column('uuid')->char(36)->null(false);
+            $table->column('userId')->int(11, true)->null(true);
+            $table->column('title')->char(255)->null(false);
+            $table->column('content')->text()->null(false);
+            $table->column('createdAt')->timestamp()->null(false)->defaultValue('CURRENT_TIMESTAMP');
+            $table->column('updatedAt')->timestamp()->null(false)->defaultValue('CURRENT_TIMESTAMP');
+
+
+            $table->primaryKey('id');
+            $table->foreignKey('userId', 'user', 'id');
+            $table->engine('InnoDB');
+        })->execute();
     }
 
     /**
@@ -34,7 +53,8 @@ class Initial implements Migration
      */
     function dn(Connection $connection)
     {
-        (new \MadeSimple\Database\Statement\Table\Drop($connection))->table('foo')->execute();
+        $connection->drop()->table('post')->execute();
+        $connection->drop()->table('user')->execute();
     }
 
 }

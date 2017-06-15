@@ -2,6 +2,7 @@
 
 namespace MadeSimple\Database\Command;
 
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Command\LockableTrait;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -12,13 +13,13 @@ use Symfony\Component\Console\Output\OutputInterface;
  * @package MadeSimple\Database\Command
  * @author  Peter Scopes
  */
-class Uninstall extends Migrate
+class Uninstall extends Command
 {
-    use LockableTrait;
+    use InteractsWithDatabaseMigrations, LockableTrait;
 
     protected function configure()
     {
-        parent::configure();
+        $this->configureDatabase();
         $this
             ->setName('migrate:uninstall')
             ->setAliases(['migrate:remove'])

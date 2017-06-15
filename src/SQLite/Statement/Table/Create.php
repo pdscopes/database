@@ -2,8 +2,6 @@
 
 namespace MadeSimple\Database\SQLite\Statement\Table;
 
-use MadeSimple\Database\Column;
-
 /**
  * Class Table
  *
@@ -13,16 +11,33 @@ use MadeSimple\Database\Column;
 class Create extends \MadeSimple\Database\Statement\Table\Create
 {
     /**
+     * @var bool
+     */
+    protected $ifNotExists;
+
+
+    /**
+     * @param $flag
+     *
+     * @return $this
+     */
+    function ifNotExists($flag)
+    {
+        $this->ifNotExists = $flag;
+        return $this;
+    }
+
+    /**
      * @param string $name
      *
      * @return Column
      */
-    public  function column($name)
+    function column($name)
     {
-        $column = new Column($this->connection);
-        $this->columns[] = $column;
+        $column = new Column($this->connection, $name);
+        $this->columns[$name] = $column;
 
-        return $column->name($name);
+        return $column;
     }
 
     public  function toSql()

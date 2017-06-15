@@ -2,6 +2,8 @@
 
 namespace MadeSimple\Database\Command;
 
+use MadeSimple\Database\Connection;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Command\LockableTrait;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -15,13 +17,13 @@ use Symfony\Component\Finder\Finder;
  * @package MadeSimple\Database\Command
  * @author  Peter Scopes
  */
-class Seed extends Migrate
+class Seed extends Command
 {
-    use LockableTrait;
+    use InteractsWithDatabaseMigrations, LockableTrait;
 
     protected function configure()
     {
-        parent::configure();
+        $this->configureDatabase();
         $this
             ->setName('migrate:seed')
             ->setDescription('Seed your database with dummy data')
@@ -74,5 +76,35 @@ class Seed extends Migrate
 
         $this->release();
         return 0;
+    }
+
+    /**
+     * Sow seed.
+     *
+     * @param Connection $connection
+     * @param string     $file
+     *
+     * @return bool
+     */
+    protected function sowSeed(Connection $connection, $file)
+    {
+        if (!file_exists($file)) {
+            return false;
+        }
+
+        require $file;
+
+        $fileName   = basename($file);
+        $className  = substr($fileName, strrpos($fileName, '-') + 1, -4);
+        $reflection = new \ReflectionClass($className);
+        $seed  = $reflection->newInstance();
+
+        if ($seed instanceof \MadeSimple\Database\Seed) {
+            $seed->sow($connection);
+
+            return true;
+        }
+
+        return false;
     }
 }

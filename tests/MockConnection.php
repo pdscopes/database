@@ -18,7 +18,7 @@ class MockConnection extends Connection
         $this->columnQuote = '`';
     }
 
-    public  function create($callable = null)
+    public  function create($name, \Closure $callable)
     {
         // TODO: Implement table() method.
     }

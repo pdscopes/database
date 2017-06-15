@@ -79,11 +79,12 @@ abstract class Connection
     }
 
     /**
-     * @param \Closure|null $callable
+     * @param string   $name
+     * @param \Closure $callable
      *
-     * @return Statement\Table\Create
+     * @return Statement
      */
-    public abstract function create($callable = null);
+    public abstract function create($name, \Closure $callable);
 
     /**
      * @param \Closure|null $callable
@@ -263,7 +264,11 @@ abstract class Connection
      */
     public function query($statement)
     {
-        return $this->pdo->query($statement);
+        try {
+            return $this->pdo->query($statement);
+        } catch (\PDOException $e) {
+            throw new \PDOException('Failed to execute: ' . $statement, 0, $e);
+        }
     }
 
     /**

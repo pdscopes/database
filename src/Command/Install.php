@@ -4,6 +4,7 @@ namespace MadeSimple\Database\Command;
 
 use MadeSimple\Database\MySQL;
 use MadeSimple\Database\SQLite;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Command\LockableTrait;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -14,13 +15,13 @@ use Symfony\Component\Console\Output\OutputInterface;
  * @package MadeSimple\Database\Command
  * @author  Peter Scopes
  */
-class Install extends Migrate
+class Install extends Command
 {
-    use LockableTrait;
+    use InteractsWithDatabaseMigrations, LockableTrait;
 
     protected function configure()
     {
-        parent::configure();
+        $this->configureDatabase();
         $this
             ->setName('migrate:install')
             ->setDescription('Install the database migrations table')
@@ -51,30 +52,29 @@ class Install extends Migrate
         // Create the migrations table
         switch ($connection->getAttribute(\PDO::ATTR_DRIVER_NAME)) {
             case 'mysql':
-                $table = $connection->create(function (MySQL\Statement\Table\Create $table) {
-                    $table->name('migrations');
-                    $table->column('id')->type('int(11)')->extras('unsigned NOT NULL AUTO_INCREMENT');
-                    $table->column('fileName')->type('char(255)')->extras('NOT NULL');
-                    $table->column('batch')->type('int(11)')->extras('unsigned NOT NULL');
-                    $table->column('migratedAt')->type('datetime')->extras('NOT NULL');
-                    $table->primaryKeys('id');
-                    $table->extras('ENGINE=InnoDB');
-                });
+                $connection->create('migrations', function (MySQL\Statement\Table\Create $table) {
+                    $table->ifNotExists(true);
+                    $table->column('id')->int(11, true)->null(false)->autoIncrement(true);
+                    $table->column('fileName')->char(255)->null(false);
+                    $table->column('batch')->int(11, true)->null(false);
+                    $table->column('migratedAt')->datetime()->null(false);
+
+                    $table->primaryKey('id');
+                    $table->engine('InnoDB');
+                })->execute();
                 break;
             case 'sqlite':
-                $table = $connection->create(function (SQLite\Statement\Table\Create $table) {
-                    $table->name('migrations');
-                    $table->column('id')->extras('PRIMARY KEY');
-                    $table->column('fileName');
-                    $table->column('batch');
-                    $table->column('migratedAt');
-                });
+                $connection->create('migrations', function(SQLite\Statement\Table\Create $table) {
+                    $table->column('id')->integer()->primaryKey();
+                    $table->column('filename')->text();
+                    $table->column('batch')->integer();
+                    $table->column('migratedAt')->text();
+                })->execute();
                 break;
 
             default:
                 throw new \RuntimeException('Unsupported PDO Driver');
         }
-        $connection->query($table->toSql());
         $output->writeln('Created migrations table');
 
         $this->release();

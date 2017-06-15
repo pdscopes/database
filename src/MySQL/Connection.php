@@ -22,16 +22,16 @@ class Connection extends \MadeSimple\Database\Connection
     }
 
     /**
-     * @param null $callable
+     * @param string   $name
+     * @param \Closure $callable
      *
-     * @return Statement\Table\Create
+     * @return \MadeSimple\Database\Statement
      */
-    public  function create($callable = null)
+    public  function create($name, \Closure $callable)
     {
-        $alter = new Statement\Table\Create($this);
-        if ($callable instanceof \Closure) {
-            call_user_func_array($callable, [$alter]);
-        }
-        return $alter;
+        $statement = new \MadeSimple\Database\MySQL\Statement\Table\Create($this, $name);
+        call_user_func_array($callable, [$statement]);
+
+        return $statement;
     }
 }
