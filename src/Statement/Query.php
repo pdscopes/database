@@ -6,6 +6,8 @@ use MadeSimple\Database\Connection;
 use MadeSimple\Database\Statement;
 use PDO;
 use PDOStatement;
+use Psr\Log\LoggerAwareTrait;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class Statement
@@ -15,6 +17,8 @@ use PDOStatement;
  */
 abstract class Query implements Statement
 {
+    use LoggerAwareTrait;
+
     /**
      * @var Connection
      */
@@ -26,13 +30,15 @@ abstract class Query implements Statement
     protected $parameters;
 
     /**
-     * Statement constructor.
+     * Query constructor.
      *
-     * @param Connection $connection
+     * @param Connection|null $connection
+     * @param LoggerInterface $logger
      */
-    public function __construct(Connection $connection = null)
+    public function __construct(Connection $connection = null, LoggerInterface $logger)
     {
         $this->setConnection($connection);
+        $this->setLogger($logger);
         $this->parameters = [];
     }
 
@@ -84,12 +90,14 @@ abstract class Query implements Statement
     public function execute(array $parameters = null)
     {
         $parameters = $parameters ? : $this->parameters;
+        $sql        = $this->toSql();
+        $this->logger->debug('Executing query', ['sql' => $sql]);
 
         try {
             if (empty($parameters)) {
-                $statement = $this->connection->query($this->toSql());
+                $statement = $this->connection->query($sql);
             } else {
-                $statement = $this->connection->prepare($this->toSql());
+                $statement = $this->connection->prepare($sql);
                 $this->bindParameters($statement, $parameters ? : $this->parameters);
                 if (false === $statement->execute()) {
                     return false;
@@ -99,7 +107,7 @@ abstract class Query implements Statement
             return $statement;
         }
         catch (\PDOException $e) {
-            throw new ExecutionException($e, $this->toSql(), $parameters);
+            throw new ExecutionException($e, $sql, $parameters);
         }
     }
 

@@ -3,6 +3,8 @@
 namespace MadeSimple\Database;
 
 use PDO;
+use Psr\Log\LoggerAwareTrait;
+use Psr\Log\NullLogger;
 use ReflectionClass;
 
 /**
@@ -13,6 +15,8 @@ use ReflectionClass;
  */
 class Repository
 {
+    use LoggerAwareTrait;
+
     /**
      * @var Pool
      */
@@ -50,6 +54,7 @@ class Repository
         $this->className  = $className;
         $this->reflection = new ReflectionClass($className);
         $this->connection = $pool->get($this->reflection->getStaticPropertyValue('connection'));
+        $this->setLogger(new NullLogger);
 
         /** @var Entity $prototype */
         $prototype       = $this->reflection->newInstance();

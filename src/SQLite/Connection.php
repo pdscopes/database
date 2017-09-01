@@ -2,6 +2,9 @@
 
 namespace MadeSimple\Database\SQLite;
 
+use MadeSimple\Database\SQLite\Statement\Table\Create;
+use Psr\Log\LoggerInterface;
+
 /**
  * Class Connection
  *
@@ -11,14 +14,14 @@ namespace MadeSimple\Database\SQLite;
 class Connection extends \MadeSimple\Database\Connection
 {
     /**
-     * SQLite constructor.
+     * Connection constructor.
      *
-     * @param \PDO $pdo
+     * @param \PDO             $pdo
+     * @param LoggerInterface  $logger
      */
-    public function __construct(\PDO $pdo)
+    public function __construct(\PDO $pdo, LoggerInterface $logger)
     {
-        parent::__construct($pdo);
-        $this->columnQuote = '"';
+        parent::__construct($pdo, $logger, '"');
     }
 
     /**
@@ -29,7 +32,7 @@ class Connection extends \MadeSimple\Database\Connection
      */
     public  function create($name, \Closure $callable)
     {
-        $statement = new \MadeSimple\Database\SQLite\Statement\Table\Create($this, $name);
+        $statement = new Create($this, $this->logger, $name);
         call_user_func_array($callable, [$statement]);
 
         return $statement;

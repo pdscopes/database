@@ -4,6 +4,7 @@ namespace MadeSimple\Database\Statement\Query;
 
 use MadeSimple\Database\Connection;
 use MadeSimple\Database\Statement\Query;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class Delete
@@ -28,11 +29,12 @@ class Delete extends Query
     /**
      * Delete constructor.
      *
-     * @param Connection $connection
+     * @param Connection|null $connection
+     * @param LoggerInterface $logger
      */
-    public function __construct(Connection $connection = null)
+    public function __construct(Connection $connection = null, LoggerInterface $logger)
     {
-        parent::__construct($connection);
+        parent::__construct($connection, $logger);
 
         $this->where = new Clause($connection);
     }

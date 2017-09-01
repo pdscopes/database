@@ -3,6 +3,7 @@
 namespace Tests;
 
 use MadeSimple\Database\Connection;
+use Psr\Log\NullLogger;
 
 /**
  * Class MockConnection
@@ -15,6 +16,7 @@ class MockConnection extends Connection
     public function __construct(\PDO $pdo)
     {
         $this->pdo         = $pdo;
+        $this->logger      = new NullLogger;
         $this->columnQuote = '`';
     }
 

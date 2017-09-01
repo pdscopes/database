@@ -4,6 +4,8 @@ namespace MadeSimple\Database\Statement\Table;
 
 use MadeSimple\Database\Connection;
 use MadeSimple\Database\Statement;
+use Psr\Log\LoggerAwareTrait;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class Alter
@@ -13,6 +15,8 @@ use MadeSimple\Database\Statement;
  */
 class Alter implements Statement
 {
+    use LoggerAwareTrait;
+
     /**
      * @var Connection
      */
@@ -29,13 +33,15 @@ class Alter implements Statement
     protected $action;
 
     /**
-     * Table constructor.
+     * Alter constructor.
      *
-     * @param Connection $connection
+     * @param Connection      $connection
+     * @param LoggerInterface $logger
      */
-    public function __construct(Connection $connection)
+    public function __construct(Connection $connection, LoggerInterface $logger)
     {
         $this->connection = $connection;
+        $this->setLogger($logger);
     }
 
     /**
@@ -71,7 +77,9 @@ class Alter implements Statement
      */
     public function execute(array $parameters = null)
     {
-        return $this->connection->query($this->toSql());
+        $sql = $this->toSql();
+        $this->logger->debug('Executing alter', ['sql' => $sql]);
+        return $this->connection->query($sql);
     }
 
     /**

@@ -2,13 +2,15 @@
 
 namespace MadeSimple\Database;
 
+use Psr\Log\LoggerAwareInterface;
+
 /**
  * Class Statement
  *
  * @package MadeSimple\Database
  * @author  Peter Scopes
  */
-interface Statement
+interface Statement extends LoggerAwareInterface
 {
     /**
      * Convert the statement object into an SQL string to be executed.

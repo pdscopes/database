@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use MadeSimple\Database\Connection;
 use MadeSimple\Database\Pool;
+use Psr\Log\NullLogger;
 use Tests\TestCase;
 
 class PoolTest extends TestCase
@@ -28,8 +29,8 @@ class PoolTest extends TestCase
         parent::setUp();
 
         $this->mockPdo     = \Mockery::mock(\PDO::class);
-        $this->connection1 = new \MadeSimple\Database\MySQL\Connection($this->mockPdo);
-        $this->connection2 = new \MadeSimple\Database\SQLite\Connection($this->mockPdo);
+        $this->connection1 = new \MadeSimple\Database\MySQL\Connection($this->mockPdo, new NullLogger);
+        $this->connection2 = new \MadeSimple\Database\SQLite\Connection($this->mockPdo, new NullLogger);
     }
 
     /**

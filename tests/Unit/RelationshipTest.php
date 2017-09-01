@@ -28,7 +28,7 @@ class RelationshipTest extends TestCase
     private $mockPool;
 
     /**
-     * @var RelationEntity
+     * @var Entity
      */
     private $entity;
 

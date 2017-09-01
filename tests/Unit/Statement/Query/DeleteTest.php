@@ -4,6 +4,7 @@ namespace Tests\Unit\Query;
 
 use MadeSimple\Database\Statement\Query\Clause;
 use MadeSimple\Database\Statement\Query\Delete;
+use Psr\Log\NullLogger;
 use Tests\MockConnection;
 use Tests\TestCase;
 
@@ -40,7 +41,7 @@ class DeleteTest extends TestCase
     public function testFromWithoutAlias()
     {
         $sql    = 'DELETE FROM `table`';
-        $delete = (new Delete($this->mockConnection))->from('table');
+        $delete = (new Delete($this->mockConnection, new NullLogger))->from('table');
 
         $this->assertEquals($sql, $delete->toSql());
     }
@@ -51,7 +52,7 @@ class DeleteTest extends TestCase
     public function testFromWithAlias()
     {
         $sql    = 'DELETE `t` FROM `table` AS `t`';
-        $delete = (new Delete($this->mockConnection))->from('table', 't');
+        $delete = (new Delete($this->mockConnection, new NullLogger))->from('table', 't');
 
         $this->assertEquals($sql, $delete->toSql());
     }
@@ -67,7 +68,7 @@ class DeleteTest extends TestCase
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(':bar', 1, \PDO::PARAM_INT)->andReturn(true);
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
 
-        $delete = (new Delete($this->mockConnection))->from('table')->where('foo = :bar')->setParameter('bar', 1);
+        $delete = (new Delete($this->mockConnection, new NullLogger))->from('table')->where('foo = :bar')->setParameter('bar', 1);
         $this->assertEquals($this->mockPdoStatement, $delete->execute());
     }
 
@@ -82,7 +83,7 @@ class DeleteTest extends TestCase
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(1, 1, \PDO::PARAM_INT)->andReturn(true);
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
 
-        $delete = (new Delete($this->mockConnection))->from('table')->where('foo = ?')->setParameters([1]);
+        $delete = (new Delete($this->mockConnection, new NullLogger))->from('table')->where('foo = ?')->setParameters([1]);
         $this->assertEquals($this->mockPdoStatement, $delete->execute());
     }
 
@@ -97,7 +98,7 @@ class DeleteTest extends TestCase
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(':bar', 1, \PDO::PARAM_INT)->andReturn(true);
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
 
-        $delete = (new Delete($this->mockConnection))->from('table')->where('foo = :bar')->setParameters(['bar' => 1]);
+        $delete = (new Delete($this->mockConnection, new NullLogger))->from('table')->where('foo = :bar')->setParameters(['bar' => 1]);
         $this->assertEquals($this->mockPdoStatement, $delete->execute());
     }
 
@@ -107,7 +108,7 @@ class DeleteTest extends TestCase
     public function testWhereWithoutParameters()
     {
         $sql    = 'DELETE FROM `table` WHERE `foo` = 1';
-        $delete = (new Delete($this->mockConnection))->from('table')->where('foo = 1');
+        $delete = (new Delete($this->mockConnection, new NullLogger))->from('table')->where('foo = 1');
         $this->assertEquals($sql, $delete->toSql());
     }
 
@@ -117,7 +118,7 @@ class DeleteTest extends TestCase
     public function testWhereWithWildcardParameter()
     {
         $sql    = 'DELETE FROM `table` WHERE `foo` = ?';
-        $delete = (new Delete($this->mockConnection))->from('table')->where('foo = ?');
+        $delete = (new Delete($this->mockConnection, new NullLogger))->from('table')->where('foo = ?');
 
         $this->assertEquals($sql, $delete->toSql());
     }
@@ -128,7 +129,7 @@ class DeleteTest extends TestCase
     public function testWhereWithNamedParameter()
     {
         $sql    = 'DELETE FROM `table` WHERE `foo` = :bar';
-        $delete = (new Delete($this->mockConnection))->from('table')->where('foo = :bar');
+        $delete = (new Delete($this->mockConnection, new NullLogger))->from('table')->where('foo = :bar');
 
         $this->assertEquals($sql, $delete->toSql());
     }
@@ -146,7 +147,7 @@ class DeleteTest extends TestCase
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(':qux', 5, \PDO::PARAM_INT)->andReturn(true);
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
 
-        $delete = (new Delete($this->mockConnection))
+        $delete = (new Delete($this->mockConnection, new NullLogger))
             ->from('table')
             ->where(function (Clause $clause) {
                 return $clause
@@ -175,7 +176,7 @@ class DeleteTest extends TestCase
     public function testAndWhere()
     {
         $sql    = 'DELETE FROM `table` WHERE `foo` IS TRUE AND `bar` = ? AND (`baz` = :qux)';
-        $delete = (new Delete($this->mockConnection))
+        $delete = (new Delete($this->mockConnection, new NullLogger))
             ->from('table')
             ->where('foo IS TRUE')
             ->andWhere('bar = ?')
@@ -192,7 +193,7 @@ class DeleteTest extends TestCase
     public function testOrWhere()
     {
         $sql    = 'DELETE FROM `table` WHERE `foo` IS NULL OR `bar` = ? OR (`baz` = :qux)';
-        $delete = (new Delete($this->mockConnection))
+        $delete = (new Delete($this->mockConnection, new NullLogger))
             ->from('table')
             ->where('foo IS NULL')
             ->orWhere('bar = ?')

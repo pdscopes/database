@@ -4,6 +4,8 @@ namespace MadeSimple\Database\Statement\Table;
 
 use MadeSimple\Database\Connection;
 use MadeSimple\Database\Statement;
+use Psr\Log\LoggerAwareTrait;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class Create
@@ -13,6 +15,8 @@ use MadeSimple\Database\Statement;
  */
 abstract class Create implements Statement
 {
+    use LoggerAwareTrait;
+
     /**
      * @var Connection
      */
@@ -29,14 +33,16 @@ abstract class Create implements Statement
     protected $columns = [];
 
     /**
-     * Table constructor.
+     * Create constructor.
      *
-     * @param Connection $connection
-     * @param string     $name
+     * @param Connection      $connection
+     * @param LoggerInterface $logger
+     * @param string          $name
      */
-    public function __construct(Connection $connection, $name)
+    public function __construct(Connection $connection, LoggerInterface $logger, $name)
     {
         $this->connection = $connection;
+        $this->setLogger($logger);
 
         $this->name($name);
     }
@@ -63,7 +69,9 @@ abstract class Create implements Statement
      */
     public function execute(array $parameters = null)
     {
-        return $this->connection->query($this->toSql());
+        $sql = $this->toSql();
+        $this->logger->debug('Executing create', ['sql' => $sql]);
+        return $this->connection->query($sql);
     }
 
     /**

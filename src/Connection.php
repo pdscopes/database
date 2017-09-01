@@ -2,6 +2,10 @@
 
 namespace MadeSimple\Database;
 
+use Psr\Log\LoggerAwareTrait;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
+
 /**
  * Class Connection
  *
@@ -10,6 +14,8 @@ namespace MadeSimple\Database;
  */
 abstract class Connection
 {
+    use LoggerAwareTrait;
+
     /**
      * @var \PDO
      */
@@ -26,17 +32,20 @@ abstract class Connection
     protected $transactions;
 
     /**
-     * @param \PDO $pdo
+     * @param \PDO                 $pdo
+     * @param LoggerInterface|null $logger
      *
-     * @return Connection
+     * @return MySQL\Connection|SQLite\Connection
      */
-    public static function factory(\PDO $pdo)
+    public static function factory(\PDO $pdo, LoggerInterface $logger = null)
     {
+        $logger = $logger ? : new NullLogger();
+
         switch ($pdo->getAttribute(\PDO::ATTR_DRIVER_NAME)) {
             case 'mysql':
-                return new MySQL\Connection($pdo);
+                return new MySQL\Connection($pdo, $logger);
             case 'sqlite':
-                return new SQLite\Connection($pdo);
+                return new SQLite\Connection($pdo, $logger);
 
             default:
                 throw new \InvalidArgumentException('Unsupported PDO driver');
@@ -46,11 +55,15 @@ abstract class Connection
     /**
      * Connection constructor.
      *
-     * @param \PDO $pdo
+     * @param \PDO            $pdo
+     * @param LoggerInterface $logger
+     * @param string          $columnQuote
      */
-    public function __construct(\PDO $pdo)
+    public function __construct(\PDO $pdo, LoggerInterface $logger, $columnQuote)
     {
         $this->pdo = $pdo;
+        $this->setLogger($logger);
+        $this->columnQuote = $columnQuote;
     }
 
     /**
@@ -93,7 +106,7 @@ abstract class Connection
      */
     public function alter($callable = null)
     {
-        $alter = new Statement\Table\Alter($this);
+        $alter = new Statement\Table\Alter($this, $this->logger);
         if ($callable instanceof \Closure) {
             call_user_func_array($callable, [$alter]);
         }
@@ -105,7 +118,7 @@ abstract class Connection
      */
     public function truncate()
     {
-        return new Statement\Table\Truncate($this);
+        return new Statement\Table\Truncate($this, $this->logger);
     }
 
     /**
@@ -113,7 +126,7 @@ abstract class Connection
      */
     public function drop()
     {
-        return new Statement\Table\Drop($this);
+        return new Statement\Table\Drop($this, $this->logger);
     }
 
     /**
@@ -121,7 +134,7 @@ abstract class Connection
      */
     public function select()
     {
-        return new Statement\Query\Select($this);
+        return new Statement\Query\Select($this, $this->logger);
     }
 
     /**
@@ -129,7 +142,7 @@ abstract class Connection
      */
     public function insert()
     {
-        return new Statement\Query\Insert($this);
+        return new Statement\Query\Insert($this, $this->logger);
     }
 
     /**
@@ -137,7 +150,7 @@ abstract class Connection
      */
     public function update()
     {
-        return new Statement\Query\Update($this);
+        return new Statement\Query\Update($this, $this->logger);
     }
 
     /**
@@ -145,7 +158,7 @@ abstract class Connection
      */
     public function delete()
     {
-        return new Statement\Query\Delete($this);
+        return new Statement\Query\Delete($this, $this->logger);
     }
 
 

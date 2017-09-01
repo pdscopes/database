@@ -4,6 +4,8 @@ namespace MadeSimple\Database\Statement\Table;
 
 use MadeSimple\Database\Connection;
 use MadeSimple\Database\Statement;
+use Psr\Log\LoggerAwareTrait;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class Drop
@@ -13,6 +15,8 @@ use MadeSimple\Database\Statement;
  */
 class Drop implements Statement
 {
+    use LoggerAwareTrait;
+
     /**
      * @var Connection
      */
@@ -26,11 +30,13 @@ class Drop implements Statement
     /**
      * Drop constructor.
      *
-     * @param Connection $connection
+     * @param Connection      $connection
+     * @param LoggerInterface $logger
      */
-    public function __construct(Connection $connection)
+    public function __construct(Connection $connection, LoggerInterface $logger)
     {
         $this->connection = $connection;
+        $this->setLogger($logger);
     }
 
     /**
@@ -62,7 +68,9 @@ class Drop implements Statement
      */
     public function execute(array $parameters = null)
     {
-        return $this->connection->query($this->toSql());
+        $sql = $this->toSql();
+        $this->logger->debug('Executing drop', ['sql' => $sql]);
+        return $this->connection->query($sql);
     }
 
     /**

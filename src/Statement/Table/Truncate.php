@@ -4,6 +4,8 @@ namespace MadeSimple\Database\Statement\Table;
 
 use MadeSimple\Database\Connection;
 use MadeSimple\Database\Statement;
+use Psr\Log\LoggerAwareTrait;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class Truncate
@@ -13,6 +15,8 @@ use MadeSimple\Database\Statement;
  */
 class Truncate implements Statement
 {
+    use LoggerAwareTrait;
+
     /**
      * @var Connection
      */
@@ -24,13 +28,15 @@ class Truncate implements Statement
     protected $name;
 
     /**
-     * Drop constructor.
+     * Truncate constructor.
      *
-     * @param Connection $connection
+     * @param Connection      $connection
+     * @param LoggerInterface $logger
      */
-    public function __construct(Connection $connection)
+    public function __construct(Connection $connection, LoggerInterface $logger)
     {
         $this->connection = $connection;
+        $this->setLogger($logger);
     }
 
     /**
@@ -56,7 +62,9 @@ class Truncate implements Statement
      */
     public function execute(array $parameters = null)
     {
-        return $this->connection->query($this->toSql());
+        $sql = $this->toSql();
+        $this->logger->debug('Executing truncate', ['sql' => $sql]);
+        return $this->connection->query($sql);
     }
 
     /**

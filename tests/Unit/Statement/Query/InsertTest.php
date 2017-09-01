@@ -3,6 +3,7 @@
 namespace Tests\Unit\Query;
 
 use MadeSimple\Database\Statement\Query\Insert;
+use Psr\Log\NullLogger;
 use Tests\MockConnection;
 use Tests\TestCase;
 
@@ -39,7 +40,7 @@ class InsertTest extends TestCase
     public function testInto()
     {
         $sql    = 'INSERT INTO `table`';
-        $insert = (new Insert($this->mockConnection))->into('table');
+        $insert = (new Insert($this->mockConnection, new NullLogger))->into('table');
 
         $this->assertEquals($sql, $insert->toSql());
     }
@@ -50,7 +51,7 @@ class InsertTest extends TestCase
     public function testColumnsSingle()
     {
         $sql    = 'INSERT INTO `table` (`foo`)';
-        $insert = (new Insert($this->mockConnection))->into('table')->columns('foo');
+        $insert = (new Insert($this->mockConnection, new NullLogger))->into('table')->columns('foo');
 
         $this->assertEquals($sql, $insert->toSql());
     }
@@ -61,7 +62,7 @@ class InsertTest extends TestCase
     public function testColumnsMultiple()
     {
         $sql    = 'INSERT INTO `table` (`foo`,`bar`)';
-        $insert = (new Insert($this->mockConnection))->into('table')->columns('foo', 'bar');
+        $insert = (new Insert($this->mockConnection, new NullLogger))->into('table')->columns('foo', 'bar');
 
         $this->assertEquals($sql, $insert->toSql());
     }
@@ -72,7 +73,7 @@ class InsertTest extends TestCase
     public function testColumnsArray()
     {
         $sql    = 'INSERT INTO `table` (`foo`,`bar`)';
-        $insert = (new Insert($this->mockConnection))->into('table')->columns(['foo', 'bar']);
+        $insert = (new Insert($this->mockConnection, new NullLogger))->into('table')->columns(['foo', 'bar']);
 
         $this->assertEquals($sql, $insert->toSql());
     }
@@ -88,7 +89,7 @@ class InsertTest extends TestCase
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(1, 2, \PDO::PARAM_INT)->andReturn(true);
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
 
-        $insert = (new Insert($this->mockConnection))->into('table')->columns('foo')->values(2);
+        $insert = (new Insert($this->mockConnection, new NullLogger))->into('table')->columns('foo')->values(2);
 
         $this->assertEquals($sql, $insert->toSql());
         $this->assertEquals($this->mockPdoStatement, $insert->execute());
@@ -107,7 +108,7 @@ class InsertTest extends TestCase
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(2, 3, \PDO::PARAM_INT)->andReturn(true);
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
 
-        $insert = (new Insert($this->mockConnection))->into('table')->columns('foo', 'bar')->values(2, 3);
+        $insert = (new Insert($this->mockConnection, new NullLogger))->into('table')->columns('foo', 'bar')->values(2, 3);
 
         $this->assertEquals($sql, $insert->toSql());
         $this->assertEquals($this->mockPdoStatement, $insert->execute());
@@ -126,7 +127,7 @@ class InsertTest extends TestCase
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(2, 3, \PDO::PARAM_INT)->andReturn(true);
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
 
-        $insert = (new Insert($this->mockConnection))->into('table')->columns(['foo', 'bar'])->values([2, 3]);
+        $insert = (new Insert($this->mockConnection, new NullLogger))->into('table')->columns(['foo', 'bar'])->values([2, 3]);
 
         $this->assertEquals($sql, $insert->toSql());
         $this->assertEquals($this->mockPdoStatement, $insert->execute());
@@ -145,7 +146,7 @@ class InsertTest extends TestCase
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(2, 3, \PDO::PARAM_INT)->andReturn(true);
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
 
-        $insert = (new Insert($this->mockConnection))->into('table')->columns('foo')->values(2, 3);
+        $insert = (new Insert($this->mockConnection, new NullLogger))->into('table')->columns('foo')->values(2, 3);
 
         $this->assertEquals($sql, $insert->toSql());
         $this->assertEquals($this->mockPdoStatement, $insert->execute());
@@ -166,7 +167,7 @@ class InsertTest extends TestCase
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(4, 7, \PDO::PARAM_INT)->andReturn(true);
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
 
-        $insert = (new Insert($this->mockConnection))->into('table')->columns('foo', 'bar')->values(2, 3, 5, 7);
+        $insert = (new Insert($this->mockConnection, new NullLogger))->into('table')->columns('foo', 'bar')->values(2, 3, 5, 7);
 
         $this->assertEquals($sql, $insert->toSql());
         $this->assertEquals($this->mockPdoStatement, $insert->execute());
@@ -187,7 +188,7 @@ class InsertTest extends TestCase
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(4, 7, \PDO::PARAM_INT)->andReturn(true);
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
 
-        $insert = (new Insert($this->mockConnection))->into('table')->columns(['foo', 'bar'])->values([2, 3], [5, 7]);
+        $insert = (new Insert($this->mockConnection, new NullLogger))->into('table')->columns(['foo', 'bar'])->values([2, 3], [5, 7]);
 
         $this->assertEquals($sql, $insert->toSql());
         $this->assertEquals($this->mockPdoStatement, $insert->execute());

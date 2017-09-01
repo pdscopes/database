@@ -4,6 +4,7 @@ namespace Tests\Unit\Query;
 
 use MadeSimple\Database\Statement\Query\Clause;
 use MadeSimple\Database\Statement\Query\Update;
+use Psr\Log\NullLogger;
 use Tests\MockConnection;
 use Tests\TestCase;
 
@@ -40,7 +41,7 @@ class UpdateTest extends TestCase
     public function testTableWithoutAlias()
     {
         $sql    = 'UPDATE `table` SET `foo` = ?';
-        $update = (new Update($this->mockConnection))->table('table')->columns('foo');
+        $update = (new Update($this->mockConnection, new NullLogger))->table('table')->columns('foo');
 
         $this->assertEquals($sql, $update->toSql());
     }
@@ -51,7 +52,7 @@ class UpdateTest extends TestCase
     public function testTableWithAlias()
     {
         $sql    = 'UPDATE `table` AS `t` SET `foo` = ?';
-        $update = (new Update($this->mockConnection))->table('table', 't')->columns('foo');
+        $update = (new Update($this->mockConnection, new NullLogger))->table('table', 't')->columns('foo');
 
         $this->assertEquals($sql, $update->toSql());
     }
@@ -62,7 +63,7 @@ class UpdateTest extends TestCase
     public function testSet()
     {
         $sql    = 'UPDATE `table` SET `foo` = :foo, `bar` = :bar';
-        $update = (new Update($this->mockConnection))->table('table')->set('foo', 1)->set('bar', 2);
+        $update = (new Update($this->mockConnection, new NullLogger))->table('table')->set('foo', 1)->set('bar', 2);
 
         $this->assertEquals($sql, $update->toSql());
     }
@@ -73,7 +74,7 @@ class UpdateTest extends TestCase
     public function testColumnsSingle()
     {
         $sql    = 'UPDATE `table` SET `foo` = ?';
-        $update = (new Update($this->mockConnection))->table('table')->columns('foo');
+        $update = (new Update($this->mockConnection, new NullLogger))->table('table')->columns('foo');
 
         $this->assertEquals($sql, $update->toSql());
     }
@@ -84,7 +85,7 @@ class UpdateTest extends TestCase
     public function testColumnsMultiple()
     {
         $sql    = 'UPDATE `table` SET `foo` = ?, `bar` = ?';
-        $update = (new Update($this->mockConnection))->table('table')->columns('foo', 'bar');
+        $update = (new Update($this->mockConnection, new NullLogger))->table('table')->columns('foo', 'bar');
 
         $this->assertEquals($sql, $update->toSql());
     }
@@ -95,7 +96,7 @@ class UpdateTest extends TestCase
     public function testColumnsArray()
     {
         $sql    = 'UPDATE `table` SET `foo` = ?, `bar` = ?';
-        $update = (new Update($this->mockConnection))->table('table')->columns(['foo', 'bar']);
+        $update = (new Update($this->mockConnection, new NullLogger))->table('table')->columns(['foo', 'bar']);
 
         $this->assertEquals($sql, $update->toSql());
     }
@@ -111,7 +112,7 @@ class UpdateTest extends TestCase
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(1, 2, \PDO::PARAM_INT)->andReturn(true);
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
         
-        $update = (new Update($this->mockConnection))->table('table')->columns('foo')->values(2);
+        $update = (new Update($this->mockConnection, new NullLogger))->table('table')->columns('foo')->values(2);
 
         $this->assertEquals($sql, $update->toSql());
         $this->assertEquals($this->mockPdoStatement, $update->execute());
@@ -129,7 +130,7 @@ class UpdateTest extends TestCase
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(2, 3, \PDO::PARAM_INT)->andReturn(true);
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
 
-        $update = (new Update($this->mockConnection))->table('table')->columns('foo', 'bar')->values(2, 3);
+        $update = (new Update($this->mockConnection, new NullLogger))->table('table')->columns('foo', 'bar')->values(2, 3);
 
         $this->assertEquals($sql, $update->toSql());
         $this->assertEquals($this->mockPdoStatement, $update->execute());
@@ -147,7 +148,7 @@ class UpdateTest extends TestCase
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(2, 3, \PDO::PARAM_INT)->andReturn(true);
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
 
-        $update = (new Update($this->mockConnection))->table('table')->columns(['foo', 'bar'])->values([2, 3]);
+        $update = (new Update($this->mockConnection, new NullLogger))->table('table')->columns(['foo', 'bar'])->values([2, 3]);
 
         $this->assertEquals($sql, $update->toSql());
         $this->assertEquals($this->mockPdoStatement, $update->execute());
@@ -164,7 +165,7 @@ class UpdateTest extends TestCase
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(':foo', 1, \PDO::PARAM_INT)->andReturn(true);
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
 
-        $update = (new Update($this->mockConnection))->table('table')->set('foo', 2)->setParameter('foo', 1);
+        $update = (new Update($this->mockConnection, new NullLogger))->table('table')->set('foo', 2)->setParameter('foo', 1);
         $this->assertEquals($this->mockPdoStatement, $update->execute());
     }
 
@@ -179,7 +180,7 @@ class UpdateTest extends TestCase
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(1, 1, \PDO::PARAM_INT)->andReturn(true);
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
 
-        $update = (new Update($this->mockConnection))->table('table')->columns('foo')->setParameters([1]);
+        $update = (new Update($this->mockConnection, new NullLogger))->table('table')->columns('foo')->setParameters([1]);
         $this->assertEquals($this->mockPdoStatement, $update->execute());
     }
 
@@ -194,7 +195,7 @@ class UpdateTest extends TestCase
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(':foo', 1, \PDO::PARAM_INT)->andReturn(true);
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
 
-        $update = (new Update($this->mockConnection))->table('table')->set('foo', 2)->setParameters(['foo' => 1]);
+        $update = (new Update($this->mockConnection, new NullLogger))->table('table')->set('foo', 2)->setParameters(['foo' => 1]);
         $this->assertEquals($this->mockPdoStatement, $update->execute());
     }
 
@@ -204,7 +205,7 @@ class UpdateTest extends TestCase
     public function testWhereWithoutParameters()
     {
         $sql    = 'UPDATE `table` SET `bar` = :bar WHERE `foo` IS TRUE';
-        $update = (new Update($this->mockConnection))->table('table')->set('bar', 'foo')->where('foo IS TRUE');
+        $update = (new Update($this->mockConnection, new NullLogger))->table('table')->set('bar', 'foo')->where('foo IS TRUE');
         $this->assertEquals($sql, $update->toSql());
     }
 
@@ -214,7 +215,7 @@ class UpdateTest extends TestCase
     public function testWhereWithWildcardParameter()
     {
         $sql    = 'UPDATE `table` SET `bar` = :bar WHERE `foo` = ?';
-        $update = (new Update($this->mockConnection))->table('table')->set('bar', 'foo')->where('foo = ?');
+        $update = (new Update($this->mockConnection, new NullLogger))->table('table')->set('bar', 'foo')->where('foo = ?');
 
         $this->assertEquals($sql, $update->toSql());
     }
@@ -225,7 +226,7 @@ class UpdateTest extends TestCase
     public function testWhereWithNamedParameter()
     {
         $sql    = 'UPDATE `table` SET `bar` = :bar WHERE `foo` = :foo';
-        $update = (new Update($this->mockConnection))->table('table')->set('bar', 'foo')->where('foo = :foo');
+        $update = (new Update($this->mockConnection, new NullLogger))->table('table')->set('bar', 'foo')->where('foo = :foo');
 
         $this->assertEquals($sql, $update->toSql());
     }
@@ -243,7 +244,7 @@ class UpdateTest extends TestCase
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(':qux', 5, \PDO::PARAM_INT)->andReturn(true);
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
 
-        $update = (new Update($this->mockConnection))
+        $update = (new Update($this->mockConnection, new NullLogger))
             ->table('table')
             ->set('qux', 1)
             ->where(function (Clause $clause) {
@@ -273,7 +274,7 @@ class UpdateTest extends TestCase
     public function testAndWhere()
     {
         $sql    = 'UPDATE `table` SET `qux` = :qux WHERE `foo` IS TRUE AND `bar` = ? AND (`baz` = :baz)';
-        $update = (new Update($this->mockConnection))
+        $update = (new Update($this->mockConnection, new NullLogger))
             ->table('table')
             ->set('qux', 1)
             ->where('foo IS TRUE')
@@ -291,7 +292,7 @@ class UpdateTest extends TestCase
     public function testOrWhere()
     {
         $sql    = 'UPDATE `table` SET `qux` = :qux WHERE `foo` IS NULL OR `bar` = ? OR (`baz` = :baz)';
-        $update = (new Update($this->mockConnection))
+        $update = (new Update($this->mockConnection, new NullLogger))
             ->table('table')
             ->set('qux', 1)
             ->where('foo IS NULL')

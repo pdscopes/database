@@ -4,6 +4,7 @@ namespace MadeSimple\Database\Statement\Query;
 
 use MadeSimple\Database\Connection;
 use MadeSimple\Database\Statement\Query;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class Insert
@@ -26,11 +27,12 @@ class Insert extends Query
     /**
      * Insert constructor.
      *
-     * @param Connection $connection
+     * @param Connection|null $connection
+     * @param LoggerInterface $logger
      */
-    public function __construct(Connection $connection = null)
+    public function __construct(Connection $connection = null, LoggerInterface $logger)
     {
-        parent::__construct($connection);
+        parent::__construct($connection, $logger);
 
         $this->columns = [];
     }
