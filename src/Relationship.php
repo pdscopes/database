@@ -2,14 +2,8 @@
 
 namespace MadeSimple\Database;
 
-use MadeSimple\Database\Statement\Query;
+use MadeSimple\Database\Query;
 
-/**
- * Class Relationship
- *
- * @package MadeSimple\Database
- * @author  Peter Scopes
- */
 abstract class Relationship
 {
     /**
@@ -74,7 +68,7 @@ abstract class Relationship
         $relatedMap     = $relatedEntity->getMap();
         $entityMap      = $this->entity->getMap();
         $relatedTable   = $relatedMap->tableName();
-        $relatedAlias   = $relatedAlias ? : $relatedTable;
+        $relatedAlias   = $relatedAlias ?? $relatedTable;
         $entityColumns  = (array) $entityColumns;
         $relatedColumns = $relatedColumns ? (array) $relatedColumns :  $relatedMap->columns();
 
@@ -86,22 +80,20 @@ abstract class Relationship
             foreach ($entityColumns as $idx => $column) {
                 $relatedColumn = $relatedColumns[$idx];
                 $entityValue   = $this->entity->{$entityMap->property($column)};
-                $this->query->andWhere(
-                    $relatedAlias . '.' . $relatedColumn . ' = :' . $relatedColumn,
-                    [$relatedColumn => $entityValue]
-                );
+                $this->query->where($relatedAlias . '.' . $relatedColumn, '=', $entityValue);
             }
         } else {
-            // Construct join clause
-            $clause = new Query\Clause($this->query->connection);
-            foreach ($entityColumns as $idx => $column) {
-                $clause->andX($this->intermediateAlias . '.' . $column . ' = ' . $relatedAlias . '.' . $relatedColumns[$idx]);
-            }
+            $intermediateAlias = $this->intermediateAlias;
 
             $this->query
                 ->columns($relatedAlias . '.*')
                 ->from($relatedTable, $relatedAlias)
-                ->innerJoin($this->intermediateTable, $clause, $this->intermediateAlias);
+                ->join($this->intermediateTable, function ($join) use ($intermediateAlias, $entityColumns, $relatedAlias, $relatedColumns) {
+                    foreach ($entityColumns as $idx => $column) {
+                        /** @var Query\JoinBuilder $join */
+                        $join->where($intermediateAlias . '.' . $column, ' = ', $relatedAlias . '.' . $relatedColumns[$idx]);
+                    }
+                }, null, null, $this->intermediateAlias);
         }
 
         // Store information about the relation as it may become an intermediate table
@@ -128,7 +120,7 @@ abstract class Relationship
         $relatedMap     = $relatedEntity->getMap();
         $entityMap      = $this->entity->getMap();
         $relatedTable   = $relatedMap->tableName();
-        $relatedAlias   = $relatedAlias ? : $relatedTable;
+        $relatedAlias   = $relatedAlias ?? $relatedTable;
         $entityColumns  = $entityColumns ? (array) $entityColumns : $entityMap->columns();
         $relatedColumns = (array) $relatedColumns;
 
@@ -139,19 +131,20 @@ abstract class Relationship
             // Construct the where clause(s)
             foreach ($relatedColumns as $idx => $column) {
                 $entityValue = $this->entity->{$entityMap->property($entityColumns[$idx])};
-                $this->query->andWhere($relatedAlias . '.' . $column . ' = :' . $column, [$column => $entityValue]);
+                $this->query->where($relatedAlias . '.' . $column, '=',$entityValue);
             }
         } else {
-            // Construct join clause
-            $clause = new Query\Clause($this->query->connection);
-            foreach ($relatedColumns as $idx => $column) {
-                $clause->andX($relatedAlias . '.' . $column . ' = ' . $this->intermediateAlias . '.' . $this->intermediateColumns[$idx]);
-            }
+            $intermediateAlias = $this->intermediateAlias;
 
             $this->query
                 ->columns($relatedAlias . '.*')
                 ->from($relatedTable, $relatedAlias)
-                ->innerJoin($this->intermediateTable, $clause, $this->intermediateAlias);
+                ->join($this->intermediateTable, function ($join) use ($intermediateAlias, $entityColumns, $relatedAlias, $relatedColumns) {
+                    foreach ($relatedColumns as $idx => $column) {
+                        /** @var Query\JoinBuilder $join */
+                        $join->where($intermediateAlias . '.' . $entityColumns[$idx], '=', $relatedAlias . '.' . $column);
+                    }
+                }, null, null, $this->intermediateAlias);
         }
 
         // Store information about the relation as it may become an intermediate table
@@ -172,194 +165,252 @@ abstract class Relationship
     }
 
     /**
-     * @param array ...$columns
+     * @see Query\Select::toSql()
+     * @return string
+     */
+    public function toSql()
+    {
+        return $this->query->toSql();
+    }
+
+    /**
+     * @param string|array|... $columns
      *
+     * @see \MadeSimple\Database\Query\Select::columns()
      * @return static
      */
-    public function columns(... $columns)
+    public function columns($columns)
     {
-        $this->query->columns($columns);
+        call_user_func_array([$this->query, 'columns'], func_get_args());
+        return $this;
+    }
+
+    /**
+     * @param string|array|... $columns
+     *
+     * @see   \MadeSimple\Database\Query\Select::addColumns()
+     * @return static
+     */
+    public function addColumns($columns)
+    {
+        call_user_func_array([$this->query, 'addColumns'], func_get_args());
+        return $this;
+    }
+
+    /**
+     * @param string          $table
+     * @param string|\Closure $column1
+     * @param null|string     $operator
+     * @param null|mixed      $column2
+     * @param null|mixed      $alias
+     * @param string          $type     inner|left|right
+     *
+     * @see \MadeSimple\Database\Query\Select::join()
+     * @return static
+     */
+    public function join($table, $column1, $operator = null, $column2 = null, $alias = null, $type = 'inner')
+    {
+        call_user_func_array([$this->query, 'join'], func_get_args());
+        return $this;
+    }
+
+    /**
+     * @param string          $table
+     * @param string|\Closure $column1
+     * @param null|string     $operator
+     * @param null|mixed      $column2
+     * @param null|mixed      $alias
+     *
+     * @see \MadeSimple\Database\Query\Select::leftJoin()
+     * @return static
+     */
+    public function leftJoin($table, $column1, $operator = null, $column2 = null, $alias = null)
+    {
+        call_user_func_array([$this->query, 'leftJoin'], func_get_args());
+        return $this;
+    }
+
+    /**
+     * @param string          $table
+     * @param string|\Closure $column1
+     * @param null|string     $operator
+     * @param null|mixed      $column2
+     * @param null|mixed      $alias
+     *
+     * @see \MadeSimple\Database\Query\Select::rightJoin()
+     * @return static
+     */
+    public function rightJoin($table, $column1, $operator = null, $column2 = null, $alias = null)
+    {
+        call_user_func_array([$this->query, 'rightJoin'], func_get_args());
+        return $this;
+    }
+
+    /**
+     * @param string $column
+     * @param string $operator
+     * @param mixed  $value
+     * @param string $boolean
+     *
+     * @see \MadeSimple\Database\Query\Select::where()
+     * @return static
+     */
+    public function where($column, $operator = null, $value = null, $boolean = 'and')
+    {
+        call_user_func_array([$this->query, 'where'], func_get_args());
+        return $this;
+    }
+
+    /**
+     * @param string $column
+     * @param string $operator
+     * @param mixed  $value
+     *
+     * @see \MadeSimple\Database\Query\Select::orWhere()
+     * @return static
+     */
+    public function orWhere($column, $operator = null, $value = null)
+    {
+        call_user_func_array([$this->query, 'orWhere'], func_get_args());
+        return $this;
+    }
+
+    /**
+     * @param string $column
+     * @param string $operator
+     * @param mixed  $value
+     * @param string $boolean
+     *
+     * @see \MadeSimple\Database\Query\Select::whereRaw()
+     * @return static
+     */
+    public function whereRaw($column, $operator = null, $value = null, $boolean = 'and')
+    {
+        call_user_func_array([$this->query, 'whereRaw'], func_get_args());
+        return $this;
+    }
+
+    /**
+     * @param string $column
+     * @param string $operator
+     * @param mixed  $value
+     *
+     * @see \MadeSimple\Database\Query\Select::orWhereRaw()
+     * @return static
+     */
+    public function orWhereRaw($column, $operator = null, $value = null)
+    {
+        call_user_func_array([$this->query, 'orWhereRaw'], func_get_args());
+        return $this;
+    }
+
+    /**
+     * @param string $column
+     * @param string $operator
+     * @param mixed  $value
+     * @param string $boolean
+     *
+     * @see \MadeSimple\Database\Query\Select::whereColumn()
+     * @return static
+     */
+    public function whereColumn($column, $operator = null, $value = null, $boolean = 'and')
+    {
+        call_user_func_array([$this->query, 'whereColumn'], func_get_args());
+        return $this;
+    }
+
+    /**
+     * @param string $column
+     * @param string $operator
+     * @param mixed  $value
+     *
+     * @see \MadeSimple\Database\Query\Select::orWhereColumn()
+     * @return static
+     */
+    public function orWhereColumn($column, $operator = null, $value = null)
+    {
+        call_user_func_array([$this->query, 'orWhereColumn'], func_get_args());
+        return $this;
+    }
+
+    /**
+     * @param string $column
+     * @param string $operator
+     * @param mixed  $value
+     * @param string $boolean
+     *
+     * @see \MadeSimple\Database\Query\Select::whereExists()
+     * @return static
+     */
+    public function whereExists($column, $operator = null, $value = null, $boolean = 'and')
+    {
+        call_user_func_array([$this->query, 'whereExists'], func_get_args());
+        return $this;
+    }
+
+    /**
+     * @param string $column
+     * @param string $operator
+     * @param mixed  $value
+     *
+     * @see \MadeSimple\Database\Query\Select::whereNotExists()
+     * @return static
+     */
+    public function whereNotExists($column, $operator = null, $value = null)
+    {
+        call_user_func_array([$this->query, 'whereNotExists'], func_get_args());
+        return $this;
+    }
+
+    /**
+     * @param string|array|... $columns
+     * @see \MadeSimple\Database\Query\Select::groupBy()
+     * @return static
+     */
+    public function groupBy($columns)
+    {
+        call_user_func_array([$this->query, 'groupBy'], func_get_args());
+        return $this;
+    }
+
+    /**
+     * @param string $column
+     * @param string $operator
+     * @param mixed  $value
+     * @param string $boolean
+     *
+     * @see \MadeSimple\Database\Query\Select::having()
+     * @return static
+     */
+    public function having($column, $operator, $value, $boolean = 'and')
+    {
+        call_user_func_array([$this->query, 'having'], func_get_args());
+        return $this;
+    }
+
+    /**
+     * @param string $column
+     * @param string $operator
+     * @param mixed  $value
+     *
+     * @see \MadeSimple\Database\Query\Select::orHaving()
+     * @return static
+     */
+    public function orHaving($column, $operator, $value)
+    {
+        call_user_func_array([$this->query, 'orHaving'], func_get_args());
 
         return $this;
     }
 
     /**
-     * @param array ...$columns
-     *
+     * @param string|array|... $columns
+     * @see \MadeSimple\Database\Query\Select::groupBy()
      * @return static
      */
-    public function addColumns(... $columns)
+    public function orderBy($columns)
     {
-        $this->query->addColumns($columns);
-
-        return $this;
-    }
-
-    /**
-     * @param string      $table Database table to join
-     * @param string      $on    Clause to join the table on
-     * @param null|string $alias Alias for the table
-     * @param string      $type  JOIN_DEFAULT|JOIN_LEFT|JOIN_RIGHT|JOIN_INNER|JOIN_FULL
-     *
-     * @return static
-     */
-    public function join($table, $on, $alias = null, $type = Query\Select::JOIN_DEFAULT)
-    {
-        $this->query->join($table, $on, $alias, $type);
-
-        return $this;
-    }
-
-    /**
-     * @param string      $table Database table to join
-     * @param string      $on    Clause to join the table on
-     * @param null|string $alias Alias for the table
-     *
-     * @return static
-     */
-    public function leftJoin($table, $on, $alias = null)
-    {
-        $this->query->leftJoin($table, $on, $alias);
-
-        return $this;
-    }
-
-    /**
-     * @param string      $table Database table to join
-     * @param string      $on    Clause to join the table on
-     * @param null|string $alias Alias for the table
-     *
-     * @return static
-     */
-    public function rightJoin($table, $on, $alias = null)
-    {
-        $this->query->rightJoin($table, $on, $alias);
-
-        return $this;
-    }
-
-    /**
-     * @param string      $table Database table to join
-     * @param string      $on    Clause to join the table on
-     * @param null|string $alias Alias for the table
-     *
-     * @return static
-     */
-    public function fullJoin($table, $on, $alias = null)
-    {
-        $this->query->fullJoin($table, $on, $alias);
-
-        return $this;
-    }
-
-    /**
-     * @param string      $table Database table to join
-     * @param string      $on    Clause to join the table on
-     * @param null|string $alias Alias for the table
-     *
-     * @return static
-     */
-    public function innerJoin($table, $on, $alias = null)
-    {
-        $this->query->innerJoin($table, $on, $alias);
-
-        return $this;
-    }
-
-    /**
-     * @see Select::where()
-     *
-     * @param string      $clause    A where clause
-     * @param array|mixed $parameter A single, array of, or associated mapping of parameters
-     *
-     * @return static
-     */
-    public function where($clause, $parameter = null)
-    {
-        $this->query->where($clause, $parameter);
-
-        return $this;
-    }
-
-    /**
-     * @see Select::andWhere()
-     *
-     * @param string      $clause    A where clause
-     * @param array|mixed $parameter A single, array of, or associated mapping of parameters
-     *
-     * @return static
-     */
-    public function andWhere($clause, $parameter = null)
-    {
-        $this->query->andWhere($clause, $parameter);
-
-        return $this;
-    }
-
-    /**
-     * @see Select::orWhere()
-     *
-     * @param string      $clause    A where clause
-     * @param array|mixed $parameter A single, array of, or associated mapping of parameters
-     *
-     * @return static
-     */
-    public function orWhere($clause, $parameter = null)
-    {
-        $this->query->orWhere($clause, $parameter);
-
-        return $this;
-    }
-
-    /**
-     * @see Select::groupBy()
-     * @param array ...$clauses
-     *
-     * @return static
-     */
-    public function groupBy(... $clauses)
-    {
-        $this->query->groupBy($clauses);
-
-        return $this;
-    }
-
-    /**
-     * @see Select::addGroupBy()
-     * @param array ...$clauses
-     *
-     * @return static
-     */
-    public function addGroupBy(... $clauses)
-    {
-        $this->query->addGroupBy($clauses);
-
-        return $this;
-    }
-
-    /**
-     * @see Select::orderBy()
-     * @param array ...$clauses
-     *
-     * @return static
-     */
-    public function orderBy(... $clauses)
-    {
-        $this->query->orderBy($clauses);
-
-        return $this;
-    }
-
-    /**
-     * @see Select::addOrderBy()
-     * @param array ...$clauses
-     *
-     * @return static
-     */
-    public function addOrderBy(... $clauses)
-    {
-        $this->query->addOrderBy($clauses);
-
+        call_user_func_array([$this->query, 'orderBy'], func_get_args());
         return $this;
     }
 }

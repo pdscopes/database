@@ -3,15 +3,10 @@
 namespace MadeSimple\Database;
 
 use JsonSerializable;
+use MadeSimple\Arrays\Arrayable;
 use PDO;
 
-/**
- * Class Entity
- *
- * @package MadeSimple\Database
- * @author  Peter Scopes
- */
-abstract class Entity implements JsonSerializable
+abstract class Entity implements JsonSerializable, Arrayable, Jsonable
 {
     /**
      * @var string
@@ -78,13 +73,14 @@ abstract class Entity implements JsonSerializable
     }
 
     /**
-     * @param array $row
+     * @param array     $row
+     * @param EntityMap $map
      *
      * @return Entity
      */
-    public function populate(array &$row)
+    public function populate(array &$row, EntityMap $map = null)
     {
-        $map = $this->getMap();
+        $map = $map ?? $this->getMap();
         foreach ($map->columnMap() as $dbName => $propName) {
             if (!isset($row[$dbName])) {
                 continue;
@@ -134,18 +130,18 @@ abstract class Entity implements JsonSerializable
         foreach ($map->columnMap() as $property) {
             $values[] = $this->{$property};
         }
-        $stmt = $connection->insert()
+        $insert = $connection->insert()
             ->into($map->tableName())
             ->columns($map->columns())
             ->values($values)
-            ->execute();
+            ->query();
 
-        if (false === $stmt) {
+        if (false === $insert) {
             return false;
         }
 
         if (count($map->primaryKeys()) === 1 && null === $this->{$map->primaryKey(0)}) {
-            $this->{$map->primaryKey(0)} = $connection->lastInsertId();
+            $this->{$map->primaryKey(0)} = $insert->lastInsertId();
         }
 
         return $this->createdRecently = true;
@@ -166,14 +162,14 @@ abstract class Entity implements JsonSerializable
         $update = $connection->update()
             ->table($map->tableName())
             ->columns($map->columns())
-            ->setParameters($values);
+            ->values($values);
 
         foreach ($map->primaryKeys() as $idx => $key) {
-            $update->andWhere($idx . ' = ?', $this->{$key});
+            $update->where($idx, '=', $this->{$key});
         }
 
 
-        return false !== $update->execute();
+        return 0 !== $update->query()->affectedRows();
     }
 
     /**
@@ -192,10 +188,10 @@ abstract class Entity implements JsonSerializable
             $primaryKey = array_combine(array_keys($map->primaryKeys()), [$primaryKey]);
         }
         foreach ($map->primaryKeys() as $idx => $key) {
-            $select->andWhere('t.' . $idx . ' = ?', null !== $primaryKey ? $primaryKey[$idx] : $this->{$key});
+            $select->where('t.' . $idx, '=', null !== $primaryKey ? $primaryKey[$idx] : $this->{$key});
         }
 
-        $row = $select->execute()->fetch(PDO::FETCH_ASSOC, PDO::FETCH_ORI_FIRST);
+        $row = $select->query()->fetch(PDO::FETCH_ASSOC, PDO::FETCH_ORI_FIRST);
         if (false === $row) {
             throw new \InvalidArgumentException('Invalid table name or primary key name/value');
         }
@@ -221,10 +217,10 @@ abstract class Entity implements JsonSerializable
             $primaryKey = array_combine(array_keys($map->primaryKeys()), [$primaryKey]);
         }
         foreach ($map->primaryKeys() as $idx => $key) {
-            $delete->andWhere($idx . ' = ?', null !== $primaryKey ? $primaryKey[$idx] : $this->{$key});
+            $delete->where($idx, '=', null !== $primaryKey ? $primaryKey[$idx] : $this->{$key});
         }
 
-        return false !== $delete->execute();
+        return 0 !== $delete->query()->affectedRows();
     }
 
     /**
@@ -240,16 +236,24 @@ abstract class Entity implements JsonSerializable
         $select = $connection->select()->columns('*')->from($map->tableName(), 't')->limit(1);
 
         foreach ($columns as $column => $value) {
-            $select->andWhere('t.' . $column . ' = ?', $value);
+            $select->where('t.' . $column, '=', $value);
         }
 
-        $row = $select->execute()->fetch(PDO::FETCH_ASSOC, PDO::FETCH_ORI_FIRST);
+        $row = $select->query()->fetch(PDO::FETCH_ASSOC, PDO::FETCH_ORI_FIRST);
 
         return $row && $this->populate($row);
     }
 
     /**
-     * {@InheritDoc}
+     * @InheritDoc
+     */
+    public function toJson($options = 0, $depth = 512)
+    {
+        return json_encode($this->jsonSerialize(), $options, $depth);
+    }
+
+    /**
+     * @InheritDoc
      */
     public function jsonSerialize()
     {
@@ -270,7 +274,6 @@ abstract class Entity implements JsonSerializable
         }
         foreach ($this->visible as $property) {
             $properties[$property] = $this->cast($property);
-
         }
 
         return $properties;

@@ -2,35 +2,31 @@
 
 namespace MadeSimple\Database\Relationship;
 
-use MadeSimple\Database\Entity;
+use MadeSimple\Database\Collection;
 use MadeSimple\Database\Relationship;
 
-/**
- * Class ToMany
- *
- * @package MadeSimple\Database\Relationship
- * @author  Peter Scopes
- */
 class ToMany extends Relationship
 {
-
     /**
-     * @return Entity[]
+     * @return Collection
      */
     public function fetch()
     {
-        $statement = $this->query()->execute();
+        list($statement) = $this->query()->statement();
 
         if (!$statement) {
             return null;
         }
 
+        $map   = null;
         $items = [];
         while (($row = $statement->fetch(\PDO::FETCH_ASSOC))) {
-            $items[] = new $this->relation($this->entity->pool, $row);
+            $entity  = new $this->relation($this->entity->pool);
+            $map     = $map ?? $entity->getMap();
+            $items[] = $entity->populate($row, $map);
         }
 
-        return $items;
+        return new Collection($items);
     }
 
 }

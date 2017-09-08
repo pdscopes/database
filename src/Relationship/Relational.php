@@ -2,18 +2,13 @@
 
 namespace MadeSimple\Database\Relationship;
 
-use MadeSimple\Database\Relationship;
+use MadeSimple\Database\Collection;
+use MadeSimple\Database\Entity;
 
-/**
- * Class Relational
- *
- * @package MadeSimple\Database\Relationship
- * @author  Peter Scopes
- */
 trait Relational
 {
     /**
-     * @var Relationship[]
+     * @var Collection[]|Entity[]
      */
     protected $relationships = [];
 
@@ -21,7 +16,7 @@ trait Relational
      * @param string $relationship
      * @param array  $args
      *
-     * @return Relationship
+     * @return Collection|Entity
      */
     public function relation($relationship, ... $args)
     {
@@ -35,5 +30,29 @@ trait Relational
         }
 
         return $this->relationships[$relationship];
+    }
+
+    /**
+     * Start to define a new to one type relationship.
+     * @return ToOne
+     */
+    protected function toOne()
+    {
+        if ($this instanceof Entity) {
+            return new ToOne($this);
+        }
+        throw new \RuntimeException('Cannot create to one relationship for non-entities');
+    }
+
+    /**
+     * Start to define a new to many type relationship.
+     * @return ToMany
+     */
+    protected function toMany()
+    {
+        if ($this instanceof Entity) {
+            return new ToMany($this);
+        }
+        throw new \RuntimeException('Cannot create to many relationship for non-entities');
     }
 }

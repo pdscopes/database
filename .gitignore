@@ -1,6 +1,9 @@
 /vendor/
 /.idea/
 
+**/database.sqlite
+
+.env
 composer.phar
 composer.lock
 phpunit.xml

@@ -7,12 +7,6 @@ use Psr\Log\LoggerAwareTrait;
 use Psr\Log\NullLogger;
 use ReflectionClass;
 
-/**
- * Class Repository
- *
- * @package MadeSimple\Database
- * @author  Peter Scopes
- */
 class Repository
 {
     use LoggerAwareTrait;
@@ -63,31 +57,34 @@ class Repository
 
     /**
      * @param array $columns
-     * @param array $order
+     * @param array $order   Associative array column to direction
      *
-     * @return array|Entity[]
+     * @return Collection
      */
     public function findBy(array $columns = [], array $order = [])
     {
         $select = $this->connection->select()->columns('*')->from($this->entityMap->tableName(), 't');
 
         foreach ($columns as $column => $value) {
-            $select->andWhere('t.'.$column.' = ?', $value);
+            $select->where('t.'.$column, '=', $value);
         }
-        $select->orderBy($order);
+        foreach ($order as $column => $direction) {
+            $select->orderBy($column, $direction);
+        }
 
-        $stmt  = $select->execute();
+        $select->query();
         $items = [];
-        while (($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
-            $items[] = $this->reflection->newInstanceArgs([$this->pool, $row]);
+        while (($row = $select->fetch(PDO::FETCH_ASSOC))) {
+            $entity  = $this->reflection->newInstanceArgs([$this->pool]);
+            $items[] = $entity->populate($row, $this->entityMap);
         }
 
-        return $items;
+        return new Collection($items);
     }
 
     /**
      * @param array $columns
-     * @param array $order
+     * @param array $order   Associative array column to direction
      *
      * @return null|object||Entity
      */
@@ -96,13 +93,15 @@ class Repository
         $select = $this->connection->select()->columns('*')->from($this->entityMap->tableName(), 't')->limit(1);
 
         foreach ($columns as $column => $value) {
-            $select->andWhere('t.'.$column.' = ?', $value);
+            $select->where('t.'.$column, '=', $value);
         }
-        $select->orderBy($order);
+        foreach ($order as $column => $direction) {
+            $select->orderBy($column, $direction);
+        }
 
-        $stmt = $select->execute();
-        if (($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
-            return $this->reflection->newInstanceArgs([$this->pool, $row]);
+        if (($row = $select->query()->fetch(PDO::FETCH_ASSOC))) {
+            $entity  = $this->reflection->newInstanceArgs([$this->pool]);
+            return $entity->populate($row, $this->entityMap);
         }
 
         return null;

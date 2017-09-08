@@ -5,12 +5,6 @@ namespace MadeSimple\Database\Relationship;
 use MadeSimple\Database\Entity;
 use MadeSimple\Database\Relationship;
 
-/**
- * Class ToOne
- *
- * @package MadeSimple\Database\Relationship
- * @author  Peter Scopes
- */
 class ToOne extends Relationship
 {
     /**
@@ -18,7 +12,7 @@ class ToOne extends Relationship
      */
     public function fetch()
     {
-        $statement = $this->query()->limit(1)->execute();
+        list($statement) = $this->query()->limit(1)->statement();
 
         if (!$statement) {
             return null;

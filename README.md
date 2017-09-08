@@ -16,31 +16,23 @@ For example, on first clone of a package using database:
 ```bash
 > composer install
 ...
-> vendor/bin/database migrate:install DB_DSN DB_USER DB_PASS -e
+> vendor/bin/database migrate:install -e
 Created migrations table
-> vendor/bin/database migrate:upgrade DB_DSN DB_USER DB_PASS -p examples/migrations -e
-Migrated UP: v1.0.0-Initial.php
-```
-or use can use the shortcut:
-```bash
-> composer install
-...
-> vendor/bin/database migrate DB_DSN DB_USER DB_PASS -p examples/migrations -e
-Created migrations table
+> vendor/bin/database migrate:upgrade -p examples/migrations -e
 Migrated UP: v1.0.0-Initial.php
 ```
 
 
 For example, on rollback a migration:
 ```bash
-> vendor/bin/database migrate:rollback DB_DSN DB_USER DB_PASS -p examples/migrations -e
+> vendor/bin/database migrate:rollback -p examples/migrations -e
 Rolling back batch: 1
 Migrated DN: v1.0.0-Initial.php
 ```
 
 For example, on uninstalling:
 ```bash
-> vendor/bin/database migrate:uninstall DB_DSN DB_USER DB_PASS -p examples/migrations -e
+> vendor/bin/database migrate:uninstall -p examples/migrations -e
 Removed migrations table
 ```
 
@@ -51,3 +43,13 @@ SQL databases currently supported are:
 * MySQL
 * SQLite
 
+
+# External Documentation
+Links to documentation for external dependencies:
+* [PHP Docs](http://php.net/)
+* [Logging PSR-3](http://www.php-fig.org/psr/psr-3/)
+
+Links to documentation for development only external dependencies:
+* [monolog/monolog](https://github.com/Seldaek/monolog)
+* [symfony/console](http://symfony.com/doc/current/components/console.html)
+* [vlucas/phpdotenv](https://github.com/vlucas/phpdotenv)

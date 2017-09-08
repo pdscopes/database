@@ -2,12 +2,6 @@
 
 namespace MadeSimple\Database;
 
-/**
- * Class DatabaseMap
- *
- * @package MadeSimple\Database
- * @author  Peter Scopes
- */
 class EntityMap
 {
     /**
@@ -35,8 +29,8 @@ class EntityMap
     public function __construct($tableName, array $keyMap, array $columnMap)
     {
         $this->tableName = $tableName;
-        $this->keyMap    = $keyMap;
-        $this->columnMap = array_replace($keyMap, $columnMap, $keyMap);
+        $this->keyMap    = $this->keyCheck($keyMap);
+        $this->columnMap = array_replace($this->keyMap, $this->keyCheck($columnMap), $this->keyMap);
     }
 
     /**
@@ -97,5 +91,31 @@ class EntityMap
     public function property($column)
     {
         return $this->columnMap[$column];
+    }
+
+    /**
+     * Creates a new associative array of the given $columns where
+     * is_int columns are replaced by the value, i.e.:
+     * [
+     *     'foo',
+     *     'bar_bar' => 'barBar'
+     * ]
+     * becomes:
+     * [
+     *     'foo' => 'foo',
+     *     'bar_bar' => 'barBar'
+     * ]
+     *
+     * @param array $columns
+     *
+     * @return array
+     */
+    protected function keyCheck(array $columns)
+    {
+        $array = [];
+        foreach ($columns as $k => $v) {
+            $array[is_int($k) ? $v : $k] = $v;
+        }
+        return $array;
     }
 }

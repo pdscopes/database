@@ -2,29 +2,36 @@
 
 namespace MadeSimple\Database;
 
+use MadeSimple\Database\Query\QueryBuilder;
+use MadeSimple\Database\Statement\StatementBuilder;
+use PDO;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
-/**
- * Class Connection
- *
- * @package MadeSimple\Database
- * @author  Peter Scopes
- */
-abstract class Connection
+class Connection
 {
     use LoggerAwareTrait;
 
     /**
-     * @var \PDO
+     * @var array
      */
-    protected $pdo;
+    protected $config;
 
     /**
-     * @var string
+     * @var ConnectorInterface
      */
-    protected $columnQuote;
+    public $connector;
+
+    /**
+     * @var CompilerInterface
+     */
+    public $compiler;
+
+    /**
+     * @var PDO
+     */
+    public $pdo;
 
     /**
      * @var int
@@ -32,133 +39,197 @@ abstract class Connection
     protected $transactions;
 
     /**
-     * @param \PDO                 $pdo
+     * Build a new instance of a connection using the specified configuration.
+     *
+     * @param array                $config
      * @param LoggerInterface|null $logger
      *
-     * @return MySQL\Connection|SQLite\Connection
+     * @return Connection
      */
-    public static function factory(\PDO $pdo, LoggerInterface $logger = null)
+    public static function factory(array $config, LoggerInterface $logger = null)
     {
-        $logger = $logger ? : new NullLogger();
-
-        switch ($pdo->getAttribute(\PDO::ATTR_DRIVER_NAME)) {
+        $config = (array) ($config + ['driver' => null]);
+        switch ($config['driver']) {
             case 'mysql':
-                return new MySQL\Connection($pdo, $logger);
+                $connector = new Connector\MySQL($logger);
+                $compiler  = new Compiler\MySQL($logger);
+                break;
+
             case 'sqlite':
-                return new SQLite\Connection($pdo, $logger);
+                $connector = new Connector\SQLite($logger);
+                $compiler  = new Compiler\SQLite($logger);
+                break;
 
             default:
-                throw new \InvalidArgumentException('Unsupported PDO driver');
+                throw new \RuntimeException('Unknown driver: ' . $config['driver']);
         }
+
+        return new Connection($config, $connector, $compiler, $logger);
     }
 
     /**
      * Connection constructor.
      *
-     * @param \PDO            $pdo
-     * @param LoggerInterface $logger
-     * @param string          $columnQuote
+     * @param array                $config
+     * @param ConnectorInterface   $connector
+     * @param CompilerInterface    $compiler
+     * @param LoggerInterface|null $logger
      */
-    public function __construct(\PDO $pdo, LoggerInterface $logger, $columnQuote)
+    public function __construct(array $config, ConnectorInterface $connector, CompilerInterface $compiler, LoggerInterface $logger = null)
     {
-        $this->pdo = $pdo;
-        $this->setLogger($logger);
-        $this->columnQuote = $columnQuote;
+        $this->setConfig($config);
+        $this->setConnector($connector);
+        $this->setCompiler($compiler);
+        $this->setLogger($logger ?? new NullLogger);
+
+        $this->connect();
     }
 
     /**
-     * Retrieve a database connection attribute.
-     *
-     * @param int $attribute
-     *
-     * @return mixed
+     * @param array $config
      */
-    public function getAttribute($attribute)
+    public function setConfig(array $config)
     {
-        return $this->pdo->getAttribute($attribute);
+        $this->config = $config;
     }
 
     /**
-     * Set an attribute.
+     * @param string     $key
+     * @param null|mixed $default
      *
-     * @param int   $attribute
-     * @param mixed $value
-     *
-     * @return bool
+     * @return mixed|null
      */
-    public function setAttribute($attribute, $value)
+    public function config($key, $default = null)
     {
-        return $this->pdo->setAttribute($attribute, $value);
+        return $this->config[$key] ?? $default;
     }
 
     /**
-     * @param string   $name
-     * @param \Closure $callable
+     * @param ConnectorInterface $connector
+     */
+    public function setConnector(ConnectorInterface $connector)
+    {
+        $this->connector = $connector;
+    }
+
+    /**
+     * @param CompilerInterface $compiler
+     */
+    public function setCompiler(CompilerInterface $compiler)
+    {
+        $this->compiler = $compiler;
+    }
+
+    /**
+     * Establishes a connection to the database using the current configuration.
+     */
+    public function connect()
+    {
+        $this->pdo = $this->connector->connect($this->config);
+    }
+
+
+    /**
+     * @param string $sql
      *
-     * @return Statement
+     * @return \PDOStatement
      */
-    public abstract function create($name, \Closure $callable);
-
-    /**
-     * @param \Closure|null $callable
-     *
-     * @return Statement\Table\Alter
-     */
-    public function alter($callable = null)
+    public function rawQuery($sql)
     {
-        $alter = new Statement\Table\Alter($this, $this->logger);
-        if ($callable instanceof \Closure) {
-            call_user_func_array($callable, [$alter]);
-        }
-        return $alter;
+        return $this->pdo->query($sql);
     }
 
-    /**
-     * @return Statement\Table\Truncate
-     */
-    public function truncate()
-    {
-        return new Statement\Table\Truncate($this, $this->logger);
-    }
 
-    /**
-     * @return Statement\Table\Drop
+    /*
+     * Create new queries.
      */
-    public function drop()
-    {
-        return new Statement\Table\Drop($this, $this->logger);
-    }
-
     /**
-     * @return Statement\Query\Select
+     * @return Query\Select
      */
     public function select()
     {
-        return new Statement\Query\Select($this, $this->logger);
+        return new Query\Select($this, $this->logger);
     }
 
     /**
-     * @return Statement\Query\Insert
+     * @return Query\Insert
      */
     public function insert()
     {
-        return new Statement\Query\Insert($this, $this->logger);
+        return new Query\Insert($this, $this->logger);
     }
 
     /**
-     * @return Statement\Query\Update
+     * @return Query\Update
      */
     public function update()
     {
-        return new Statement\Query\Update($this, $this->logger);
+        return new Query\Update($this, $this->logger);
     }
 
     /**
-     * @return Statement\Query\Delete
+     * @return Query\Delete
      */
     public function delete()
     {
-        return new Statement\Query\Delete($this, $this->logger);
+        return new Query\Delete($this, $this->logger);
+    }
+
+
+    /**
+     * Requires a Closure with the one QueryBuilder parameter.
+     * Calls given Closure with the defined QueryBuilder and
+     * returns the result of QueryBuilder::statement();
+     *
+     * @param \Closure $closure function (QueryBuilder) {}
+     * @see QueryBuilder::statement()
+     * @return array [PDOStatement, float]
+     * @throws \ReflectionException
+     */
+    public function query(\Closure $closure)
+    {
+        $reflection = new \ReflectionFunction($closure);
+        if ($reflection->getNumberOfParameters() !== 1) {
+            throw new \ReflectionException('The closure provided must have as the first parameter a sub class of ' . QueryBuilder::class);
+        }
+        $reflection = $reflection->getParameters()[0]->getClass();
+        if (!$reflection || !$reflection->isSubclassOf(QueryBuilder::class)) {
+            $this->logger->critical('Invalid closure signature', ['class' => $reflection->getName()]);
+            throw new \ReflectionException('The closure provided must have as the first parameter a sub class of ' . QueryBuilder::class);
+        }
+
+        /** @var QueryBuilder $statement */
+        $statement = $reflection->newInstance($this, $this->logger);
+        $closure($statement);
+        return $statement->statement();
+    }
+
+    /**
+     * Requires a Closure with the one StatementBuilder parameter.
+     * Calls given Closure with the defined StatementBuilder and
+     * returns the result of StatementBuilder::statement();
+     *
+     * @param \Closure $closure function (StatementBuilder) {}
+     * @see StatementBuilder::statement()
+     * @return array [PDOStatement, float]
+     * @throws \ReflectionException
+     */
+    public function statement(\Closure $closure)
+    {
+        $reflection = new \ReflectionFunction($closure);
+        if ($reflection->getNumberOfParameters() !== 1) {
+            throw new \ReflectionException('The closure provided must have as the first parameter a sub class of ' . StatementBuilder::class);
+        }
+        $reflection = $reflection->getParameters()[0]->getClass();
+        if (!$reflection || !$reflection->isSubclassOf(StatementBuilder::class)) {
+            $this->logger->critical('Invalid closure signature', ['class' => $reflection->getName()]);
+            throw new \ReflectionException('The closure provided must have as the first parameter a sub class of ' . StatementBuilder::class);
+        }
+
+        /** @var StatementBuilder $statement */
+        $statement = $reflection->newInstance($this, $this->logger);
+        $closure($statement);
+        return $statement->statement();
     }
 
 
@@ -224,110 +295,5 @@ abstract class Connection
         };
 
         return true;
-    }
-
-    /**
-     * @param string $name [optional]
-     *                     Name of the sequence object from which the ID should be returned.
-     *
-     * @return string
-     * @see \PDO::lastInsertId()
-     */
-    public function lastInsertId($name = null)
-    {
-        return $this->pdo->lastInsertId($name);
-    }
-
-    /**
-     * Execute an SQL statement and return the number of affected rows.
-     *
-     * @param string $statement The SQL statement to prepare and execute.
-     *                          Data inside the query should be properly escaped.
-     *
-     * @return int
-     * @see \PDO::exec()
-     */
-    public function exec($statement)
-    {
-        return $this->pdo->exec($statement);
-    }
-
-    /**
-     * @param string $statement      This must be a valid SQL statement for the target database server.
-     * @param array  $driver_options [optional]
-     *                               This array holds one or more key=>value pairs to set attribute values for the
-     *                               PDOStatement object that this method returns. You would most commonly use this to
-     *                               set the PDO::ATTR_CURSOR value to PDO::CURSOR_SCROLL to request a scrollable
-     *                               cursor. Some drivers have driver specific options that may be set at prepare-time.
-     *
-     * @return \PDOStatement
-     * @see \PDO::prepare()
-     */
-    public function prepare($statement, array $driver_options = array())
-    {
-        return $this->pdo->prepare($statement, $driver_options);
-    }
-
-    /**
-     * @param string $statement The SQL statement to prepare and execute.
-     *                          Data inside the query should be properly escaped.
-     *
-     * @return \PDOStatement
-     * @see \PDO::query()
-     */
-    public function query($statement)
-    {
-        try {
-            return $this->pdo->query($statement);
-        } catch (\PDOException $e) {
-            throw new \PDOException('Failed to execute: ' . $statement, 0, $e);
-        }
-    }
-
-    /**
-     * @param string $string        The string to be quoted
-     * @param int    $parameterType [optional] Provides a data type hint for drivers that have alternate quoting styles.
-     *
-     * @return string
-     * @see \PDO::quote()
-     */
-    public function quote($string, $parameterType = \PDO::PARAM_STR)
-    {
-        return $this->pdo->quote($string, $parameterType);
-    }
-
-    /**
-     * @param string $clause
-     *
-     * @return string
-     */
-    public function quoteClause($clause)
-    {
-        $words    = str_word_count($clause, 2, ':_0123456789'/*.$this->columnQuote*/);
-        $position = 0;
-        $quoted   = '';
-        foreach ($words as $location => $word) {
-            if (':' === $word{0} || '\'' === $word{0} || '"' === $word{0}) {
-                continue;
-            }
-            $quoted .= substr($clause, $position, ($location - $position));
-            $quoted .= strtoupper($word) === $word ? $word : $this->applyQuote($word);
-            $position = $location + strlen($word);
-        }
-        $quoted .= substr($clause, $position);
-
-        return $quoted;
-    }
-
-    /**
-     * @param string $column
-     *
-     * @return string
-     */
-    protected function applyQuote($column)
-    {
-        $column = trim($column, $this->columnQuote);
-
-        return '*' == $column ? '*' : $this->columnQuote . $column . $this->columnQuote;
     }
 }

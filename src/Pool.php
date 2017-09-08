@@ -2,12 +2,6 @@
 
 namespace MadeSimple\Database;
 
-/**
- * Class Pool
- *
- * @package MadeSimple\Database
- * @author  Peter Scopes
- */
 class Pool
 {
     /**
@@ -54,7 +48,7 @@ class Pool
      */
     public function get($name = null)
     {
-        $name = $name ? : $this->default;
+        $name = $name ?? $this->default;
 
         return $this->connections[$name];
     }

@@ -1,20 +1,18 @@
 #!/usr/bin/env php
 <?php
-foreach (array(__DIR__ . '/../../../autoload.php', __DIR__ . '/../vendor/autoload.php') as $file) {
+foreach (['/..', '/../..', '/../../..', '/../../../..'] as $depth) {
+    $file = __DIR__ . $depth . '/vendor/autoload.php';
     if (file_exists($file)) {
         define('MADESIMPLE_DATABASE_COMPOSER_INSTALL', $file);
-
         break;
     }
 }
-
 require MADESIMPLE_DATABASE_COMPOSER_INSTALL;
 
 use Symfony\Component\Console\Application;
-use MadeSimple\Database\Command;
+use MadeSimple\Database\Command\Symfony as Command;
 
 $application = new Application();
-$application->add(new Command\Migrate());
 $application->add(new Command\Install());
 $application->add(new Command\Uninstall());
 $application->add(new Command\Upgrade());
