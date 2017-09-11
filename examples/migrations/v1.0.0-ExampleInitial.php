@@ -17,17 +17,14 @@ class ExampleInitial implements MigrationInterface
         $connection->statement(function (CreateTable $table) {
             $table->name('user');
             $table->ifNotExists();
-            $table->column('id')->integer(11, true)->notNull()->autoIncrement();
-            $table->column('uuid')->char(36)->notNull();
-            $table->column('email')->char(255)->notNull();
+            $table->column('id')->integer(11, true)->notNull()->autoIncrement()->primaryKey();
+            $table->column('uuid')->char(36)->notNull()->unique();
+            $table->column('email')->char(255)->notNull()->unique();
             $table->column('password')->char(255)->notNull();
             $table->column('created_at')->timestamp()->notNull()->useCurrent();
             $table->column('updated_at')->timestamp()->notNull()->useCurrent();
 
-            $table->primaryKey('id')
-                  ->unique('uuid')
-                  ->unique('email')
-                  ->engine('InnoDB');
+            $table->engine('InnoDB')->charset('utf8mb4', 'utf8mb4_general_ci');
         });
 
         $connection->statement(function (CreateTable $table) {

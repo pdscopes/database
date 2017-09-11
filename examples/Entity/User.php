@@ -28,7 +28,7 @@ class User extends Entity
             [
                 'uuid',
                 'email',
-                'email',
+                'password',
                 'created_at' => 'createdAt',
                 'updated_at' => 'updatedAt',
             ]
