@@ -21,7 +21,7 @@ class MySQLTest extends TestCase
             'driver'   => 'mysql',
             'host'     => 'localhost',
             'database' => 'test',
-            'username' => '',
+            'username' => 'root',
             'password' => '',
         ];
         $connection = Connection::factory($config);
