@@ -26,6 +26,11 @@ class MySQLTest extends TestCase
         ];
         $connection = Connection::factory($config);
         $pool       = new Pool($connection);
+
+        // Confirm database is empty
+        $rows = $connection->rawQuery('SHOW TABLES;')->fetchAll(\PDO::FETCH_NUM);
+        $this->assertCount(0, $rows, 'Database must be empty before MySQL integration test');
+
         $migration  = new MySQLTestMigration();
 
         // Migrate up

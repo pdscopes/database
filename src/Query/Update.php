@@ -66,4 +66,11 @@ class Update extends QueryBuilder
 
         return $this->compiler->compileQueryUpdate($statement);
     }
+
+
+    protected function tidyAfterExecution()
+    {
+        unset($this->statement['columns']);
+        unset($this->statement['values']);
+    }
 }

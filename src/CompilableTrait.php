@@ -83,6 +83,7 @@ trait CompilableTrait
     {
         if (null === $sql) {
             list($sql, $bindings) = $this->buildSql($this->statement);
+            $this->tidyAfterExecution();
         }
         list($this->pdoStatement) = $this->statement($sql, $bindings);
 
@@ -102,6 +103,7 @@ trait CompilableTrait
         $start = microtime(true);
         if (null === $sql) {
             list($sql, $bindings) = $this->buildSql($this->statement);
+            $this->tidyAfterExecution();
         }
         try {
             $pdoStatement = $this->pdo->prepare($sql);
@@ -122,4 +124,15 @@ trait CompilableTrait
         }
     }
 
+
+    /**
+     * Called during query and statement. Use to tidy the builder ready for the
+     * next next query or statement is called.
+     *
+     * @see CompilableTrait::query()
+     * @see CompilableTrait::statement()
+     */
+    protected function tidyAfterExecution()
+    {
+    }
 }

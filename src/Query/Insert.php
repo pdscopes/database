@@ -74,4 +74,10 @@ class Insert extends QueryBuilder
 
         return $this->compiler->compileQueryInsert($statement);
     }
+
+
+    protected function tidyAfterExecution()
+    {
+        unset($this->statement['values']);
+    }
 }

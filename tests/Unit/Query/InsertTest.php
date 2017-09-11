@@ -104,9 +104,10 @@ class InsertTest extends TestCase
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs();
 
         $insert = (new Insert($this->mockConnection))->into('table')->columns('foo')->values(2);
+        $compiledSql        = $insert->toSql();
         list($pdoStatement) = $insert->statement();
 
-        $this->assertEquals($sql, $insert->toSql());
+        $this->assertEquals($sql, $compiledSql);
         $this->assertEquals($this->mockPdoStatement, $pdoStatement);
 
     }
@@ -124,9 +125,10 @@ class InsertTest extends TestCase
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs();
 
         $insert = (new Insert($this->mockConnection))->into('table')->columns('foo', 'bar')->values(2, 3);
+        $compiledSql        = $insert->toSql();
         list($pdoStatement) = $insert->statement();
 
-        $this->assertEquals($sql, $insert->toSql());
+        $this->assertEquals($sql, $compiledSql);
         $this->assertEquals($this->mockPdoStatement, $pdoStatement);
 
     }
@@ -144,9 +146,10 @@ class InsertTest extends TestCase
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs();
 
         $insert = (new Insert($this->mockConnection))->into('table')->columns(['foo', 'bar'])->values([2, 3]);
+        $compiledSql        = $insert->toSql();
         list($pdoStatement) = $insert->statement();
 
-        $this->assertEquals($sql, $insert->toSql());
+        $this->assertEquals($sql, $compiledSql);
         $this->assertEquals($this->mockPdoStatement, $pdoStatement);
 
     }
@@ -164,9 +167,10 @@ class InsertTest extends TestCase
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
 
         $insert = (new Insert($this->mockConnection))->into('table')->columns('foo')->values(2, 3);
+        $compiledSql        = $insert->toSql();
         list($pdoStatement) = $insert->statement();
 
-        $this->assertEquals($sql, $insert->toSql());
+        $this->assertEquals($sql, $compiledSql);
         $this->assertEquals($this->mockPdoStatement, $pdoStatement);
 
     }
@@ -186,9 +190,10 @@ class InsertTest extends TestCase
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
 
         $insert = (new Insert($this->mockConnection))->into('table')->columns('foo', 'bar')->values(2, 3, 5, 7);
+        $compiledSql        = $insert->toSql();
         list($pdoStatement) = $insert->statement();
 
-        $this->assertEquals($sql, $insert->toSql());
+        $this->assertEquals($sql, $compiledSql);
         $this->assertEquals($this->mockPdoStatement, $pdoStatement);
 
     }
@@ -211,9 +216,10 @@ class InsertTest extends TestCase
             ->columns(['foo', 'bar'])
             ->values([2, 3])
             ->values([5, 7]);
+        $compiledSql        = $insert->toSql();
         list($pdoStatement) = $insert->statement();
 
-        $this->assertEquals($sql, $insert->toSql());
+        $this->assertEquals($sql, $compiledSql);
         $this->assertEquals($this->mockPdoStatement, $pdoStatement);
 
     }
