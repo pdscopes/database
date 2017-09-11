@@ -1,11 +1,13 @@
 <?php
 
-namespace Tests\Unit;
+namespace MadeSimple\Database\Tests\Unit;
 
+use MadeSimple\Database\CompilerInterface;
 use MadeSimple\Database\Connection;
 use MadeSimple\Database\Pool;
-use Psr\Log\NullLogger;
-use Tests\TestCase;
+use MadeSimple\Database\Tests\MockConnection;
+use MadeSimple\Database\Tests\MockConnector;
+use MadeSimple\Database\Tests\TestCase;
 
 class PoolTest extends TestCase
 {
@@ -15,12 +17,22 @@ class PoolTest extends TestCase
     private $mockPdo;
 
     /**
-     * @var Connection
+     * @var MockConnector
+     */
+    private $mockConnector;
+
+    /**
+     * @var \Mockery\Mock|CompilerInterface
+     */
+    private $mockCompiler;
+
+    /**
+     * @var \Mockery\Mock|Connection
      */
     private $connection1;
 
     /**
-     * @var Connection
+     * @var \Mockery\Mock|Connection
      */
     private $connection2;
 
@@ -28,9 +40,11 @@ class PoolTest extends TestCase
     {
         parent::setUp();
 
-        $this->mockPdo     = \Mockery::mock(\PDO::class);
-        $this->connection1 = new \MadeSimple\Database\MySQL\Connection($this->mockPdo, new NullLogger);
-        $this->connection2 = new \MadeSimple\Database\SQLite\Connection($this->mockPdo, new NullLogger);
+        $this->mockPdo       = \Mockery::mock(\PDO::class);
+        $this->mockConnector = new MockConnector($this->mockPdo);
+        $this->mockCompiler  = \Mockery::mock(CompilerInterface::class);
+        $this->connection1   = new MockConnection($this->mockConnector, $this->mockCompiler);
+        $this->connection2   = new MockConnection($this->mockConnector, $this->mockCompiler);
     }
 
     /**
@@ -39,8 +53,8 @@ class PoolTest extends TestCase
     public function testConstruct()
     {
         $pool = new Pool($this->connection1, $this->connection2);
-        $this->assertEquals($this->connection1, $pool->get());
-        $this->assertNotEquals($this->connection2, $pool->get());
+        $this->assertEquals($this->connection1->config('unique'), $pool->get()->config('unique'));
+        $this->assertNotEquals($this->connection2->config('unique'), $pool->get()->config('unique'));
     }
 
     /**
@@ -60,9 +74,9 @@ class PoolTest extends TestCase
     public function testSetDefault()
     {
         $pool = new Pool(['mysql' => $this->connection1, 'sqlite' => $this->connection2]);
-        $this->assertEquals($this->connection1, $pool->get());
+        $this->assertEquals($this->connection1->config('unique'), $pool->get()->config('unique'));
         $pool->setDefault('sqlite');
-        $this->assertEquals($this->connection2, $pool->get());
+        $this->assertEquals($this->connection2->config('unique'), $pool->get()->config('unique'));
     }
 
     /**
@@ -71,9 +85,9 @@ class PoolTest extends TestCase
     public function testGet()
     {
         $pool = new Pool(['mysql' => $this->connection1, 'sqlite' => $this->connection2]);
-        $this->assertEquals($this->connection1, $pool->get());
-        $this->assertEquals($this->connection1, $pool->get('mysql'));
-        $this->assertEquals($this->connection2, $pool->get('sqlite'));
+        $this->assertEquals($this->connection1->config('unique'), $pool->get()->config('unique'));
+        $this->assertEquals($this->connection1->config('unique'), $pool->get('mysql')->config('unique'));
+        $this->assertEquals($this->connection2->config('unique'), $pool->get('sqlite')->config('unique'));
     }
 
     /**
@@ -83,8 +97,8 @@ class PoolTest extends TestCase
     {
         $pool = new Pool(['mysql' => $this->connection1]);
         $pool->set('sqlite', $this->connection2);
-        $this->assertEquals($this->connection1, $pool->get());
-        $this->assertEquals($this->connection1, $pool->get('mysql'));
-        $this->assertEquals($this->connection2, $pool->get('sqlite'));
+        $this->assertEquals($this->connection1->config('unique'), $pool->get()->config('unique'));
+        $this->assertEquals($this->connection1->config('unique'), $pool->get('mysql')->config('unique'));
+        $this->assertEquals($this->connection2->config('unique'), $pool->get('sqlite')->config('unique'));
     }
 }

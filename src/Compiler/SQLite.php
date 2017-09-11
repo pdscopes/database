@@ -26,6 +26,7 @@ class SQLite extends Compiler
         $columns = $this->concatenateSql(array_map([$this, 'compileStatementColumn'], $statement['columns'] ?? []), ',');
         // Constraints
         $constraints = $this->concatenateSql(array_map([$this, 'compileStatementConstraint'], $statement['constraints'] ?? []), ',');
+        $constraints = !empty($constraints) ? ',' . $constraints : '';
 
 
         return [$this->concatenateSql([
@@ -34,7 +35,6 @@ class SQLite extends Compiler
             $table,
             '(',
             $columns,
-            ',',
             $constraints,
             ')'
         ]), []];

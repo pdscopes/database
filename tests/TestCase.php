@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests;
+namespace MadeSimple\Database\Tests;
 
 class TestCase extends \PHPUnit\Framework\TestCase
 {

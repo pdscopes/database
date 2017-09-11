@@ -28,6 +28,7 @@ class MySQL extends Compiler
         $columns = $this->concatenateSql(array_map([$this, 'compileStatementColumn'], $statement['columns'] ?? []), ',');
         // Constraints
         $constraints = $this->concatenateSql(array_map([$this, 'compileStatementConstraint'], $statement['constraints'] ?? []), ',');
+        $constraints = !empty($constraints) ? ',' . $constraints : '';
 
         // Options
         $options[] = !empty($statement['engine']) ? 'ENGINE='.$statement['engine'] : '';
@@ -44,7 +45,6 @@ class MySQL extends Compiler
             $table,
             '(',
             $columns,
-            ',',
             $constraints,
             ')',
             $options

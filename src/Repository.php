@@ -69,6 +69,10 @@ class Repository
             $select->where('t.'.$column, '=', $value);
         }
         foreach ($order as $column => $direction) {
+            if (is_int($column)) {
+                $column    = $direction;
+                $direction = 'asc';
+            }
             $select->orderBy($column, $direction);
         }
 
@@ -96,6 +100,10 @@ class Repository
             $select->where('t.'.$column, '=', $value);
         }
         foreach ($order as $column => $direction) {
+            if (is_int($column)) {
+                $column    = $direction;
+                $direction = 'asc';
+            }
             $select->orderBy($column, $direction);
         }
 

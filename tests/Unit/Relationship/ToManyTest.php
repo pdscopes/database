@@ -1,14 +1,15 @@
 <?php
 
-namespace Tests\Unit\Relationship;
+namespace MadeSimple\Database\Tests\Unit\Relationship;
 
+use MadeSimple\Database\Collection;
+use MadeSimple\Database\Connection;
 use MadeSimple\Database\Entity;
 use MadeSimple\Database\EntityMap;
-use MadeSimple\Database\MySQL\Connection;
 use MadeSimple\Database\Pool;
+use MadeSimple\Database\Query\Select;
 use MadeSimple\Database\Relationship\ToMany;
-use MadeSimple\Database\Statement\Query\Select;
-use Tests\TestCase;
+use MadeSimple\Database\Tests\TestCase;
 
 class ToManyTest extends TestCase
 {
@@ -56,8 +57,8 @@ class ToManyTest extends TestCase
 
         $this->mockSelect->shouldReceive('columns')->once()->with('e.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('entity', 'e')->andReturnSelf();
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('e.foreign_key = :foreign_key', ['foreign_key' => 5])->andReturnSelf();
-        $this->mockSelect->shouldReceive('execute')->once()->withNoArgs()->andReturn($this->mockPdoStatement);
+        $this->mockSelect->shouldReceive('where')->once()->with('e.foreign_key', '=', 5)->andReturnSelf();
+        $this->mockSelect->shouldReceive('statement')->once()->withNoArgs()->andReturn([$this->mockPdoStatement, 0]);
 
         $this->mockPdoStatement->shouldReceive('fetch')->times(2)->with(\PDO::FETCH_ASSOC)->andReturnValues([$data, null]);
 
@@ -68,7 +69,7 @@ class ToManyTest extends TestCase
         $relation = (new ToMany($entity))->has(ToManyEntity::class, 'e', 'foreign_key');
         $items    = $relation->fetch();
 
-        $this->assertInternalType('array', $items);
+        $this->assertInstanceOf(Collection::class, $items);
         $this->assertCount(1, $items);
         $this->assertInstanceOf(ToManyEntity::class, $items[0]);
         $this->assertEquals(5, $items[0]->foreignKey);
@@ -84,8 +85,8 @@ class ToManyTest extends TestCase
 
         $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('r.KEY = :KEY', ['KEY' => 5])->andReturnSelf();
-        $this->mockSelect->shouldReceive('execute')->once()->withNoArgs()->andReturn($this->mockPdoStatement);
+        $this->mockSelect->shouldReceive('where')->once()->with('r.KEY', '=', 5)->andReturnSelf();
+        $this->mockSelect->shouldReceive('statement')->once()->withNoArgs()->andReturn([$this->mockPdoStatement, 0]);
 
         $this->mockPdoStatement->shouldReceive('fetch')->times(2)->with(\PDO::FETCH_ASSOC)->andReturnValues([$data, null]);
 
@@ -96,7 +97,7 @@ class ToManyTest extends TestCase
         $relation = (new ToMany($entity))->belongsTo(ToManyRelatedEntity::class, 'r', 'foreign_key');
         $items    = $relation->fetch();
 
-        $this->assertInternalType('array', $items);
+        $this->assertInstanceOf(Collection::class, $items);
         $this->assertCount(1, $items);
         $this->assertInstanceOf(ToManyRelatedEntity::class, $items[0]);
         $this->assertEquals(5, $items[0]->key);

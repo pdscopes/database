@@ -88,7 +88,7 @@ class Connection
     /**
      * @param array $config
      */
-    public function setConfig(array $config)
+    protected function setConfig(array $config)
     {
         $this->config = $config;
     }
@@ -194,7 +194,7 @@ class Connection
         }
         $reflection = $reflection->getParameters()[0]->getClass();
         if (!$reflection || !$reflection->isSubclassOf(QueryBuilder::class)) {
-            $this->logger->critical('Invalid closure signature', ['class' => $reflection->getName()]);
+            $this->logger->critical('Invalid closure signature', ['class' => $reflection ? $reflection->getName() : null]);
             throw new \ReflectionException('The closure provided must have as the first parameter a sub class of ' . QueryBuilder::class);
         }
 
@@ -222,7 +222,7 @@ class Connection
         }
         $reflection = $reflection->getParameters()[0]->getClass();
         if (!$reflection || !$reflection->isSubclassOf(StatementBuilder::class)) {
-            $this->logger->critical('Invalid closure signature', ['class' => $reflection->getName()]);
+            $this->logger->critical('Invalid closure signature', ['class' => $reflection ? $reflection->getName() : null]);
             throw new \ReflectionException('The closure provided must have as the first parameter a sub class of ' . StatementBuilder::class);
         }
 

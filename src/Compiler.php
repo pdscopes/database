@@ -190,10 +190,10 @@ abstract class Compiler implements CompilerInterface
         }
 
 
-        // From
-        $tables  = $this->compileQuerySanitiseArray($statement['into']);
+        // Into
+        $table = $this->sanitise($statement['into']['table']);
         // Columns
-        $columns = $this->compileQuerySanitiseArray($statement['columns']);
+        $columns = $this->compileQuerySanitiseArray($statement['columns'] ?? []);
         $columns = empty($columns) ? '' : '(' . $columns . ')';
         // Values
         list($valuesSql, $valuesBindings) = $this->compileQueryValues($statement);
@@ -203,7 +203,7 @@ abstract class Compiler implements CompilerInterface
         $sql      = $this->concatenateSql([
             'INSERT',
             'INTO',
-            $tables,
+            $table,
             $columns,
             $valuesSql
         ]);
@@ -221,7 +221,7 @@ abstract class Compiler implements CompilerInterface
 
 
         // From
-        $table   = $this->compileQuerySanitiseArray($statement['table']);
+        $table = $this->sanitise($statement['table']);
         // Set Pairs
         list($setSql, $setBindings) = $this->compileQuerySetPairs($statement);
         // Where
@@ -250,7 +250,8 @@ abstract class Compiler implements CompilerInterface
 
 
         // From
-        $tables  = $this->compileQuerySanitiseArray($statement['from']);
+        $alias = $statement['from']['alias'] ? $this->sanitise($statement['from']['alias']) : '';
+        $table = $this->sanitise($statement['from']['table']) . ($alias ? ' AS ' . $alias : '');
         // Where
         list($whereCriteria, $whereBindings) = $this->compileQueryCriteriaWithType($statement, 'where', 'WHERE');
 
@@ -258,8 +259,9 @@ abstract class Compiler implements CompilerInterface
         // Put all the parts together
         $sql      = $this->concatenateSql([
             'DELETE',
+            $alias,
             'FROM',
-            $tables,
+            $table,
             $whereCriteria
         ]);
         $bindings = array_merge($whereBindings);
@@ -455,9 +457,22 @@ abstract class Compiler implements CompilerInterface
         if (!array_key_exists('values', $statement) || empty($statement['values'])) {
             return [$sql, $bindings];
         }
+        if (!array_key_exists('columns', $statement) || empty($statement['columns'])) {
+            $sql     .= 'VALUES (' . implode(',', array_fill(0, count($statement['values']), '?')) . ')';
+            $bindings = array_merge($bindings, $statement['values']);
+        } else {
+            if (count($statement['values']) % count($statement['columns']) !== 0) {
+                throw new \RuntimeException('Number of values does not match number of columns');
+            }
 
-        $sql     .= 'VALUES (' . implode(',', array_fill(0, count($statement['values']), '?')) . ')';
-        $bindings = array_merge($bindings, $statement['values']);
+            $sql .= 'VALUES ';
+            foreach (array_chunk($statement['values'], count($statement['columns'])) as $values) {
+                $sql .= '(' . implode(',', array_fill(0, count($values), '?')) . '),';
+            }
+            $sql = substr($sql, 0, -1);
+            $bindings = array_merge($bindings, $statement['values']);
+        }
+
 
         return [$sql, $bindings];
     }

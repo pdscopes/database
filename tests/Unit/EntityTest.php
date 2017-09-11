@@ -1,12 +1,13 @@
 <?php
 
-namespace Tests\Unit;
+namespace MadeSimple\Database\Tests\Unit;
 
 use MadeSimple\Database\Connection;
 use MadeSimple\Database\Entity;
 use MadeSimple\Database\EntityMap;
 use MadeSimple\Database\Pool;
-use Tests\TestCase;
+use MadeSimple\Database\Query;
+use MadeSimple\Database\Tests\TestCase;
 
 class EntityTest extends TestCase
 {
@@ -73,17 +74,36 @@ class EntityTest extends TestCase
     }
 
     /**
+     * Test populate with data with entity map.
+     *
+     * @param array $data
+     * @dataProvider populateDataProvider
+     */
+    public function testPopulateWithMap($data)
+    {
+        $entity = new SingleKeyEntity($this->mockPool);
+        $entity->populate($data, $entity->getMap());
+
+        $this->assertEquals($data['ID'], $entity->id);
+        $this->assertEquals($data['first_name'], $entity->firstName);
+        $this->assertEquals($data['last_name'], $entity->lastName);
+    }
+
+    /**
      * Test persist creates an entity that does not have a primary key set.
      */
     public function testPersistSinglePrimaryKeyCreate()
     {
+        /** @var \Mockery\Mock $mockInsert */
+        $mockInsert = \Mockery::mock(Query\Insert::class);
+
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
-        $this->mockConnection->shouldReceive('insert')->once()->withNoArgs()->andReturnSelf();
-        $this->mockConnection->shouldReceive('into')->once()->with('dummy')->andReturnSelf();
-        $this->mockConnection->shouldReceive('columns')->once()->with(['ID', 'first_name', 'last_name'])->andReturnSelf();
-        $this->mockConnection->shouldReceive('values')->once()->with([null, 'Test', 'Person'])->andReturnSelf();
-        $this->mockConnection->shouldReceive('execute')->once()->withNoArgs()->andReturnSelf();
-        $this->mockConnection->shouldReceive('lastInsertId')->once()->withNoArgs()->andReturn(5);
+        $this->mockConnection->shouldReceive('insert')->once()->withNoArgs()->andReturn($mockInsert);
+        $mockInsert->shouldReceive('into')->once()->with('dummy')->andReturnSelf();
+        $mockInsert->shouldReceive('columns')->once()->with(['ID', 'first_name', 'last_name'])->andReturnSelf();
+        $mockInsert->shouldReceive('values')->once()->with([null, 'Test', 'Person'])->andReturnSelf();
+        $mockInsert->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
+        $mockInsert->shouldReceive('lastInsertId')->once()->withNoArgs()->andReturn(5);
 
         $entity = new SingleKeyEntity($this->mockPool);
         $entity->firstName = 'Test';
@@ -99,13 +119,16 @@ class EntityTest extends TestCase
      */
     public function testPersistSinglePrimaryKeyUpdate()
     {
+        /** @var \Mockery\Mock $mockUpdate */
+        $mockUpdate = \Mockery::mock(Query\Update::class);
+
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
-        $this->mockConnection->shouldReceive('update')->once()->withNoArgs()->andReturnSelf();
-        $this->mockConnection->shouldReceive('table')->once()->with('dummy')->andReturnSelf();
-        $this->mockConnection->shouldReceive('columns')->once()->with(['ID', 'first_name', 'last_name'])->andReturnSelf();
-        $this->mockConnection->shouldReceive('setParameters')->once()->with([5, 'Test', 'Person'])->andReturnSelf();
-        $this->mockConnection->shouldReceive('andWhere')->once()->with('ID = ?', 5);
-        $this->mockConnection->shouldReceive('execute')->once()->withNoArgs()->andReturnSelf();
+        $this->mockConnection->shouldReceive('update')->once()->withNoArgs()->andReturn($mockUpdate);
+        $mockUpdate->shouldReceive('table')->once()->with('dummy')->andReturnSelf();
+        $mockUpdate->shouldReceive('columns')->once()->with(['ID' => 5, 'first_name' => 'Test', 'last_name' => 'Person'])->andReturnSelf();
+        $mockUpdate->shouldReceive('where')->once()->with('ID', '=', 5);
+        $mockUpdate->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
+        $mockUpdate->shouldReceive('affectedRows')->once()->withNoArgs()->andReturn(1);
 
 
         $entity = new SingleKeyEntity($this->mockPool);
@@ -138,13 +161,16 @@ class EntityTest extends TestCase
      */
     public function testCreateSinglePrimaryKey()
     {
+        /** @var \Mockery\Mock $mockInsert */
+        $mockInsert = \Mockery::mock(Query\Insert::class);
+
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
-        $this->mockConnection->shouldReceive('insert')->once()->withNoArgs()->andReturnSelf();
-        $this->mockConnection->shouldReceive('into')->once()->with('dummy')->andReturnSelf();
-        $this->mockConnection->shouldReceive('columns')->once()->with(['ID', 'first_name', 'last_name'])->andReturnSelf();
-        $this->mockConnection->shouldReceive('values')->once()->with([null, 'Test', 'Person'])->andReturnSelf();
-        $this->mockConnection->shouldReceive('execute')->once()->withNoArgs()->andReturnSelf();
-        $this->mockConnection->shouldReceive('lastInsertId')->once()->withNoArgs()->andReturn(5);
+        $this->mockConnection->shouldReceive('insert')->once()->withNoArgs()->andReturn($mockInsert);
+        $mockInsert->shouldReceive('into')->once()->with('dummy')->andReturnSelf();
+        $mockInsert->shouldReceive('columns')->once()->with(['ID', 'first_name', 'last_name'])->andReturnSelf();
+        $mockInsert->shouldReceive('values')->once()->with([null, 'Test', 'Person'])->andReturnSelf();
+        $mockInsert->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
+        $mockInsert->shouldReceive('lastInsertId')->once()->withNoArgs()->andReturn(5);
 
         $entity = new SingleKeyEntity($this->mockPool);
         $entity->firstName = 'Test';
@@ -160,13 +186,16 @@ class EntityTest extends TestCase
      */
     public function testCreateCompositePrimaryKey()
     {
+        /** @var \Mockery\Mock $mockInsert */
+        $mockInsert = \Mockery::mock(Query\Insert::class);
+
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
-        $this->mockConnection->shouldReceive('insert')->once()->withNoArgs()->andReturnSelf();
-        $this->mockConnection->shouldReceive('into')->once()->with('dummy_link')->andReturnSelf();
-        $this->mockConnection->shouldReceive('columns')->once()->with(['user_id', 'company_id', 'value'])->andReturnSelf();
-        $this->mockConnection->shouldReceive('values')->once()->with([5, 7, 'value'])->andReturnSelf();
-        $this->mockConnection->shouldReceive('execute')->once()->withNoArgs()->andReturnSelf();
-        $this->mockConnection->shouldReceive('lastInsertId')->never();
+        $this->mockConnection->shouldReceive('insert')->once()->withNoArgs()->andReturn($mockInsert);
+        $mockInsert->shouldReceive('into')->once()->with('dummy_link')->andReturnSelf();
+        $mockInsert->shouldReceive('columns')->once()->with(['user_id', 'company_id', 'value'])->andReturnSelf();
+        $mockInsert->shouldReceive('values')->once()->with([5, 7, 'value'])->andReturnSelf();
+        $mockInsert->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
+        $mockInsert->shouldReceive('lastInsertId')->never();
 
         $entity = new CompositeKeyEntity($this->mockPool);
         $entity->userId    = 5;
@@ -182,13 +211,16 @@ class EntityTest extends TestCase
      */
     public function testUpdateSinglePrimaryKey()
     {
+        /** @var \Mockery\Mock $mockUpdate */
+        $mockUpdate = \Mockery::mock(Query\Update::class);
+
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
-        $this->mockConnection->shouldReceive('update')->once()->withNoArgs()->andReturnSelf();
-        $this->mockConnection->shouldReceive('table')->once()->with('dummy')->andReturnSelf();
-        $this->mockConnection->shouldReceive('columns')->once()->with(['ID', 'first_name', 'last_name'])->andReturnSelf();
-        $this->mockConnection->shouldReceive('setParameters')->once()->with([5, 'Test', 'Person'])->andReturnSelf();
-        $this->mockConnection->shouldReceive('andWhere')->once()->with('ID = ?', 5);
-        $this->mockConnection->shouldReceive('execute')->once()->withNoArgs()->andReturnSelf();
+        $this->mockConnection->shouldReceive('update')->once()->withNoArgs()->andReturn($mockUpdate);
+        $mockUpdate->shouldReceive('table')->once()->with('dummy')->andReturnSelf();
+        $mockUpdate->shouldReceive('columns')->once()->with(['ID' => 5, 'first_name' => 'Test', 'last_name' => 'Person'])->andReturnSelf();
+        $mockUpdate->shouldReceive('where')->once()->with('ID', '=', 5);
+        $mockUpdate->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
+        $mockUpdate->shouldReceive('affectedRows')->once()->withNoArgs()->andReturn(1);
 
 
         $entity = new SingleKeyEntity($this->mockPool);
@@ -205,14 +237,17 @@ class EntityTest extends TestCase
      */
     public function testUpdateCompositePrimaryKey()
     {
+        /** @var \Mockery\Mock $mockUpdate */
+        $mockUpdate = \Mockery::mock(Query\Update::class);
+
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
-        $this->mockConnection->shouldReceive('update')->once()->withNoArgs()->andReturnSelf();
-        $this->mockConnection->shouldReceive('table')->once()->with('dummy_link')->andReturnSelf();
-        $this->mockConnection->shouldReceive('columns')->once()->with(['user_id', 'company_id', 'value'])->andReturnSelf();
-        $this->mockConnection->shouldReceive('setParameters')->once()->with([5, 7, 'value'])->andReturnSelf();
-        $this->mockConnection->shouldReceive('andWhere')->once()->with('user_id = ?', 5);
-        $this->mockConnection->shouldReceive('andWhere')->once()->with('company_id = ?', 7);
-        $this->mockConnection->shouldReceive('execute')->once()->withNoArgs()->andReturnSelf();
+        $this->mockConnection->shouldReceive('update')->once()->withNoArgs()->andReturn($mockUpdate);
+        $mockUpdate->shouldReceive('table')->once()->with('dummy_link')->andReturnSelf();
+        $mockUpdate->shouldReceive('columns')->once()->with(['user_id' => 5, 'company_id' => 7, 'value' => 'value'])->andReturnSelf();
+        $mockUpdate->shouldReceive('where')->once()->with('user_id', '=', 5);
+        $mockUpdate->shouldReceive('where')->once()->with('company_id', '=', 7);
+        $mockUpdate->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
+        $mockUpdate->shouldReceive('affectedRows')->once()->withNoArgs()->andReturn(1);
 
 
         $entity = new CompositeKeyEntity($this->mockPool);
@@ -229,6 +264,9 @@ class EntityTest extends TestCase
      */
     public function testReadSinglePrimaryKey()
     {
+        /** @var \Mockery\Mock $mockSelect */
+        $mockSelect = \Mockery::mock(Query\Select::class);
+
         $row = [
             'ID'         => 5,
             'first_name' => 'Test',
@@ -236,13 +274,13 @@ class EntityTest extends TestCase
         ];
 
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
-        $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturnSelf();
-        $this->mockConnection->shouldReceive('columns')->once()->with('*')->andReturnSelf();
-        $this->mockConnection->shouldReceive('from')->once()->with('dummy', 't')->andReturnSelf();
-        $this->mockConnection->shouldReceive('limit')->once()->with(1)->andReturnSelf();
-        $this->mockConnection->shouldReceive('andWhere')->once()->with('t.ID = ?', 5);
-        $this->mockConnection->shouldReceive('execute')->once()->withNoArgs()->andReturnSelf();
-        $this->mockConnection->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC, \PDO::FETCH_ORI_FIRST)->andReturn($row);
+        $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($mockSelect);
+        $mockSelect->shouldReceive('columns')->once()->with('*')->andReturnSelf();
+        $mockSelect->shouldReceive('from')->once()->with('dummy', 't')->andReturnSelf();
+        $mockSelect->shouldReceive('limit')->once()->with(1)->andReturnSelf();
+        $mockSelect->shouldReceive('where')->once()->with('t.ID', '=', 5);
+        $mockSelect->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
+        $mockSelect->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC, \PDO::FETCH_ORI_FIRST)->andReturn($row);
 
         $entity = new SingleKeyEntity($this->mockPool);
 
@@ -257,6 +295,9 @@ class EntityTest extends TestCase
      */
     public function testReadCompositePrimaryKey()
     {
+        /** @var \Mockery\Mock $mockSelect */
+        $mockSelect = \Mockery::mock(Query\Select::class);
+
         $row = [
             'user_id'    => 5,
             'company_id' => 7,
@@ -264,14 +305,14 @@ class EntityTest extends TestCase
         ];
 
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
-        $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturnSelf();
-        $this->mockConnection->shouldReceive('columns')->once()->with('*')->andReturnSelf();
-        $this->mockConnection->shouldReceive('from')->once()->with('dummy_link', 't')->andReturnSelf();
-        $this->mockConnection->shouldReceive('limit')->once()->with(1)->andReturnSelf();
-        $this->mockConnection->shouldReceive('andWhere')->once()->with('t.user_id = ?', 5);
-        $this->mockConnection->shouldReceive('andWhere')->once()->with('t.company_id = ?', 7);
-        $this->mockConnection->shouldReceive('execute')->once()->withNoArgs()->andReturnSelf();
-        $this->mockConnection->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC, \PDO::FETCH_ORI_FIRST)->andReturn($row);
+        $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($mockSelect);
+        $mockSelect->shouldReceive('columns')->once()->with('*')->andReturnSelf();
+        $mockSelect->shouldReceive('from')->once()->with('dummy_link', 't')->andReturnSelf();
+        $mockSelect->shouldReceive('limit')->once()->with(1)->andReturnSelf();
+        $mockSelect->shouldReceive('where')->once()->with('t.user_id', '=', 5);
+        $mockSelect->shouldReceive('where')->once()->with('t.company_id', '=', 7);
+        $mockSelect->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
+        $mockSelect->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC, \PDO::FETCH_ORI_FIRST)->andReturn($row);
 
         $entity = new CompositeKeyEntity($this->mockPool);
 
@@ -286,11 +327,15 @@ class EntityTest extends TestCase
      */
     public function testDeleteSinglePrimaryKey()
     {
+        /** @var \Mockery\Mock $mockDelete */
+        $mockDelete = \Mockery::mock(Query\Delete::class);
+
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
-        $this->mockConnection->shouldReceive('delete')->once()->withNoArgs()->andReturnSelf();
-        $this->mockConnection->shouldReceive('from')->once()->with('dummy')->andReturnSelf();
-        $this->mockConnection->shouldReceive('andWhere')->once()->with('ID = ?', 5)->andReturnSelf();
-        $this->mockConnection->shouldReceive('execute')->once()->withNoArgs()->andReturnSelf();
+        $this->mockConnection->shouldReceive('delete')->once()->withNoArgs()->andReturn($mockDelete);
+        $mockDelete->shouldReceive('from')->once()->with('dummy')->andReturnSelf();
+        $mockDelete->shouldReceive('where')->once()->with('ID', '=', 5)->andReturnSelf();
+        $mockDelete->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
+        $mockDelete->shouldReceive('affectedRows')->once()->withNoArgs()->andReturn(1);
 
         $entity = new SingleKeyEntity($this->mockPool);
         $this->assertTrue($entity->delete(5));
@@ -301,12 +346,16 @@ class EntityTest extends TestCase
      */
     public function testDeleteCompositePrimaryKey()
     {
+        /** @var \Mockery\Mock $mockDelete */
+        $mockDelete = \Mockery::mock(Query\Delete::class);
+
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
-        $this->mockConnection->shouldReceive('delete')->once()->withNoArgs()->andReturnSelf();
-        $this->mockConnection->shouldReceive('from')->once()->with('dummy_link')->andReturnSelf();
-        $this->mockConnection->shouldReceive('andWhere')->once()->with('user_id = ?', 5)->andReturnSelf();
-        $this->mockConnection->shouldReceive('andWhere')->once()->with('company_id = ?', 7)->andReturnSelf();
-        $this->mockConnection->shouldReceive('execute')->once()->withNoArgs()->andReturnSelf();
+        $this->mockConnection->shouldReceive('delete')->once()->withNoArgs()->andReturn($mockDelete);
+        $mockDelete->shouldReceive('from')->once()->with('dummy_link')->andReturnSelf();
+        $mockDelete->shouldReceive('where')->once()->with('user_id', '=', 5)->andReturnSelf();
+        $mockDelete->shouldReceive('where')->once()->with('company_id', '=', 7)->andReturnSelf();
+        $mockDelete->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
+        $mockDelete->shouldReceive('affectedRows')->once()->withNoArgs()->andReturn(1);
 
         $entity = new CompositeKeyEntity($this->mockPool);
         $this->assertTrue($entity->delete(['user_id' => 5, 'company_id' => 7]));
@@ -317,6 +366,9 @@ class EntityTest extends TestCase
      */
     public function testFind()
     {
+        /** @var \Mockery\Mock $mockSelect */
+        $mockSelect = \Mockery::mock(Query\Select::class);
+
         $row = [
             'ID'         => 5,
             'UUID'       => '123',
@@ -325,13 +377,13 @@ class EntityTest extends TestCase
         ];
 
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
-        $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturnSelf();
-        $this->mockConnection->shouldReceive('columns')->once()->with('*')->andReturnSelf();
-        $this->mockConnection->shouldReceive('from')->once()->with('dummy', 't')->andReturnSelf();
-        $this->mockConnection->shouldReceive('limit')->once()->with(1)->andReturnSelf();
-        $this->mockConnection->shouldReceive('andWhere')->once()->with('t.UUID = ?', '123');
-        $this->mockConnection->shouldReceive('execute')->once()->withNoArgs()->andReturnSelf();
-        $this->mockConnection->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC, \PDO::FETCH_ORI_FIRST)->andReturn($row);
+        $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($mockSelect);
+        $mockSelect->shouldReceive('columns')->once()->with('*')->andReturnSelf();
+        $mockSelect->shouldReceive('from')->once()->with('dummy', 't')->andReturnSelf();
+        $mockSelect->shouldReceive('limit')->once()->with(1)->andReturnSelf();
+        $mockSelect->shouldReceive('where')->once()->with('t.UUID', '=', '123');
+        $mockSelect->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
+        $mockSelect->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC, \PDO::FETCH_ORI_FIRST)->andReturn($row);
 
         $entity = new SingleKeyEntity($this->mockPool);
 

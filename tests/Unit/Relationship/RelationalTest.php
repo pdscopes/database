@@ -1,11 +1,11 @@
 <?php
 
-namespace Tests\Unit\Relationship;
+namespace MadeSimple\Database\Tests\Unit\Relationship;
 
 use MadeSimple\Database\Entity;
 use MadeSimple\Database\EntityMap;
 use MadeSimple\Database\Relationship;
-use Tests\TestCase;
+use MadeSimple\Database\Tests\TestCase;
 
 class RelationalTest extends TestCase
 {

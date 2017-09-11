@@ -1,14 +1,15 @@
 <?php
 
-namespace Tests\Unit;
+namespace MadeSimple\Database\Tests\Unit;
 
+use MadeSimple\Database\Collection;
 use MadeSimple\Database\Connection;
 use MadeSimple\Database\Entity;
 use MadeSimple\Database\EntityMap;
 use MadeSimple\Database\Pool;
-use MadeSimple\Database\Statement\Query\Select;
+use MadeSimple\Database\Query\Select;
 use MadeSimple\Database\Repository;
-use Tests\TestCase;
+use MadeSimple\Database\Tests\TestCase;
 
 class RepositoryTest extends TestCase
 {
@@ -48,14 +49,15 @@ class RepositoryTest extends TestCase
         $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($this->mockSelect);
         $this->mockSelect->shouldReceive('columns')->once()->with('*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('repo', 't')->andReturnSelf();
-        $this->mockSelect->shouldReceive('orderBy')->once()->with([])->andReturnSelf();
-        $this->mockSelect->shouldReceive('execute')->once()->withNoArgs()->andReturnSelf();
+        $this->mockSelect->shouldNotReceive('where');
+        $this->mockSelect->shouldNotReceive('orderBy');
+        $this->mockSelect->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
         $this->mockSelect->shouldReceive('fetch')->times(2)->with(\PDO::FETCH_ASSOC)->andReturnValues([$row, null]);
 
         $repository = new Repository($this->mockPool, RepositoryEntity::class);
         $items      = $repository->findBy();
 
-        $this->assertInternalType('array', $items);
+        $this->assertInstanceOf(Collection::class, $items);
         $this->assertCount(1, $items);
         $this->assertInstanceOf(RepositoryEntity::class, $items[0]);
     }
@@ -71,15 +73,15 @@ class RepositoryTest extends TestCase
         $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($this->mockSelect);
         $this->mockSelect->shouldReceive('columns')->once()->with('*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('repo', 't')->andReturnSelf();
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('t.column = ?', 'value')->andReturnSelf();
-        $this->mockSelect->shouldReceive('orderBy')->once()->with([])->andReturnSelf();
-        $this->mockSelect->shouldReceive('execute')->once()->withNoArgs()->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('t.column', '=', 'value')->andReturnSelf();
+        $this->mockSelect->shouldNotReceive('orderBy');
+        $this->mockSelect->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
         $this->mockSelect->shouldReceive('fetch')->times(2)->with(\PDO::FETCH_ASSOC)->andReturnValues([$row, null]);
 
         $repository = new Repository($this->mockPool, RepositoryEntity::class);
         $items      = $repository->findBy(['column' => 'value']);
 
-        $this->assertInternalType('array', $items);
+        $this->assertInstanceOf(Collection::class, $items);
         $this->assertCount(1, $items);
         $this->assertInstanceOf(RepositoryEntity::class, $items[0]);
     }
@@ -95,16 +97,16 @@ class RepositoryTest extends TestCase
         $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($this->mockSelect);
         $this->mockSelect->shouldReceive('columns')->once()->with('*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('repo', 't')->andReturnSelf();
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('t.c1 = ?', 'v1')->andReturnSelf();
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('t.c2 = ?', 'v2')->andReturnSelf();
-        $this->mockSelect->shouldReceive('orderBy')->once()->with([])->andReturnSelf();
-        $this->mockSelect->shouldReceive('execute')->once()->withNoArgs()->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('t.c1', '=', 'v1')->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('t.c2', '=', 'v2')->andReturnSelf();
+        $this->mockSelect->shouldNotReceive('orderBy');
+        $this->mockSelect->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
         $this->mockSelect->shouldReceive('fetch')->times(2)->with(\PDO::FETCH_ASSOC)->andReturnValues([$row, null]);
 
         $repository = new Repository($this->mockPool, RepositoryEntity::class);
         $items      = $repository->findBy(['c1' => 'v1', 'c2' => 'v2']);
 
-        $this->assertInternalType('array', $items);
+        $this->assertInstanceOf(Collection::class, $items);
         $this->assertCount(1, $items);
         $this->assertInstanceOf(RepositoryEntity::class, $items[0]);
     }
@@ -120,14 +122,14 @@ class RepositoryTest extends TestCase
         $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($this->mockSelect);
         $this->mockSelect->shouldReceive('columns')->once()->with('*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('repo', 't')->andReturnSelf();
-        $this->mockSelect->shouldReceive('orderBy')->once()->with(['o1'])->andReturnSelf();
-        $this->mockSelect->shouldReceive('execute')->once()->withNoArgs()->andReturnSelf();
+        $this->mockSelect->shouldReceive('orderBy')->once()->with('o1', 'asc')->andReturnSelf();
+        $this->mockSelect->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
         $this->mockSelect->shouldReceive('fetch')->times(2)->with(\PDO::FETCH_ASSOC)->andReturnValues([$row, null]);
 
         $repository = new Repository($this->mockPool, RepositoryEntity::class);
         $items      = $repository->findBy([], ['o1']);
 
-        $this->assertInternalType('array', $items);
+        $this->assertInstanceOf(Collection::class, $items);
         $this->assertCount(1, $items);
         $this->assertInstanceOf(RepositoryEntity::class, $items[0]);
     }
@@ -146,8 +148,9 @@ class RepositoryTest extends TestCase
         $this->mockSelect->shouldReceive('columns')->once()->with('*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('repo', 't')->andReturnSelf();
         $this->mockSelect->shouldReceive('limit')->once()->with(1)->andReturnSelf();
-        $this->mockSelect->shouldReceive('orderBy')->once()->with([])->andReturnSelf();
-        $this->mockSelect->shouldReceive('execute')->once()->withNoArgs()->andReturnSelf();
+        $this->mockSelect->shouldNotReceive('where');
+        $this->mockSelect->shouldNotReceive('orderBy');
+        $this->mockSelect->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
         $this->mockSelect->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC)->andReturn($row);
 
         $repository = new Repository($this->mockPool, RepositoryEntity::class);
@@ -168,9 +171,9 @@ class RepositoryTest extends TestCase
         $this->mockSelect->shouldReceive('columns')->once()->with('*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('repo', 't')->andReturnSelf();
         $this->mockSelect->shouldReceive('limit')->once()->with(1)->andReturnSelf();
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('t.column = ?', 'value')->andReturnSelf();
-        $this->mockSelect->shouldReceive('orderBy')->once()->with([])->andReturnSelf();
-        $this->mockSelect->shouldReceive('execute')->once()->withNoArgs()->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('t.column', '=', 'value')->andReturnSelf();
+        $this->mockSelect->shouldNotReceive('orderBy');
+        $this->mockSelect->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
         $this->mockSelect->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC)->andReturn($row);
 
         $repository = new Repository($this->mockPool, RepositoryEntity::class);
@@ -191,10 +194,10 @@ class RepositoryTest extends TestCase
         $this->mockSelect->shouldReceive('columns')->once()->with('*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('repo', 't')->andReturnSelf();
         $this->mockSelect->shouldReceive('limit')->once()->with(1)->andReturnSelf();
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('t.c1 = ?', 'v1')->andReturnSelf();
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('t.c2 = ?', 'v2')->andReturnSelf();
-        $this->mockSelect->shouldReceive('orderBy')->once()->with([])->andReturnSelf();
-        $this->mockSelect->shouldReceive('execute')->once()->withNoArgs()->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('t.c1', '=', 'v1')->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('t.c2', '=', 'v2')->andReturnSelf();
+        $this->mockSelect->shouldNotReceive('orderBy');
+        $this->mockSelect->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
         $this->mockSelect->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC)->andReturn($row);
 
         $repository = new Repository($this->mockPool, RepositoryEntity::class);
@@ -215,8 +218,9 @@ class RepositoryTest extends TestCase
         $this->mockSelect->shouldReceive('columns')->once()->with('*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('repo', 't')->andReturnSelf();
         $this->mockSelect->shouldReceive('limit')->once()->with(1)->andReturnSelf();
-        $this->mockSelect->shouldReceive('orderBy')->once()->with(['o1'])->andReturnSelf();
-        $this->mockSelect->shouldReceive('execute')->once()->withNoArgs()->andReturnSelf();
+        $this->mockSelect->shouldNotReceive('where');
+        $this->mockSelect->shouldReceive('orderBy')->once()->with('o1', 'asc')->andReturnSelf();
+        $this->mockSelect->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
         $this->mockSelect->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC)->andReturn($row);
 
         $repository = new Repository($this->mockPool, RepositoryEntity::class);

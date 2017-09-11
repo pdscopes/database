@@ -156,20 +156,19 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
 
         $map    = $this->getMap();
         $values = [];
-        foreach ($map->columnMap() as $property) {
-            $values[] = $this->{$property};
+        foreach ($map->columnMap() as $dbField => $property) {
+            $values[$dbField] = $this->{$property};
         }
         $update = $connection->update()
             ->table($map->tableName())
-            ->columns($map->columns())
-            ->values($values);
+            ->columns($values);
 
         foreach ($map->primaryKeys() as $idx => $key) {
             $update->where($idx, '=', $this->{$key});
         }
 
 
-        return 0 !== $update->query()->affectedRows();
+        return 1 === $update->query()->affectedRows();
     }
 
     /**
@@ -220,7 +219,7 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
             $delete->where($idx, '=', null !== $primaryKey ? $primaryKey[$idx] : $this->{$key});
         }
 
-        return 0 !== $delete->query()->affectedRows();
+        return 1 === $delete->query()->affectedRows();
     }
 
     /**

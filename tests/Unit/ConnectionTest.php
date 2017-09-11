@@ -1,11 +1,13 @@
 <?php
 
-namespace Tests\Unit;
+namespace MadeSimple\Database\Tests\Unit;
 
-use MadeSimple\Database\Statement\Table;
-use MadeSimple\Database\Statement\Query;
-use Tests\MockConnection;
-use Tests\TestCase;
+use MadeSimple\Database\CompilerInterface;
+use MadeSimple\Database\Query;
+use MadeSimple\Database\Statement;
+use MadeSimple\Database\Tests\MockConnection;
+use MadeSimple\Database\Tests\MockConnector;
+use MadeSimple\Database\Tests\TestCase;
 
 class ConnectionTest extends TestCase
 {
@@ -19,69 +21,77 @@ class ConnectionTest extends TestCase
      */
     private $mockPdoStatement;
 
+    /**
+     * @var MockConnector
+     */
+    private $mockConnector;
+
+    /**
+     * @var \Mockery\Mock|CompilerInterface
+     */
+    private $mockCompiler;
+
     protected function setUp()
     {
         parent::setUp();
 
         $this->mockPdo          = \Mockery::mock(\PDO::class);
         $this->mockPdoStatement = \Mockery::mock(\PDOStatement::class);
+        $this->mockConnector    = new MockConnector($this->mockPdo);
+        $this->mockCompiler     = \Mockery::mock(CompilerInterface::class);
     }
 
 
     /**
-     * Test connection get attribute
+     * Test config returns correct value.
      */
-    public function testGetAttribute()
+    public function testConfig()
     {
-        $this->mockPdo->shouldReceive('getAttribute')->once()->with(5)->andReturn('value');
-        $connection = new MockConnection($this->mockPdo);
-        $this->assertEquals('value', $connection->getAttribute(5));
+        $connection = new MockConnection($this->mockConnector, $this->mockCompiler);
+        $this->assertEquals('mock', $connection->config('driver'));
     }
 
     /**
-     * Test connection set attribute.
+     * Test config returns default value when not found.
      */
-    public function testSetAttribute()
+    public function testConfigReturnsDefault()
     {
-        $this->mockPdo->shouldReceive('setAttribute')->once()->with(5, 'value')->andReturn(true);
-        $connection = new MockConnection($this->mockPdo);
-        $this->assertTrue($connection->setAttribute(5, 'value'));
+        $unique     = uniqid();
+        $connection = new MockConnection($this->mockConnector, $this->mockCompiler);
+        $this->assertEquals($unique, $connection->config('foobar', $unique));
     }
 
     /**
-     * Test connection alter.
+     * Test connect stores the PDO provided by MockConnector.
      */
-    public function testAlert()
+    public function testConnect()
     {
-        $alter = (new MockConnection($this->mockPdo))->alter();
-        $this->assertInstanceOf(Table\Alter::class, $alter);
+        $connection = new MockConnection($this->mockConnector, $this->mockCompiler);
+        $connection->connect();
+        $this->assertEquals($this->mockPdo, $connection->pdo);
     }
 
     /**
-     * Test connection truncate.
+     * Test connection passes the raw SQL through to PDO object.
      */
-    public function testTruncate()
+    public function testRawQuery()
     {
-        $truncate = (new MockConnection($this->mockPdo))->truncate();
-        $this->assertInstanceOf(Table\Truncate::class, $truncate);
+        $this->mockPdo->shouldReceive('query')->once()->with('SQL STRING')->andReturn($this->mockPdoStatement);
+
+        $connection = new MockConnection($this->mockConnector, $this->mockCompiler);
+        $this->assertEquals($this->mockPdoStatement, $connection->rawQuery('SQL STRING'));
     }
 
     /**
-     * Test connection drop.
-     */
-    public function testDrop()
-    {
-        $drop = (new MockConnection($this->mockPdo))->drop();
-        $this->assertInstanceOf(Table\Drop::class, $drop);
-    }
-
-    /**
-     * Test connection select.
+     * Test connection returns a Query\Select object.
      */
     public function testSelect()
     {
-        $select = (new MockConnection($this->mockPdo))->select();
+        $connection = new MockConnection($this->mockConnector, $this->mockCompiler);
+        $select     = $connection->select();
+
         $this->assertInstanceOf(Query\Select::class, $select);
+        $this->assertEquals($connection, $select->connection);
     }
 
     /**
@@ -89,8 +99,11 @@ class ConnectionTest extends TestCase
      */
     public function testInsert()
     {
-        $select = (new MockConnection($this->mockPdo))->insert();
+        $connection = new MockConnection($this->mockConnector, $this->mockCompiler);
+        $select     = $connection->insert();
+
         $this->assertInstanceOf(Query\Insert::class, $select);
+        $this->assertEquals($connection, $select->connection);
     }
 
     /**
@@ -98,8 +111,11 @@ class ConnectionTest extends TestCase
      */
     public function testUpdate()
     {
-        $select = (new MockConnection($this->mockPdo))->update();
+        $connection = new MockConnection($this->mockConnector, $this->mockCompiler);
+        $select     = $connection->update();
+
         $this->assertInstanceOf(Query\Update::class, $select);
+        $this->assertEquals($connection, $select->connection);
     }
 
     /**
@@ -107,9 +123,95 @@ class ConnectionTest extends TestCase
      */
     public function testDelete()
     {
-        $select = (new MockConnection($this->mockPdo))->delete();
+        $connection = new MockConnection($this->mockConnector, $this->mockCompiler);
+        $select     = $connection->delete();
+
         $this->assertInstanceOf(Query\Delete::class, $select);
+        $this->assertEquals($connection, $select->connection);
     }
+
+
+
+
+    /**
+     * Test connection query.
+     */
+    public function testQuery()
+    {
+        $this->mockCompiler->shouldReceive('compileQuerySelect')->once()->andReturn(['SQL', []]);
+        $this->mockPdo->shouldReceive('prepare')->once()->with('SQL')->andReturn($this->mockPdoStatement);
+        $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs();
+
+        $connection = new MockConnection($this->mockConnector, $this->mockCompiler);
+        list($pdoStatement) = $connection->query(function (Query\Select $select) {});
+
+        $this->assertEquals($this->mockPdoStatement, $pdoStatement);
+    }
+
+    /**
+     * Test connection throws exception when query is given an anonymous
+     * function with the incorrect number of parameters.
+     */
+    public function testQueryThrowsExceptionIncorrectParameterNumber()
+    {
+        $this->expectException(\ReflectionException::class);
+
+        $connection = new MockConnection($this->mockConnector, $this->mockCompiler);
+        $connection->query(function ($a, $b) {});
+    }
+
+    /**
+     * Test connection throws exception with query is given an anonymous
+     * function with the wrong parameter type.
+     */
+    public function testQueryThrowsExceptionInvalidParameterType()
+    {
+        $this->expectException(\ReflectionException::class);
+
+        $connection = new MockConnection($this->mockConnector, $this->mockCompiler);
+        $connection->query(function (string $a) {});
+    }
+
+    /**
+     * Test connection statement.
+     */
+    public function testStatement()
+    {
+        $this->mockCompiler->shouldReceive('compileStatementCreateTable')->once()->andReturn(['SQL', []]);
+        $this->mockPdo->shouldReceive('prepare')->once()->with('SQL')->andReturn($this->mockPdoStatement);
+        $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs();
+
+        $connection = new MockConnection($this->mockConnector, $this->mockCompiler);
+        list($pdoStatement) = $connection->statement(function (Statement\CreateTable $create) {});
+
+        $this->assertEquals($this->mockPdoStatement, $pdoStatement);
+    }
+
+    /**
+     * Test connection throws exception when statement is given an anonymous
+     * function with the incorrect number of parameters.
+     */
+    public function testStatementThrowsExceptionIncorrectParameterNumber()
+    {
+        $this->expectException(\ReflectionException::class);
+
+        $connection = new MockConnection($this->mockConnector, $this->mockCompiler);
+        $connection->statement(function ($a, $b) {});
+    }
+
+    /**
+     * Test connection throws exception with statement is given an anonymous
+     * function with the wrong parameter type.
+     */
+    public function testStatementThrowsExceptionInvalidParameterType()
+    {
+        $this->expectException(\ReflectionException::class);
+
+        $connection = new MockConnection($this->mockConnector, $this->mockCompiler);
+        $connection->statement(function (string $a) {});
+    }
+
+
 
 
     /**
@@ -120,7 +222,7 @@ class ConnectionTest extends TestCase
         $this->mockPdo->shouldReceive('beginTransaction')->once()->andReturn(true);
         $this->mockPdo->shouldReceive('commit')->once()->andReturn(true);
 
-        $connection = new MockConnection($this->mockPdo);
+        $connection = new MockConnection($this->mockConnector, $this->mockCompiler);
         $this->assertTrue($connection->beginTransaction());
         $this->assertTrue($connection->beginTransaction());
         $this->assertTrue($connection->commit());
@@ -137,7 +239,7 @@ class ConnectionTest extends TestCase
     public function testInTransaction()
     {
         $this->mockPdo->shouldReceive('inTransaction')->once()->andReturn(true);
-        $connection = new MockConnection($this->mockPdo);
+        $connection = new MockConnection($this->mockConnector, $this->mockCompiler);
         $this->assertTrue($connection->inTransaction());
     }
 
@@ -148,7 +250,7 @@ class ConnectionTest extends TestCase
     {
         $this->mockPdo->shouldReceive('beginTransaction')->once()->andReturn(false);
 
-        $connection = new MockConnection($this->mockPdo);
+        $connection = new MockConnection($this->mockConnector, $this->mockCompiler);
         $this->assertFalse($connection->beginTransaction());
     }
 
@@ -160,7 +262,7 @@ class ConnectionTest extends TestCase
         $this->mockPdo->shouldReceive('beginTransaction')->once()->andReturn(true);
         $this->mockPdo->shouldReceive('rollBack')->once()->andReturn(true);
 
-        $connection = new MockConnection($this->mockPdo);
+        $connection = new MockConnection($this->mockConnector, $this->mockCompiler);
         $this->assertTrue($connection->beginTransaction());
         $this->assertTrue($connection->rollBack());
     }
@@ -173,7 +275,7 @@ class ConnectionTest extends TestCase
         $this->mockPdo->shouldReceive('beginTransaction')->once()->andReturn(true);
         $this->mockPdo->shouldReceive('rollBack')->once()->andReturn(false);
 
-        $connection = new MockConnection($this->mockPdo);
+        $connection = new MockConnection($this->mockConnector, $this->mockCompiler);
         $this->assertTrue($connection->beginTransaction());
         $this->assertFalse($connection->rollBack());
     }
@@ -185,7 +287,7 @@ class ConnectionTest extends TestCase
     {
         $this->mockPdo->shouldReceive('rollBack')->never();
 
-        $connection = new MockConnection($this->mockPdo);
+        $connection = new MockConnection($this->mockConnector, $this->mockCompiler);
         $this->assertFalse($connection->rollBack());
     }
 
@@ -197,7 +299,7 @@ class ConnectionTest extends TestCase
         $this->mockPdo->shouldReceive('beginTransaction')->once()->andReturn(true);
         $this->mockPdo->shouldReceive('commit')->once()->andReturn(true);
 
-        $connection = new MockConnection($this->mockPdo);
+        $connection = new MockConnection($this->mockConnector, $this->mockCompiler);
         $this->assertTrue($connection->beginTransaction());
         $this->assertTrue($connection->commit());
     }
@@ -210,7 +312,7 @@ class ConnectionTest extends TestCase
         $this->mockPdo->shouldReceive('beginTransaction')->once()->andReturn(true);
         $this->mockPdo->shouldReceive('commit')->once()->andReturn(false);
 
-        $connection = new MockConnection($this->mockPdo);
+        $connection = new MockConnection($this->mockConnector, $this->mockCompiler);
         $this->assertTrue($connection->beginTransaction());
         $this->assertFalse($connection->commit());
     }
@@ -222,136 +324,7 @@ class ConnectionTest extends TestCase
     {
         $this->mockPdo->shouldReceive('commit')->never();
 
-        $connection = new MockConnection($this->mockPdo);
+        $connection = new MockConnection($this->mockConnector, $this->mockCompiler);
         $this->assertFalse($connection->commit());
-    }
-
-
-    /**
-     * Test connection last insert id - without procedure name.
-     */
-    public function testLastInsertIdWithoutName()
-    {
-        $this->mockPdo->shouldReceive('lastInsertId')->once()->with(null)->andReturn('insert_id');
-
-        $connection = new MockConnection($this->mockPdo);
-        $this->assertEquals('insert_id', $connection->lastInsertId());
-    }
-
-    /**
-     * Test connection last insert id - with procedure name.
-     */
-    public function testLastInsertIdNameGiven()
-    {
-        $this->mockPdo->shouldReceive('lastInsertId')->once()->with('name')->andReturn('insert_id');
-
-        $connection = new MockConnection($this->mockPdo);
-        $this->assertEquals('insert_id', $connection->lastInsertId('name'));
-    }
-
-    /**
-     * Test connection exec.
-     */
-    public function testExec()
-    {
-        $this->mockPdo->shouldReceive('exec')->once()->with('statement')->andReturn($this->mockPdoStatement);
-
-        $connection = new MockConnection($this->mockPdo);
-        $this->assertEquals($this->mockPdoStatement, $connection->exec('statement'));
-    }
-
-    /**
-     * Test connection prepare.
-     */
-    public function testPrepare()
-    {
-        $this->mockPdo->shouldReceive('prepare')->once()->with('statement', [])->andReturn($this->mockPdoStatement);
-
-        $connection = new MockConnection($this->mockPdo);
-        $this->assertEquals($this->mockPdoStatement, $connection->prepare('statement'));
-    }
-
-    /**
-     * Test connection query.
-     */
-    public function testQuery()
-    {
-        $this->mockPdo->shouldReceive('query')
-            ->once()->with('statement')->andReturn($this->mockPdoStatement);
-
-        $connection = new MockConnection($this->mockPdo);
-        $this->assertEquals($this->mockPdoStatement, $connection->query('statement'));
-    }
-
-    /**
-     * Test connection quote.
-     */
-    public function testQuote()
-    {
-        $this->mockPdo->shouldReceive('quote')
-            ->once()->with('string', \PDO::PARAM_STR)->andReturn('quoted');
-
-        $connection = new MockConnection($this->mockPdo);
-        $this->assertEquals('quoted', $connection->quote('string'));
-    }
-
-    /**
-     * Test different clause quotations.
-     *
-     * @param string $expected
-     * @param string $clause
-     *
-     * @dataProvider quoteClauseDataProvider
-     */
-    public function testQuoteClause($expected, $clause)
-    {
-        $connection = new MockConnection($this->mockPdo);
-
-        $this->assertEquals($expected, $connection->quoteClause($clause));
-    }
-
-    public function quoteClauseDataProvider()
-    {
-        return [
-            ['`foo` IS NULL', 'foo IS NULL'],
-            ['`foo` IS TRUE', 'foo IS TRUE'],
-            ['`foo` IS FALSE', 'foo IS FALSE'],
-
-            ['`foo` IS NOT NULL', 'foo IS NOT NULL'],
-            ['`foo` IS NOT TRUE', 'foo IS NOT TRUE'],
-            ['`foo` IS NOT FALSE', 'foo IS NOT FALSE'],
-
-            ['`foo` LIKE ?', 'foo LIKE ?'],
-            ['`foo` IN (?)', 'foo IN (?)'],
-            ['`foo` IN (?, ?)', 'foo IN (?, ?)'],
-            ['`foo` IN (?, ?, ?)', 'foo IN (?, ?, ?)'],
-            ['`foo` IN (?,?)', 'foo IN (?,?)'],
-            ['`foo` IN (:a, :b)', 'foo IN (:a, :b)'],
-            ['`foo` IN (:a,:b)', 'foo IN (:a,:b)'],
-
-            ['`foo` = 1', 'foo = 1'],
-            ['`foo` = ?', 'foo = ?'],
-            ['`foo` = :bar', 'foo = :bar'],
-
-            ['`foo` = ? AND `bar` = ?', 'foo = ? AND bar = ?'],
-            ['(`foo` = ? AND `bar` = ?)', '(foo = ? AND bar = ?)'],
-            ['(`foo` = ?) AND (`bar` = ?)', '(foo = ?) AND (bar = ?)'],
-            ['`foo` = ? OR `bar` = ?', 'foo = ? OR bar = ?'],
-            ['(`foo` = ? OR `bar` = ?)', '(foo = ? OR bar = ?)'],
-            ['(`foo` = ?) OR (`bar` = ?)', '(foo = ?) OR (bar = ?)'],
-
-            ['(`foo` = ? AND `baz` = ?) OR (`bar` = ?)', '(foo = ? AND baz = ?) OR (bar = ?)'],
-            ['(`foo` = ?) OR (`bar` = ? AND `qux` = ?)', '(foo = ?) OR (bar = ? AND qux = ?)'],
-
-            ['((`foo` = ? AND `baz` = ?) OR `bar` = ? AND `qux` = ?)', '((foo = ? AND baz = ?) OR bar = ? AND qux = ?)'],
-
-            ['ABS(TIMESTAMPDIFF(DAY, `date`, ?)) <= 10', 'ABS(TIMESTAMPDIFF(DAY, date, ?)) <= 10'],
-
-            ['`foo`', 'foo'],
-            ['`table`.`foo`', 'table.foo'],
-
-            ['DISTINCT `table`.`foo`', 'DISTINCT table.foo'],
-            ['DISTINCT(`table`.`foo`)', 'DISTINCT(table.foo)'],
-        ];
     }
 }

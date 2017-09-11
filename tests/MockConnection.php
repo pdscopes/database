@@ -1,9 +1,9 @@
 <?php
 
-namespace Tests;
+namespace MadeSimple\Database\Tests;
 
+use MadeSimple\Database\CompilerInterface;
 use MadeSimple\Database\Connection;
-use Psr\Log\NullLogger;
 
 /**
  * Class MockConnection
@@ -13,15 +13,8 @@ use Psr\Log\NullLogger;
  */
 class MockConnection extends Connection
 {
-    public function __construct(\PDO $pdo)
+    public function __construct(MockConnector $connector, CompilerInterface $compiler)
     {
-        $this->pdo         = $pdo;
-        $this->logger      = new NullLogger;
-        $this->columnQuote = '`';
-    }
-
-    public  function create($name, \Closure $callable)
-    {
-        // TODO: Implement table() method.
+        parent::__construct(['driver' => 'mock', 'unique' => uniqid()], $connector, $compiler);
     }
 }

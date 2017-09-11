@@ -1,14 +1,14 @@
 <?php
 
-namespace Tests\Unit\Relationship;
+namespace MadeSimple\Database\Tests\Unit\Relationship;
 
+use MadeSimple\Database\Connection;
 use MadeSimple\Database\Entity;
 use MadeSimple\Database\EntityMap;
-use MadeSimple\Database\MySQL\Connection;
 use MadeSimple\Database\Pool;
+use MadeSimple\Database\Query\Select;
 use MadeSimple\Database\Relationship\ToOne;
-use MadeSimple\Database\Statement\Query\Select;
-use Tests\TestCase;
+use MadeSimple\Database\Tests\TestCase;
 
 class ToOneTest extends TestCase
 {
@@ -56,9 +56,9 @@ class ToOneTest extends TestCase
 
         $this->mockSelect->shouldReceive('columns')->once()->with('e.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('entity', 'e')->andReturnSelf();
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('e.foreign_key = :foreign_key', ['foreign_key' => 5])->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('e.foreign_key', '=', 5)->andReturnSelf();
         $this->mockSelect->shouldReceive('limit')->once()->with(1)->andReturnSelf();
-        $this->mockSelect->shouldReceive('execute')->once()->withNoArgs()->andReturn($this->mockPdoStatement);
+        $this->mockSelect->shouldReceive('statement')->once()->withNoArgs()->andReturn([$this->mockPdoStatement, 0]);
 
         $this->mockPdoStatement->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC, \PDO::FETCH_ORI_FIRST)->andReturn($data);
 
@@ -83,9 +83,9 @@ class ToOneTest extends TestCase
 
         $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('r.KEY = :KEY', ['KEY' => 5])->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('r.KEY', '=', 5)->andReturnSelf();
         $this->mockSelect->shouldReceive('limit')->once()->with(1)->andReturnSelf();
-        $this->mockSelect->shouldReceive('execute')->once()->withNoArgs()->andReturn($this->mockPdoStatement);
+        $this->mockSelect->shouldReceive('statement')->once()->withNoArgs()->andReturn([$this->mockPdoStatement, 0]);
 
         $this->mockPdoStatement->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC, \PDO::FETCH_ORI_FIRST)->andReturn($data);
 

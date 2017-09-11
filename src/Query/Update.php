@@ -9,16 +9,14 @@ class Update extends QueryBuilder
     /**
      * Set the table to update.
      *
-     * @param string      $table
-     * @param null|string $alias
+     * @param string $table
      *
      * @return Update
      */
-    public function table($table, $alias = null)
+    public function table($table)
     {
-        unset($this->statement['table']);
-
-        return $this->addToStatement('table', null === $alias ? [$table] : [$alias => $table]);
+        $this->statement['table'] = $table;
+        return $this;
     }
 
     /**
@@ -36,31 +34,17 @@ class Update extends QueryBuilder
     }
 
     /**
-     * Set the columns that will have values assigned.
+     * Add a set of columns and their values.
      *
-     * @param string|array|... $columns
-     *
-     * @return Update
-     */
-    public function columns($columns)
-    {
-        unset($this->statement['columns']);
-
-        return $this->addToStatement('columns', is_array($columns) ? array_values($columns) : func_get_args());
-    }
-
-    /**
-     * Set the values that will be inserted.
-     *
-     * @param string|array|... $values
+     * @param array $columns Array of column name pointing to new value
      *
      * @return Update
      */
-    public function values($values)
+    public function columns(array $columns)
     {
-        unset($this->statement['values']);
-
-        return $this->addToStatement('values', is_array($values) ? array_values($values) : func_get_args());
+        $this->addToStatement('columns', array_keys($columns));
+        $this->addToStatement('values', array_values($columns));
+        return $this;
     }
 
 

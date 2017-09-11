@@ -1,0 +1,16 @@
+os: ubuntu
+dist: xenial
+language: php
+sudo: false
+services:
+  - mysql
+php:
+  - 7.0
+  - 7.1
+before_script:
+  - mysql -e 'CREATE DATABASE IF NOT EXISTS test;'
+  - COMPOSER_DISCARD_CHANGES=1 composer update --prefer-dist --no-interaction --no-suggest
+  - cp phpunit.xml.example phpunit.xml
+script:
+  - vendor/bin/phpunit --testsuite Unit
+  - vendor/bin/phpunit --testsuite Integration

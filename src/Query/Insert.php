@@ -9,16 +9,14 @@ class Insert extends QueryBuilder
     /**
      * Set the table to insert into.
      *
-     * @param string      $table
-     * @param null|string $alias
+     * @param string $table
      *
      * @return Insert
      */
-    public function into($table, $alias = null)
+    public function into($table)
     {
-        unset($this->statement['into']);
-
-        return $this->addToStatement('into', null === $alias ? [$table] : [$alias => $table]);
+        $this->statement['into'] = compact('table');
+        return $this;
     }
 
     /**
@@ -44,8 +42,6 @@ class Insert extends QueryBuilder
      */
     public function values($values)
     {
-        unset($this->statement['values']);
-
         return $this->addToStatement('values', is_array($values) ? $values : func_get_args());
     }
 

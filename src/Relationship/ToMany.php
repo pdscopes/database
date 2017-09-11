@@ -3,6 +3,7 @@
 namespace MadeSimple\Database\Relationship;
 
 use MadeSimple\Database\Collection;
+use MadeSimple\Database\Entity;
 use MadeSimple\Database\Relationship;
 
 class ToMany extends Relationship
@@ -12,6 +13,7 @@ class ToMany extends Relationship
      */
     public function fetch()
     {
+        /** @var \PDOStatement $statement */
         list($statement) = $this->query()->statement();
 
         if (!$statement) {
@@ -21,6 +23,7 @@ class ToMany extends Relationship
         $map   = null;
         $items = [];
         while (($row = $statement->fetch(\PDO::FETCH_ASSOC))) {
+            /** @var Entity $entity */
             $entity  = new $this->relation($this->entity->pool);
             $map     = $map ?? $entity->getMap();
             $items[] = $entity->populate($row, $map);

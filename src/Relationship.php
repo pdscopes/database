@@ -4,7 +4,7 @@ namespace MadeSimple\Database;
 
 use MadeSimple\Database\Query;
 
-abstract class Relationship
+abstract class  Relationship
 {
     /**
      * @var Entity
@@ -404,11 +404,12 @@ abstract class Relationship
     }
 
     /**
-     * @param string|array|... $columns
+     * @param string $column
+     * @param string $direction asc|desc
      * @see \MadeSimple\Database\Query\Select::groupBy()
      * @return static
      */
-    public function orderBy($columns)
+    public function orderBy($column, $direction = 'asc')
     {
         call_user_func_array([$this->query, 'orderBy'], func_get_args());
         return $this;

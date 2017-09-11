@@ -1,9 +1,9 @@
 <?php
 
-namespace Tests\Unit;
+namespace MadeSimple\Database\Tests\Unit;
 
 use MadeSimple\Database\EntityMap;
-use Tests\TestCase;
+use MadeSimple\Database\Tests\TestCase;
 
 class EntityMapTest extends TestCase
 {

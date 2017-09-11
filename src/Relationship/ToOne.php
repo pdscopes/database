@@ -12,6 +12,7 @@ class ToOne extends Relationship
      */
     public function fetch()
     {
+        /** @var \PDOStatement $statement */
         list($statement) = $this->query()->limit(1)->statement();
 
         if (!$statement) {

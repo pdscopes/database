@@ -16,9 +16,8 @@ class Delete extends QueryBuilder
      */
     public function from($table, $alias = null)
     {
-        unset($this->statement['from']);
-
-        return $this->addToStatement('from', null === $alias ? [$table] : [$alias => $table]);
+        $this->statement['from'] = compact('table', 'alias');
+        return $this;
     }
 
 

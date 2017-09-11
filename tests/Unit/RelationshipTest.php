@@ -1,14 +1,14 @@
 <?php
 
-namespace Tests\Unit;
+namespace MadeSimple\Database\Tests\Unit;
 
+use MadeSimple\Database\Connection;
 use MadeSimple\Database\Entity;
 use MadeSimple\Database\EntityMap;
-use MadeSimple\Database\MySQL\Connection;
 use MadeSimple\Database\Pool;
+use MadeSimple\Database\Query\Select;
 use MadeSimple\Database\Relationship;
-use MadeSimple\Database\Statement\Query\Select;
-use Tests\TestCase;
+use MadeSimple\Database\Tests\TestCase;
 
 class RelationshipTest extends TestCase
 {
@@ -56,7 +56,7 @@ class RelationshipTest extends TestCase
     {
         $this->mockSelect->shouldReceive('columns')->once()->with('e.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('entity', 'e')->andReturnSelf();
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('e.ID = :ID', ['ID' => 5])->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('e.ID', '=', 5)->andReturnSelf();
 
         $related = new RelationshipTestRelated($this->mockPool);
         $related->foreign = 5;
@@ -70,7 +70,7 @@ class RelationshipTest extends TestCase
     {
         $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('r.foreign_key = :foreign_key', ['foreign_key' => 5])->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('r.foreign_key', '=', 5)->andReturnSelf();
 
         (new DummyRelationship($this->entity))->has(RelationshipTestRelated::class, 'r', 'foreign_key');
     }
@@ -82,9 +82,9 @@ class RelationshipTest extends TestCase
     {
         $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('r.foreign_key = :foreign_key', ['foreign_key' => 5])->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('r.foreign_key', '=', 5)->andReturnSelf();
 
-        $this->mockSelect->shouldReceive('columns')->once()->with(['columns']);
+        $this->mockSelect->shouldReceive('columns')->once()->with('columns');
 
         $relation = (new DummyRelationship($this->entity))->has(RelationshipTestRelated::class, 'r', 'foreign_key');
         $this->assertEquals($relation, $relation->columns('columns'));
@@ -97,9 +97,9 @@ class RelationshipTest extends TestCase
     {
         $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('r.foreign_key = :foreign_key', ['foreign_key' => 5])->andReturnSelf();
+            $this->mockSelect->shouldReceive('where')->once()->with('r.foreign_key', '=', 5)->andReturnSelf();
 
-        $this->mockSelect->shouldReceive('addColumns')->once()->with(['columns']);
+        $this->mockSelect->shouldReceive('addColumns')->once()->with('columns');
 
         $relation = (new DummyRelationship($this->entity))->has(RelationshipTestRelated::class, 'r', 'foreign_key');
         $this->assertEquals($relation, $relation->addColumns('columns'));
@@ -112,7 +112,7 @@ class RelationshipTest extends TestCase
     {
         $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('r.foreign_key = :foreign_key', ['foreign_key' => 5])->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('r.foreign_key', '=', 5)->andReturnSelf();
 
         $this->mockSelect->shouldReceive('join')->once()->with('table', 'on', 'alias', 'type');
 
@@ -127,7 +127,7 @@ class RelationshipTest extends TestCase
     {
         $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('r.foreign_key = :foreign_key', ['foreign_key' => 5])->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('r.foreign_key', '=', 5)->andReturnSelf();
 
         $this->mockSelect->shouldReceive('leftJoin')->once()->with('table', 'on', 'alias');
 
@@ -142,42 +142,12 @@ class RelationshipTest extends TestCase
     {
         $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('r.foreign_key = :foreign_key', ['foreign_key' => 5])->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('r.foreign_key', '=', 5)->andReturnSelf();
 
         $this->mockSelect->shouldReceive('rightJoin')->once()->with('table', 'on', 'alias');
 
         $relation = (new DummyRelationship($this->entity))->has(RelationshipTestRelated::class, 'r', 'foreign_key');
         $this->assertEquals($relation, $relation->rightJoin('table', 'on', 'alias'));
-    }
-
-    /**
-     * Test adding a full join onto the relation.
-     */
-    public function testFullJoin()
-    {
-        $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
-        $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('r.foreign_key = :foreign_key', ['foreign_key' => 5])->andReturnSelf();
-
-        $this->mockSelect->shouldReceive('fullJoin')->once()->with('table', 'on', 'alias');
-
-        $relation = (new DummyRelationship($this->entity))->has(RelationshipTestRelated::class, 'r', 'foreign_key');
-        $this->assertEquals($relation, $relation->fullJoin('table', 'on', 'alias'));
-    }
-
-    /**
-     * Test adding a inner join onto the relation.
-     */
-    public function testInnerJoin()
-    {
-        $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
-        $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('r.foreign_key = :foreign_key', ['foreign_key' => 5])->andReturnSelf();
-
-        $this->mockSelect->shouldReceive('innerJoin')->once()->with('table', 'on', 'alias');
-
-        $relation = (new DummyRelationship($this->entity))->has(RelationshipTestRelated::class, 'r', 'foreign_key');
-        $this->assertEquals($relation, $relation->innerJoin('table', 'on', 'alias'));
     }
 
     /**
@@ -187,27 +157,12 @@ class RelationshipTest extends TestCase
     {
         $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('r.foreign_key = :foreign_key', ['foreign_key' => 5])->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('r.foreign_key', '=', 5)->andReturnSelf();
 
-        $this->mockSelect->shouldReceive('where')->once()->with('clause', 'parameter');
-
-        $relation = (new DummyRelationship($this->entity))->has(RelationshipTestRelated::class, 'r', 'foreign_key');
-        $this->assertEquals($relation, $relation->where('clause', 'parameter'));
-    }
-
-    /**
-     * Test adding an and where clause to the relation.
-     */
-    public function testAndWhere()
-    {
-        $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
-        $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('r.foreign_key = :foreign_key', ['foreign_key' => 5])->andReturnSelf();
-
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('clause', 'parameter');
+        $this->mockSelect->shouldReceive('where')->once()->with('column', '!=', 'value');
 
         $relation = (new DummyRelationship($this->entity))->has(RelationshipTestRelated::class, 'r', 'foreign_key');
-        $this->assertEquals($relation, $relation->andWhere('clause', 'parameter'));
+        $this->assertEquals($relation, $relation->where('column', '!=', 'value'));
     }
 
     /**
@@ -217,12 +172,102 @@ class RelationshipTest extends TestCase
     {
         $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('r.foreign_key = :foreign_key', ['foreign_key' => 5])->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('r.foreign_key', '=', 5)->andReturnSelf();
 
-        $this->mockSelect->shouldReceive('orWhere')->once()->with('clause', 'parameter');
+        $this->mockSelect->shouldReceive('orWhere')->once()->with('column', '!=', 'value');
 
         $relation = (new DummyRelationship($this->entity))->has(RelationshipTestRelated::class, 'r', 'foreign_key');
-        $this->assertEquals($relation, $relation->orWhere('clause', 'parameter'));
+        $this->assertEquals($relation, $relation->orWhere('column', '!=', 'value'));
+    }
+
+    /**
+     * Test setting the where raw clause of the relation.
+     */
+    public function testWhereRaw()
+    {
+        $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
+        $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('r.foreign_key', '=', 5)->andReturnSelf();
+
+        $this->mockSelect->shouldReceive('whereRaw')->once()->with('column', '!=', 'value');
+
+        $relation = (new DummyRelationship($this->entity))->has(RelationshipTestRelated::class, 'r', 'foreign_key');
+        $this->assertEquals($relation, $relation->whereRaw('column', '!=', 'value'));
+    }
+
+    /**
+     * Test adding an or where raw clause to the relation.
+     */
+    public function testOrWhereRaw()
+    {
+        $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
+        $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('r.foreign_key', '=', 5)->andReturnSelf();
+
+        $this->mockSelect->shouldReceive('orWhereRaw')->once()->with('column', '!=', 'value');
+
+        $relation = (new DummyRelationship($this->entity))->has(RelationshipTestRelated::class, 'r', 'foreign_key');
+        $this->assertEquals($relation, $relation->orWhereRaw('column', '!=', 'value'));
+    }
+
+    /**
+     * Test setting the where column clause of the relation.
+     */
+    public function testWhereColumn()
+    {
+        $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
+        $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('r.foreign_key', '=', 5)->andReturnSelf();
+
+        $this->mockSelect->shouldReceive('whereColumn')->once()->with('column', '!=', 'value');
+
+        $relation = (new DummyRelationship($this->entity))->has(RelationshipTestRelated::class, 'r', 'foreign_key');
+        $this->assertEquals($relation, $relation->whereColumn('column', '!=', 'value'));
+    }
+
+    /**
+     * Test adding an or where column clause to the relation.
+     */
+    public function testOrWhereColumn()
+    {
+        $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
+        $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('r.foreign_key', '=', 5)->andReturnSelf();
+
+        $this->mockSelect->shouldReceive('orWhereColumn')->once()->with('column', '!=', 'value');
+
+        $relation = (new DummyRelationship($this->entity))->has(RelationshipTestRelated::class, 'r', 'foreign_key');
+        $this->assertEquals($relation, $relation->orWhereColumn('column', '!=', 'value'));
+    }
+
+    /**
+     * Test setting the where exists clause of the relation.
+     */
+    public function testWhereExists()
+    {
+        $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
+        $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('r.foreign_key', '=', 5)->andReturnSelf();
+
+        $this->mockSelect->shouldReceive('whereExists')->once()->with(\Mockery::type(\Closure::class));
+
+        $relation = (new DummyRelationship($this->entity))->has(RelationshipTestRelated::class, 'r', 'foreign_key');
+        $this->assertEquals($relation, $relation->whereExists(function() {}));
+    }
+
+    /**
+     * Test adding a where not exists clause to the relation.
+     */
+    public function testWhereNotExists()
+    {
+        $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
+        $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('r.foreign_key', '=', 5)->andReturnSelf();
+
+        $this->mockSelect->shouldReceive('whereNotExists')->once()->with(\Mockery::type(\Closure::class));
+
+        $relation = (new DummyRelationship($this->entity))->has(RelationshipTestRelated::class, 'r', 'foreign_key');
+        $this->assertEquals($relation, $relation->whereNotExists(function() {}));
     }
 
     /**
@@ -232,27 +277,42 @@ class RelationshipTest extends TestCase
     {
         $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('r.foreign_key = :foreign_key', ['foreign_key' => 5])->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('r.foreign_key', '=', 5)->andReturnSelf();
 
-        $this->mockSelect->shouldReceive('groupBy')->once()->with(['clause']);
+        $this->mockSelect->shouldReceive('groupBy')->once()->with('column');
 
         $relation = (new DummyRelationship($this->entity))->has(RelationshipTestRelated::class, 'r', 'foreign_key');
-        $this->assertEquals($relation, $relation->groupBy('clause'));
+        $this->assertEquals($relation, $relation->groupBy('column'));
     }
 
     /**
-     * Test adding an add group by to the relation.
+     * Test setting the having clause of the relation.
      */
-    public function testAddGroupBy()
+    public function testHaving()
     {
         $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('r.foreign_key = :foreign_key', ['foreign_key' => 5])->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('r.foreign_key', '=', 5)->andReturnSelf();
 
-        $this->mockSelect->shouldReceive('addGroupBy')->once()->with(['clause']);
+        $this->mockSelect->shouldReceive('having')->once()->with('column', '!=', 'value');
 
         $relation = (new DummyRelationship($this->entity))->has(RelationshipTestRelated::class, 'r', 'foreign_key');
-        $this->assertEquals($relation, $relation->addGroupBy('clause'));
+        $this->assertEquals($relation, $relation->having('column', '!=', 'value'));
+    }
+
+    /**
+     * Test adding an or having clause to the relation.
+     */
+    public function testOrHaving()
+    {
+        $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
+        $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('r.foreign_key', '=', 5)->andReturnSelf();
+
+        $this->mockSelect->shouldReceive('orHaving')->once()->with('column', '!=', 'value');
+
+        $relation = (new DummyRelationship($this->entity))->has(RelationshipTestRelated::class, 'r', 'foreign_key');
+        $this->assertEquals($relation, $relation->orHaving('column', '!=', 'value'));
     }
 
     /**
@@ -262,27 +322,12 @@ class RelationshipTest extends TestCase
     {
         $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('r.foreign_key = :foreign_key', ['foreign_key' => 5])->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('r.foreign_key', '=', 5)->andReturnSelf();
 
-        $this->mockSelect->shouldReceive('orderBy')->once()->with(['clause']);
-
-        $relation = (new DummyRelationship($this->entity))->has(RelationshipTestRelated::class, 'r', 'foreign_key');
-        $this->assertEquals($relation, $relation->orderBy('clause'));
-    }
-
-    /**
-     * Test adding an add order by to the relation.
-     */
-    public function testAddOrderBy()
-    {
-        $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
-        $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('r.foreign_key = :foreign_key', ['foreign_key' => 5])->andReturnSelf();
-
-        $this->mockSelect->shouldReceive('addOrderBy')->once()->with(['clause']);
+        $this->mockSelect->shouldReceive('orderBy')->once()->with('column');
 
         $relation = (new DummyRelationship($this->entity))->has(RelationshipTestRelated::class, 'r', 'foreign_key');
-        $this->assertEquals($relation, $relation->addOrderBy('clause'));
+        $this->assertEquals($relation, $relation->orderBy('column'));
     }
 
     /**
@@ -292,7 +337,7 @@ class RelationshipTest extends TestCase
     {
         $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
-        $this->mockSelect->shouldReceive('andWhere')->once()->with('r.foreign_key = :foreign_key', ['foreign_key' => 5])->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('r.foreign_key', '=', 5)->andReturnSelf();
 
         $relation = (new DummyRelationship($this->entity))->has(RelationshipTestRelated::class, 'r', 'foreign_key');
         $this->assertInstanceOf(Select::class, $relation->query());

@@ -13,27 +13,28 @@ use MadeSimple\Database\Statement\CreateTable;
 use MadeSimple\Database\Statement\DropTable;
 use MadeSimple\Database\Tests\TestCase;
 
-class SQLiteTest extends TestCase
+class MySQLTest extends TestCase
 {
     public function test()
     {
         $config = [
-            'driver'   => 'sqlite',
-            'database' => ':memory:',
+            'driver'   => 'mysql',
+            'host'     => 'localhost',
+            'database' => 'test',
+            'username' => '',
+            'password' => '',
         ];
         $connection = Connection::factory($config);
         $pool       = new Pool($connection);
-        $migration  = new SQLiteTestMigration();
+        $migration  = new MySQLTestMigration();
 
         // Migrate up
         $migration->up($connection);
-        $rows = $connection->select()
-            ->from('sqlite_master')->where('type', '=', 'table')
-            ->query()->fetchAll(\PDO::FETCH_ASSOC);
+        $rows = $connection->rawQuery('SHOW TABLES;')->fetchAll(\PDO::FETCH_NUM);
         $this->assertCount(3, $rows);
-        $this->assertEquals('user', $rows[0]['name']);
-        $this->assertEquals('post', $rows[1]['name']);
-        $this->assertEquals('comment', $rows[2]['name']);
+        $this->assertEquals('comment', $rows[0][0]);
+        $this->assertEquals('post', $rows[1][0]);
+        $this->assertEquals('user', $rows[2][0]);
 
         // Test inserts
         $connection->insert()->into('user')
@@ -56,7 +57,7 @@ class SQLiteTest extends TestCase
 
 
         // Read users
-        $user = new SQLiteTestUserEntity($pool);
+        $user = new MySQLTestUserEntity($pool);
         $this->assertTrue($user->read('456'));
         $this->assertEquals('user2', $user->username);
         $this->assertTrue($user->read('123'));
@@ -70,13 +71,13 @@ class SQLiteTest extends TestCase
 
 
         // Has relationship
-        /** @var SQLiteTestPostEntity $post */
+        /** @var MySQLTestPostEntity $post */
         $post = $user->posts()->fetch()[0];
         $this->assertEquals($user->id, $post->submitterId);
 
         // Has through relationship
         $comments = $user->comments($post->id)->fetch();
-        /** @var SQLiteTestCommentEntity $comment */
+        /** @var MySQLTestCommentEntity $comment */
         $comment  = $comments[0];
         $this->assertCount(2, $comments);
         $this->assertEquals($post->id, $comment->postId);
@@ -88,7 +89,7 @@ class SQLiteTest extends TestCase
         $this->assertEquals($user->id, $comment->postUser()->fetch()->id);
 
         // Repository
-        $repository = new Repository($pool, SQLiteTestUserEntity::class);
+        $repository = new Repository($pool, MySQLTestUserEntity::class);
         $items = $repository->findBy();
         $this->assertCount(2, $items);
         $this->assertEquals('123', $items[0]->id);
@@ -99,9 +100,9 @@ class SQLiteTest extends TestCase
         $this->assertEquals('456', $items[0]->id);
         $this->assertEquals('123', $items[1]->id);
 
-        /** @var SQLiteTestUserEntity $entity2 */
+        /** @var MySQLTestUserEntity $entity2 */
         $entity2 = $repository->findOneBy(['user_name' => 'user2']);
-        $this->assertInstanceOf(SQLiteTestUserEntity::class, $entity2);
+        $this->assertInstanceOf(MySQLTestUserEntity::class, $entity2);
         $this->assertEquals('456', $entity2->id);
 
 
@@ -118,32 +119,30 @@ class SQLiteTest extends TestCase
 
         // Migrate down
         $migration->dn($connection);
-        $rows = $connection->select()
-            ->from('sqlite_master')->where('type', '=','table')
-            ->query()->fetchAll(\PDO::FETCH_ASSOC);
-        $this->assertCount(0, $rows);
+        $rows = $connection->rawQuery('SHOW TABLES;')->rowCount();
+        $this->assertEquals(0, $rows);
     }
 }
-class SQLiteTestMigration implements Migration\MigrationInterface
+class MySQLTestMigration implements Migration\MigrationInterface
 {
     function up(Connection $connection)
     {
         $connection->statement(function (CreateTable $table) {
-            $table->name('user');
-            $table->column('UUID')->text()->primaryKey();
+            $table->name('user')->ifNotExists();
+            $table->column('UUID')->varchar(36)->primaryKey();
             $table->column('user_name')->text();
         });
 
         $connection->statement(function (CreateTable $table) {
-            $table->name('post');
-            $table->column('uuid')->text()->primaryKey();
+            $table->name('post')->ifNotExists();
+            $table->column('uuid')->varchar(36)->primaryKey();
             $table->column('submitter_id')->integer(10);
             $table->column('title')->text();
         });
 
         $connection->statement(function (CreateTable $table) {
-            $table->name('comment');
-            $table->column('id')->text()->primaryKey();
+            $table->name('comment')->ifNotExists();
+            $table->column('id')->varchar(36)->primaryKey();
             $table->column('post_uuid')->text();
             $table->column('data')->text();
         });
@@ -157,7 +156,7 @@ class SQLiteTestMigration implements Migration\MigrationInterface
     }
 }
 
-class SQLiteTestUserEntity extends Entity
+class MySQLTestUserEntity extends Entity
 {
     public $id;
     public $username;
@@ -169,12 +168,12 @@ class SQLiteTestUserEntity extends Entity
 
     public function posts()
     {
-        return (new Relationship\ToMany($this))->has(SQLiteTestPostEntity::class, 'p', 'submitter_id');
+        return (new Relationship\ToMany($this))->has(MySQLTestPostEntity::class, 'p', 'submitter_id');
     }
 
     public function comments($postUuid = null)
     {
-        $relationship = $this->posts()->has(SQLiteTestCommentEntity::class, 'c', 'post_uuid');
+        $relationship = $this->posts()->has(MySQLTestCommentEntity::class, 'c', 'post_uuid');
         if (null !== $postUuid) {
             $relationship->where('p.uuid', '=', $postUuid);
         }
@@ -182,7 +181,7 @@ class SQLiteTestUserEntity extends Entity
         return $relationship;
     }
 }
-class SQLiteTestPostEntity extends Entity
+class MySQLTestPostEntity extends Entity
 {
     public $id;
     public $submitterId;
@@ -195,15 +194,15 @@ class SQLiteTestPostEntity extends Entity
 
     public function user()
     {
-        return (new Relationship\ToOne($this))->belongsTo(SQLiteTestUserEntity::class, 'u', 'submitter_id');
+        return (new Relationship\ToOne($this))->belongsTo(MySQLTestUserEntity::class, 'u', 'submitter_id');
     }
 
     public function comments()
     {
-        return (new Relationship\ToMany($this))->has(SQLiteTestCommentEntity::class, 'c', 'post_uuid');
+        return (new Relationship\ToMany($this))->has(MySQLTestCommentEntity::class, 'c', 'post_uuid');
     }
 }
-class SQLiteTestCommentEntity extends Entity
+class MySQLTestCommentEntity extends Entity
 {
     public $uuid;
     public $postId;
@@ -216,11 +215,11 @@ class SQLiteTestCommentEntity extends Entity
 
     public function post()
     {
-        return (new Relationship\ToOne($this))->belongsTo(SQLiteTestPostEntity::class, 'p', 'post_uuid');
+        return (new Relationship\ToOne($this))->belongsTo(MySQLTestPostEntity::class, 'p', 'post_uuid');
     }
 
     public function postUser()
     {
-        return $this->post()->belongsTo(SQLiteTestUserEntity::class, 'u', 'submitter_id');
+        return $this->post()->belongsTo(MySQLTestUserEntity::class, 'u', 'submitter_id');
     }
 }
