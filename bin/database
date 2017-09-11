@@ -13,6 +13,8 @@ use Symfony\Component\Console\Application;
 use MadeSimple\Database\Command\Symfony as Command;
 
 $application = new Application();
+$application->add(new Command\Migrate());
+$application->add(new Command\Refresh());
 $application->add(new Command\Install());
 $application->add(new Command\Uninstall());
 $application->add(new Command\Upgrade());

@@ -69,6 +69,7 @@ class Migrator
         $batch = $this->getBatchNumber() + 1;
 
         foreach ($files as $file) {
+            $file = realpath($file);
             // Check file exists
             if (!file_exists($file)) {
                 $this->logger->warning('Migration file not found: "' . $file . '"');
@@ -77,7 +78,7 @@ class Migrator
             // Check the file has not already been migrated
             $migrated = $this->connection->select()->from('migrations')->where('file', '=', $file)->count();
             if ($migrated) {
-                $this->logger->warning('Migration file already migrated: "' . $file . '"');
+                $this->logger->notice('Already migrated file: "' . $file . '"');
                 continue;
             }
 
@@ -109,6 +110,7 @@ class Migrator
         }
 
         foreach ($files as $file) {
+            $file = realpath($file);
             // Check file exists
             if (!file_exists($file)) {
                 $this->logger->warning('Seed file not found: "' . $file . '"');
@@ -137,6 +139,7 @@ class Migrator
 
         // Get the current batch number
         $batch = $this->getBatchNumber();
+        $count = $count ?? $batch;
 
         if ($batch === 0) {
             $this->logger->notice('Already at clean installation');
@@ -155,7 +158,6 @@ class Migrator
                     $this->logger->warning('Migration file not found: "' . $row['file'] . '"');
                     continue;
                 }
-                $this->logger->notice('Migration file to be rolled back: "' . $row['file'] . '"');
                 $migration = $this->getMigrationClass($row['file']);
                 if ($migration instanceof MigrationInterface) {
                     $migration->dn($this->connection);
@@ -164,9 +166,7 @@ class Migrator
                         ->where('file', '=', $row['file'])
                         ->where('batch', '=', $batch)
                         ->query();
-                    $this->logger->notice('Migration file rolled back: "' . $row['file'] . '"');
-                } else {
-                    $this->logger->warning('Migration rollback failed for file: "' . $row['file'] . '"');
+                    $this->logger->notice('Rolled back file: "' . $row['file'] . '"');
                 }
             }
             $count--;

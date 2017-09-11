@@ -13,13 +13,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 
-/**
- * Class Upgrade
- *
- * @package MadeSimple\Database\Command\Symfony
- * @author  Peter Scopes
- */
-class Upgrade extends Command
+class Migrate extends Command
 {
     use DatabaseConfigurationTrait, LockableTrait;
 
@@ -27,15 +21,13 @@ class Upgrade extends Command
     {
         $this->addDatabaseConfigure();
         $this
-            ->setName('migrate:upgrade')
-            ->setDescription('Upgrade to your next database migration')
-            ->setHelp('This command allows you to upgrade your database to the next migration')
+            ->setName('migrate')
+            ->setDescription('Install and upgrade your database migrations')
+            ->setHelp('This command allows you to install the database migrations table and upgrade your database to the next migration')
             ->addOption('path', 'p', InputOption::VALUE_OPTIONAL, 'Path to your database migration files', 'database/migrations')
             ->addOption('seed', 's', InputOption::VALUE_OPTIONAL, 'Path to your database seed files', 'database/seeds')
             ->addUsage('sqlite')
-            ->addUsage('-p path/to/migration/files sqlite')
-            ->addUsage('-e')
-            ->addUsage('-e -p path/to/migration/files');
+            ->addUsage('-e');
     }
 
     protected function initialize(InputInterface $input, OutputInterface $output)
@@ -64,6 +56,8 @@ class Upgrade extends Command
         $connection = Connection::factory($this->config, $logger);
         $migrator   = new Migrator($connection, $logger);
 
+        // Install
+        $migrator->install();
 
         // Find the necessary files and upgrade
         $finder = new Finder();

@@ -2,8 +2,6 @@
 
 namespace MadeSimple\Database\Command\Symfony;
 
-use MadeSimple\Database\MySQL;
-use MadeSimple\Database\SQLite;
 use MadeSimple\Database\Connection;
 use MadeSimple\Database\Migration\Migrator;
 use Symfony\Component\Console\Command\Command;
