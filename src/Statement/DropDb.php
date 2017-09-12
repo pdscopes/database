@@ -5,18 +5,16 @@ namespace MadeSimple\Database\Statement;
 class DropDb extends StatementBuilder
 {
     /**
-     * Set the table to update.
+     * Set the name of the database to be dropped.
      *
-     * @param string      $table
-     * @param null|string $alias
+     * @param string $name
      *
      * @return DropDb
      */
-    public function table($table, $alias = null)
+    public function database($name)
     {
-        unset($this->statement['database']);
-
-        return $this->addToStatement('database', null === $alias ? [$table] : [$alias => $table]);
+        $this->statement['database'] = $name;
+        return $this;
     }
 
 

@@ -129,20 +129,20 @@ class SQLiteTestMigration implements Migration\MigrationInterface
     function up(Connection $connection)
     {
         $connection->statement(function (CreateTable $table) {
-            $table->name('user');
+            $table->table('user');
             $table->column('UUID')->text()->primaryKey();
             $table->column('user_name')->text();
         });
 
         $connection->statement(function (CreateTable $table) {
-            $table->name('post');
+            $table->table('post');
             $table->column('uuid')->text()->primaryKey();
             $table->column('submitter_id')->integer(10);
             $table->column('title')->text();
         });
 
         $connection->statement(function (CreateTable $table) {
-            $table->name('comment');
+            $table->table('comment');
             $table->column('id')->text()->primaryKey();
             $table->column('post_uuid')->text();
             $table->column('data')->text();

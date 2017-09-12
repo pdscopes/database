@@ -5,22 +5,20 @@ namespace MadeSimple\Database\Statement;
 class AlterTable extends StatementBuilder
 {
     /**
-     * Set the table to update.
+     * Set the table to alter.
      *
-     * @param string      $table
-     * @param null|string $alias
+     * @param string $name
      *
      * @return AlterTable
      */
-    public function table($table, $alias = null)
+    public function table($name)
     {
-        unset($this->statement['table']);
-
-        return $this->addToStatement('table', null === $alias ? [$table] : [$alias => $table]);
+        $this->statement['table'] = $name;
+        return $this;
     }
 
     /**
-     * Add a column to the statement.
+     * Alter the table by adding a column.
      *
      * @param string        $name
      * @param null|\Closure $closure function (ColumnBuilder) {...}
@@ -43,7 +41,7 @@ class AlterTable extends StatementBuilder
     }
 
     /**
-     * Modify a column to the statement.
+     * Alter the table by modifying a column.
      *
      * @param string        $name
      * @param null|\Closure $closure function (ColumnBuilder) {...}
@@ -66,7 +64,7 @@ class AlterTable extends StatementBuilder
     }
 
     /**
-     * Alter a column to the statement.
+     * Alter the table by altering a column.
      *
      * @param string        $name
      * @param null|\Closure $closure function (ColumnBuilder) {...}
@@ -82,7 +80,7 @@ class AlterTable extends StatementBuilder
     }
 
     /**
-     * Drop a column.
+     * Alter the table by dropping a column.
      *
      * @param string $column
      *
@@ -91,13 +89,13 @@ class AlterTable extends StatementBuilder
     public function dropColumn($column)
     {
         $type = 'dropColumn';
-
-        return $this->addToStatement('alterations', compact('type', 'column'));
+        $this->statement['alterations'][] = compact('type', 'column');
+        return $this;
     }
 
 
     /**
-     * Add a foreign key index to the statement.
+     * Alter the table by adding a foreign key constraint.
      *
      * @param string|array $columns
      * @param string       $referenceTable
@@ -113,13 +111,12 @@ class AlterTable extends StatementBuilder
         $type             = 'addForeignKey';
         $columns          = (array) $columns;
         $referenceColumns = (array) $referenceColumns;
-        $this->addToStatement('alterations', compact('type', 'name', 'columns', 'referenceTable', 'referenceColumns', 'onDelete', 'onUpdate'));
-
+        $this->statement['alterations'][] = compact('type', 'name', 'columns', 'referenceTable', 'referenceColumns', 'onDelete', 'onUpdate');
         return $this;
     }
 
     /**
-     * Drop a foreign key constraint.
+     * Alter the table by dropping a foreign key constraint.
      *
      * @param string $foreignKey
      *
@@ -128,13 +125,13 @@ class AlterTable extends StatementBuilder
     public function dropForeignKey($foreignKey)
     {
         $type = 'dropForeignKey';
-
-        return $this->addToStatement('alterations', compact('type', 'foreignKey'));
+        $this->statement['alterations'][] = compact('type', 'foreignKey');
+        return $this;
     }
 
 
     /**
-     * Add a unique constraint.
+     * Alter the table by adding a unique constraint.
      *
      * @param string|array $columns
      * @param null|string  $name
@@ -145,12 +142,12 @@ class AlterTable extends StatementBuilder
     {
         $type    = 'addUnique';
         $columns = (array) $columns;
-
-        return $this->addToStatement('alterations', compact('type', 'columns', 'name'));
+        $this->statement['alterations'][] = compact('type', 'columns', 'name');
+        return $this;
     }
 
     /**
-     * Drop a unique constraint.
+     * Alter the table by dropping a unique constraint.
      *
      * @param string $unique
      *
@@ -159,7 +156,8 @@ class AlterTable extends StatementBuilder
     public function dropUnique($unique)
     {
         $type = 'dropUnique';
-        return $this->addToStatement('alterations', compact('type', 'unique'));
+        $this->statement['alterations'][] = compact('type', 'unique');
+        return $this;
     }
 
 

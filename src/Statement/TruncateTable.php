@@ -5,18 +5,16 @@ namespace MadeSimple\Database\Statement;
 class TruncateTable extends StatementBuilder
 {
     /**
-     * Set the table to update.
+     * Set name of the table to be truncated.
      *
-     * @param string      $table
-     * @param null|string $alias
+     * @param string $name
      *
      * @return TruncateTable
      */
-    public function table($table, $alias = null)
+    public function table($name)
     {
-        unset($this->statement['table']);
-
-        return $this->addToStatement('table', null === $alias ? [$table] : [$alias => $table]);
+        $this->statement['table'] = $name;
+        return $this;
     }
 
 

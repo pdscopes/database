@@ -22,7 +22,7 @@ class SQLite extends Compiler
 //        $ifNotExists = isset($statement['ifNotExists']) ? 'IF NOT EXISTS' : '';
 
         // Table
-        $table = $this->compileSanitiseArray($statement['table'] ?? []);
+        $table = $this->sanitise($statement['table']);
 
         // Columns
         $columns = $this->concatenateSql(array_map([$this, 'compileStatementColumn'], $statement['columns'] ?? []), ',');
@@ -48,7 +48,7 @@ class SQLite extends Compiler
     public function compileStatementAlterTable(array $statement)
     {
         // Table
-        $table = $this->compileSanitiseArray($statement['table']);
+        $table = $this->sanitise($statement['table']);
         // Alterations
         $alterations = $this->compileStatementAlterations($statement);
 
@@ -162,8 +162,8 @@ class SQLite extends Compiler
     protected function compileStatementAlterations(array $statement)
     {
         $sql = '';
-        foreach ($statement['alterations'] as $alteration) {
-            $sql .= "\n";
+        foreach ($statement['alterations'] ?? [] as $alteration) {
+            $sql .= ', ';
             switch ($alteration['type']) {
                 case 'addColumn':
                     $sql .= 'ADD ' . $this->compileStatementColumn($alteration);
@@ -177,6 +177,6 @@ class SQLite extends Compiler
             }
         }
 
-        return trim($sql);
+        return trim(substr($sql, 1));
     }
 }

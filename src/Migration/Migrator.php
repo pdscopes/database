@@ -39,7 +39,7 @@ class Migrator
 
         // Create the table
         $this->connection->statement(function (CreateTable $table) {
-            $table->name('migrations');
+            $table->table('migrations');
             $table->ifNotExists(true);
             $table->column('id')->integer(11, true)->null(false)->autoIncrement();
             $table->column('file')->char(255)->null(false);

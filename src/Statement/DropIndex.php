@@ -5,32 +5,29 @@ namespace MadeSimple\Database\Statement;
 class DropIndex extends StatementBuilder
 {
     /**
-     * Set the table to update.
+     * Set the name of the index to be dropped.
      *
      * @param string $name
      *
      * @return DropIndex
      */
-    public function name($name)
+    public function index($name)
     {
-        unset($this->statement['name']);
-
-        return $this->addToStatement('name', $name);
+        $this->statement['index'] = $name;
+        return $this;
     }
 
     /**
-     * Set the table to update.
+     * Set the table to drop the index on.
      *
-     * @param string      $table
-     * @param null|string $alias
+     * @param string $name
      *
      * @return DropIndex
      */
-    public function table($table, $alias = null)
+    public function table($name)
     {
-        unset($this->statement['table']);
-
-        return $this->addToStatement('table', null === $alias ? [$table] : [$alias => $table]);
+        $this->statement['table'] = $name;
+        return $this;
     }
 
 

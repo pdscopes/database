@@ -24,7 +24,12 @@ class PoolTest extends TestCase
     /**
      * @var \Mockery\Mock|CompilerInterface
      */
-    private $mockCompiler;
+    private $mockCompiler1;
+
+    /**
+     * @var \Mockery\Mock|CompilerInterface
+     */
+    private $mockCompiler2;
 
     /**
      * @var \Mockery\Mock|Connection
@@ -42,9 +47,12 @@ class PoolTest extends TestCase
 
         $this->mockPdo       = \Mockery::mock(\PDO::class);
         $this->mockConnector = new MockConnector($this->mockPdo);
-        $this->mockCompiler  = \Mockery::mock(CompilerInterface::class);
-        $this->connection1   = new MockConnection($this->mockConnector, $this->mockCompiler);
-        $this->connection2   = new MockConnection($this->mockConnector, $this->mockCompiler);
+        $this->mockCompiler1 = \Mockery::mock(CompilerInterface::class);
+        $this->mockCompiler2 = \Mockery::mock(CompilerInterface::class);
+        $this->mockCompiler1->shouldReceive('setConnection')->once();
+        $this->mockCompiler2->shouldReceive('setConnection')->once();
+        $this->connection1   = new MockConnection($this->mockConnector, $this->mockCompiler1);
+        $this->connection2   = new MockConnection($this->mockConnector, $this->mockCompiler2);
     }
 
     /**

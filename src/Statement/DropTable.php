@@ -5,18 +5,16 @@ namespace MadeSimple\Database\Statement;
 class DropTable extends StatementBuilder
 {
     /**
-     * Set the table to update.
+     * Set name of the table to be dropped.
      *
-     * @param string      $table
-     * @param null|string $alias
+     * @param string $name
      *
      * @return DropTable
      */
-    public function table($table, $alias = null)
+    public function table($name)
     {
-        unset($this->statement['table']);
-
-        return $this->addToStatement('table', null === $alias ? [$table] : [$alias => $table]);
+        $this->statement['table'] = $name;
+        return $this;
     }
 
 

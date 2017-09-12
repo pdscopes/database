@@ -5,17 +5,16 @@ namespace MadeSimple\Database\Statement;
 class UpdateView extends StatementBuilder
 {
     /**
-     * Set the name of the view.
+     * Set the name of the view to be updated.
      *
      * @param string $name
      *
      * @return UpdateView
      */
-    public function name($name)
+    public function view($name)
     {
-        unset($this->statement['name']);
-
-        return $this->addToStatement('name', $name);
+        $this->statement['view'] = $name;
+        return $this;
     }
 
     /**
@@ -27,9 +26,8 @@ class UpdateView extends StatementBuilder
      */
     public function asSelect($select)
     {
-        unset($this->statement['select']);
-
-        return $this->addToStatement('select', $select);
+        $this->statement['select'] = $select;
+        return $this;
     }
 
 

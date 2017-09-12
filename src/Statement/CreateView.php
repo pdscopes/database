@@ -2,34 +2,34 @@
 
 namespace MadeSimple\Database\Statement;
 
+use MadeSimple\Database\Migration\SeedInterface;
+
 class CreateView extends StatementBuilder
 {
     /**
-     * Set the name of the view.
+     * Set the name of the view to be created.
      *
      * @param string $name
      *
      * @return CreateView
      */
-    public function name($name)
+    public function view($name)
     {
-        unset($this->statement['name']);
-
-        return $this->addToStatement('name', $name);
+        $this->statement['view'] = $name;
+        return $this;
     }
 
     /**
-     * @param \Closure $select function(Select){...}
+     * @param callable $select function(Select){...}
      *
      * @see \MadeSimple\Database\Query\Select
      *
      * @return CreateView
      */
-    public function asSelect($select)
+    public function asSelect(callable $select)
     {
-        unset($this->statement['select']);
-
-        return $this->addToStatement('select', $select);
+        $this->statement['select'] = $select;
+        return $this;
     }
 
 

@@ -2,7 +2,7 @@
 
 namespace MadeSimple\Database;
 
-interface CompilerInterface
+interface CompilerInterface extends ConnectionAwareInterface
 {
     /**
      * @param string $dirtyColumnRef

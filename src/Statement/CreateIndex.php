@@ -4,6 +4,33 @@ namespace MadeSimple\Database\Statement;
 
 class CreateIndex extends StatementBuilder
 {
+
+    /**
+     * Set the name of the index to be created.
+     *
+     * @param string $name
+     *
+     * @return CreateIndex
+     */
+    public function index($name)
+    {
+        $this->statement['name'] = $name;
+        return $this;
+    }
+
+    /**
+     * Set the table for the index to be created on.
+     *
+     * @param string $name
+     *
+     * @return CreateIndex
+     */
+    public function table($name)
+    {
+        $this->statement['table'] = $name;
+        return $this;
+    }
+
     /**
      * Set if the index should be unique.
      *
@@ -11,38 +38,8 @@ class CreateIndex extends StatementBuilder
      */
     public function unique()
     {
-        unset($this->statement['unique']);
-
-        return $this->addToStatement('unique', true);
-    }
-
-    /**
-     * Set the name of the index.
-     *
-     * @param string $name
-     *
-     * @return CreateIndex
-     */
-    public function name($name)
-    {
-        unset($this->statement['name']);
-
-        return $this->addToStatement('name', $name);
-    }
-
-    /**
-     * Set the table to update.
-     *
-     * @param string      $table
-     * @param null|string $alias
-     *
-     * @return CreateIndex
-     */
-    public function table($table, $alias = null)
-    {
-        unset($this->statement['table']);
-
-        return $this->addToStatement('table', null === $alias ? [$table] : [$alias => $table]);
+        $this->statement['unique'] = true;
+        return $this;
     }
 
 

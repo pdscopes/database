@@ -118,6 +118,7 @@ class Connection
     public function setCompiler(CompilerInterface $compiler)
     {
         $this->compiler = $compiler;
+        $this->compiler->setConnection($this);
     }
 
     /**

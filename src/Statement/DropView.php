@@ -11,11 +11,11 @@ class DropView extends StatementBuilder
      *
      * @return DropView
      */
-    public function table($name)
+    public function view($name)
     {
-        unset($this->statement['table']);
+        unset($this->statement['view']);
 
-        return $this->addToStatement('table', $name);
+        return $this->addToStatement('view', $name);
     }
 
 

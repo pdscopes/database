@@ -2,54 +2,13 @@
 
 namespace MadeSimple\Database\Tests\Unit\Query;
 
-use MadeSimple\Database\Compiler;
-use MadeSimple\Database\CompilerInterface;
 use MadeSimple\Database\Query\Delete;
 use MadeSimple\Database\Query\Select;
 use MadeSimple\Database\Query\WhereBuilder;
-use MadeSimple\Database\Tests\MockConnector;
-use MadeSimple\Database\Tests\MockConnection;
-use MadeSimple\Database\Tests\TestCase;
+use MadeSimple\Database\Tests\CompilableTestCase;
 
-class DeleteTest extends TestCase
+class DeleteTest extends CompilableTestCase
 {
-    /**
-     * @var MockConnection
-     */
-    private $mockConnection;
-
-    /**
-     * @var \Mockery\Mock|\PDO
-     */
-    private $mockPdo;
-
-    /**
-     * @var \Mockery\Mock|\PDOStatement
-     */
-    private $mockPdoStatement;
-
-    /**
-     * @var MockConnector
-     */
-    private $mockConnector;
-
-    /**
-     * @var CompilerInterface
-     */
-    private $compiler;
-
-    protected function setUp()
-    {
-        parent::setUp();
-
-        $this->mockPdo          = \Mockery::mock(\PDO::class);
-        $this->mockPdoStatement = \Mockery::mock(\PDOStatement::class);
-        $this->mockConnector    = new MockConnector($this->mockPdo);
-        $this->compiler         = new Compiler\MySQL();
-        $this->mockConnection   = new MockConnection($this->mockConnector, $this->compiler);
-    }
-
-
     /**
      * Test delete from without alias.
      */

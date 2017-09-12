@@ -15,7 +15,7 @@ class ExampleInitial implements MigrationInterface
     function up(Connection $connection)
     {
         $connection->statement(function (CreateTable $table) {
-            $table->name('user');
+            $table->table('user');
             $table->ifNotExists();
             $table->column('id')->integer(11, true)->notNull()->autoIncrement()->primaryKey();
             $table->column('uuid')->char(36)->notNull()->unique();
@@ -28,7 +28,7 @@ class ExampleInitial implements MigrationInterface
         });
 
         $connection->statement(function (CreateTable $table) {
-            $table->name('post');
+            $table->table('post');
             $table->ifNotExists(true);
             $table->column('id')->integer(11, true)->notNull()->autoIncrement();
             $table->column('uuid')->char(36)->notNull();

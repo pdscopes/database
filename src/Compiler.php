@@ -274,7 +274,7 @@ abstract class Compiler implements CompilerInterface
     {
         return [$this->concatenateSql([
             'CREATE DATABASE',
-            $this->compileSanitiseArray($statement['database']),
+            $this->sanitise($statement['database']),
         ]), []];
     }
 
@@ -282,7 +282,7 @@ abstract class Compiler implements CompilerInterface
     {
         return [$this->concatenateSql([
             'DROP DATABASE',
-            $this->compileSanitiseArray($statement['database']),
+            $this->sanitise($statement['database']),
         ]), []];
     }
 
@@ -290,7 +290,7 @@ abstract class Compiler implements CompilerInterface
     {
         return [$this->concatenateSql([
             'TRUNCATE TABLE',
-            $this->compileSanitiseArray($statement['table']),
+            $this->sanitise($statement['table']),
         ]), []];
     }
 
@@ -298,7 +298,7 @@ abstract class Compiler implements CompilerInterface
     {
         return [$this->concatenateSql([
             'DROP TABLE',
-            $this->compileSanitiseArray($statement['table']),
+            $this->sanitise($statement['table']),
         ]), []];
     }
 
@@ -307,9 +307,9 @@ abstract class Compiler implements CompilerInterface
         // Unique
         $unique = isset($statement['unique']) ? 'UNIQUE' : '';
         // Index
-        $name   = $this->compileSanitiseArray($statement['name']);
+        $name   = $this->sanitise($statement['name']);
         // Table
-        $table  = $this->compileSanitiseArray($statement['table']);
+        $table  = $this->sanitise($statement['table']);
 
         return [$this->concatenateSql([
             'CREATE',
@@ -323,8 +323,8 @@ abstract class Compiler implements CompilerInterface
 
     public function compileStatementCreateView(array $statement)
     {
-        // Index
-        $name   = $this->compileSanitiseArray($statement['name']);
+        // View
+        $name = $this->sanitise($statement['view']);
         // Table
         list($selectSql, $selectBindings) = $this->compileStatementSelect($statement);
 
@@ -339,7 +339,7 @@ abstract class Compiler implements CompilerInterface
     public function compileStatementUpdateView(array $statement)
     {
         // Index
-        $name   = $this->compileSanitiseArray($statement['name']);
+        $name   = $this->sanitise($statement['view']);
         // Table
         list($selectSql, $selectBindings) = $this->compileStatementSelect($statement);
 
@@ -353,12 +353,12 @@ abstract class Compiler implements CompilerInterface
 
     public function compileStatementDropView(array $statement)
     {
-        // Index
-        $table = $this->compileSanitiseArray($statement['table']);
+        // Name
+        $name = $this->compileSanitiseArray($statement['view']);
 
         return [$this->concatenateSql([
             'DROP VIEW',
-            $table,
+            $name,
         ]), []];
     }
 
@@ -600,7 +600,7 @@ abstract class Compiler implements CompilerInterface
      */
     protected function compileQueryNestedCriteria($closure)
     {
-        $whereBuilder = new WhereBuilder($this->connection);
+        $whereBuilder = new WhereBuilder($this->connection, $this->logger);
         $closure($whereBuilder);
 
         return $this->compileQueryCriteria($whereBuilder->getStatementPiece('where', []));
@@ -631,8 +631,12 @@ abstract class Compiler implements CompilerInterface
 
     public function compileStatementSelect(array $statement)
     {
-        /** @var Select $select */
-        $select = reset($statement['select']);
+        if (!isset($statement['select'])) {
+            return ['', []];
+        }
+        $select  = new Select($this->connection, $this->logger);
+        $closure = $statement['select'];
+        $closure($select);
         return $select->buildSql();
     }
 }

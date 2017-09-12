@@ -133,20 +133,20 @@ class MySQLTestMigration implements Migration\MigrationInterface
     function up(Connection $connection)
     {
         $connection->statement(function (CreateTable $table) {
-            $table->name('user')->ifNotExists();
+            $table->table('user')->ifNotExists();
             $table->column('UUID')->varchar(36)->primaryKey();
             $table->column('user_name')->text();
         });
 
         $connection->statement(function (CreateTable $table) {
-            $table->name('post')->ifNotExists();
+            $table->table('post')->ifNotExists();
             $table->column('uuid')->varchar(36)->primaryKey();
             $table->column('submitter_id')->integer(10);
             $table->column('title')->text();
         });
 
         $connection->statement(function (CreateTable $table) {
-            $table->name('comment')->ifNotExists();
+            $table->table('comment')->ifNotExists();
             $table->column('id')->varchar(36)->primaryKey();
             $table->column('post_uuid')->text();
             $table->column('data')->text();

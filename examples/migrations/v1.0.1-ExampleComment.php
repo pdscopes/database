@@ -15,7 +15,7 @@ class ExampleComment implements MigrationInterface
     function up(Connection $connection)
     {
         $connection->statement(function (CreateTable $table) {
-            $table->name('comment');
+            $table->table('comment');
             $table->ifNotExists(true);
             $table->column('id')->integer(11, true)->notNull()->autoIncrement();
             $table->column('uuid')->char(36)->notNull();

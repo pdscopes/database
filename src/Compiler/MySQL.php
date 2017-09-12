@@ -25,7 +25,7 @@ class MySQL extends Compiler
         $ifNotExists = isset($statement['ifNotExists']) ? 'IF NOT EXISTS' : '';
 
         // Table
-        $table = $this->compileSanitiseArray($statement['table'] ?? []);
+        $table = $this->sanitise($statement['table']);
 
         // Columns
         $columns = $this->concatenateSql(array_map([$this, 'compileStatementColumn'], $statement['columns'] ?? []), ',');
@@ -60,7 +60,7 @@ class MySQL extends Compiler
     public function compileStatementAlterTable(array $statement)
     {
         // Table
-        $table = $this->compileSanitiseArray($statement['table']);
+        $table = $this->sanitise($statement['table']);
         // Alterations
         $alterations = $this->compileStatementAlterations($statement);
 
@@ -77,9 +77,9 @@ class MySQL extends Compiler
     public function compileStatementDropIndex(array $statement)
     {
         // Table
-        $table = $this->compileSanitiseArray($statement['table']);
+        $table = $this->sanitise($statement['table']);
         // Index
-        $name  = $this->compileSanitiseArray($statement['name']);
+        $name  = $this->sanitise($statement['index']);
 
         return [$this->concatenateSql([
             'ALTER TABLE',
@@ -203,18 +203,20 @@ class MySQL extends Compiler
                 return 'PRIMARY KEY (' . $columns . ')';
 
             case 'index':
-                return 'INDEX ' . ($constraintArray['name'] ?? '') . '(' . $columns . ')';
+                $name = $constraintArray['name'] ? $this->sanitise($constraintArray['name']) : '';
+                return 'INDEX ' . $name . '(' . $columns . ')';
 
             case 'unique':
-                return 'UNIQUE' . ($constraintArray['name'] ?? '') . '(' . $columns . ')';
+                $name = $constraintArray['name'] ? $this->sanitise($constraintArray['name']) : '';
+                return 'UNIQUE ' . $name . '(' . $columns . ')';
 
             case 'foreignKey':
+                $name = $constraintArray['name'] ? $this->sanitise($constraintArray['name']) : '';
                 $referenceTable   = $this->sanitise($constraintArray['referenceTable']);
                 $referenceColumns = implode(',', array_map([$this, 'sanitise'], $constraintArray['referenceColumns']));
-                $onDelete         = (isset($constraintArray['onDelete']) ? ' ON DELETE ' . $constraintArray['onDelete'] : '');
-                $onUpdate         = (isset($constraintArray['onUpdate']) ? ' ON UPDATE ' . $constraintArray['onUpdate'] : '');
-                return 'FOREIGN KEY '
-                    . ($constraintArray['name'] ?? '') . '(' . $columns . ') REFERENCES ' . $referenceTable
+                $onDelete         = (isset($constraintArray['onDelete']) ? ' ON DELETE ' . strtoupper($constraintArray['onDelete']) : '');
+                $onUpdate         = (isset($constraintArray['onUpdate']) ? ' ON UPDATE ' . strtoupper($constraintArray['onUpdate']) : '');
+                return 'FOREIGN KEY '. $name . '(' . $columns . ') REFERENCES ' . $referenceTable
                     . '(' . $referenceColumns . ')' . $onDelete . $onUpdate;
         }
 
@@ -224,47 +226,48 @@ class MySQL extends Compiler
     protected function compileStatementAlterations(array $statement)
     {
         $sql = '';
-        foreach ($statement['alterations'] as $alteration) {
-            $sql .= "\n";
+        foreach ($statement['alterations'] ?? [] as $alteration) {
+            $sql .= ', ';
             switch ($alteration['type']) {
                 case 'addColumn':
                     $sql .= 'ADD ' . $this->compileStatementColumn($alteration, false);
                     break;
                 case 'dropColumn':
-                    $sql .= 'DROP COLUMN ' . $alteration['column'];
+                    $sql .= 'DROP COLUMN ' . $this->sanitise($alteration['column']);
                     break;
                 case 'modifyColumn':
                     $sql .= 'MODIFY COLUMN ' . $this->compileStatementColumn($alteration, false);
                     break;
 
                 case 'addForeignKey':
+                    $name             = ($alteration['name'] ? 'CONSTRAINT ' . $this->sanitise($alteration['name']) . ' ' : '');
                     $columns          = implode(',', array_map([$this, 'sanitise'], $alteration['columns']));
                     $referenceTable   = $this->sanitise($alteration['referenceTable']);
                     $referenceColumns = implode(',', array_map([$this, 'sanitise'], $alteration['referenceColumns']));
                     $onDelete         = (isset($alteration['onDelete']) ? ' ON DELETE ' . $alteration['onDelete'] : '');
                     $onUpdate         = (isset($alteration['onUpdate']) ? ' ON UPDATE ' . $alteration['onUpdate'] : '');
 
-                    $sql .= 'ADD ' . ($alteration['name'] ? 'CONSTRAINT ' . $alteration['name'] . ' ' : '')
+                    $sql .= 'ADD ' . $name
                         . 'FOREIGN KEY '
                         . '(' . $columns . ') REFERENCES ' . $referenceTable
                         . '(' . $referenceColumns . ')' . $onDelete . $onUpdate;
                     break;
                 case 'dropForeignKey':
-                    $sql .= 'DROP FOREIGN KEY ' . $alteration['foreignKey'];
+                    $sql .= 'DROP FOREIGN KEY ' . $this->sanitise($alteration['foreignKey']);
                     break;
 
                 case 'addUnique':
+                    $name    = ($alteration['name'] ? 'CONSTRAINT ' . $this->sanitise($alteration['name']) . ' ' : '');
                     $columns = implode(',', array_map([$this, 'sanitise'], $alteration['columns']));
 
-                    $sql .= 'ADD ' . ($alteration['name'] ? 'CONSTRAINT ' . $alteration['name'] . ' ' : '')
-                        . 'UNIQUE (' . $columns . ')';
+                    $sql .= 'ADD ' . $name . 'UNIQUE (' . $columns . ')';
                     break;
                 case 'dropUnique':
-                    $sql .= 'DROP INDEX' . $alteration['unique'];
+                    $sql .= 'DROP INDEX ' . $this->sanitise($alteration['unique']);
                     break;
             }
         }
 
-        return trim($sql);
+        return trim(substr($sql, 1));
     }
 }

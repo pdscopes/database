@@ -39,6 +39,7 @@ class ConnectionTest extends TestCase
         $this->mockPdoStatement = \Mockery::mock(\PDOStatement::class);
         $this->mockConnector    = new MockConnector($this->mockPdo);
         $this->mockCompiler     = \Mockery::mock(CompilerInterface::class);
+        $this->mockCompiler->shouldReceive('setConnection')->once();
     }
 
 

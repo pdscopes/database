@@ -5,18 +5,16 @@ namespace MadeSimple\Database\Statement;
 class CreateTable extends StatementBuilder
 {
     /**
-     * Set the name to create.
+     * Set the name of the table to create.
      *
-     * @param string      $table
-     * @param null|string $alias
+     * @param string $name
      *
      * @return CreateTable
      */
-    public function name($table, $alias = null)
+    public function table($name)
     {
-        unset($this->statement['table']);
-
-        return $this->addToStatement('table', null === $alias ? [$table] : [$alias => $table]);
+        $this->statement['table'] = $name;
+        return $this;
     }
 
 
