@@ -73,7 +73,7 @@ abstract class  Relationship
         $relatedColumns = $relatedColumns ? (array) $relatedColumns :  $relatedMap->columns();
 
         if (null === $this->query) {
-            $this->query = $this->entity->pool->get($related::$connection)->select();
+            $this->query = $this->entity->pool->get($relatedEntity::$connection)->select();
             $this->query->columns($relatedAlias . '.*')->from($relatedTable, $relatedAlias);
 
             // Construct the where clause(s)
@@ -125,7 +125,7 @@ abstract class  Relationship
         $relatedColumns = (array) $relatedColumns;
 
         if (null === $this->query) {
-            $this->query = $this->entity->pool->get($related::$connection)->select();
+            $this->query = $this->entity->pool->get($relatedEntity::$connection)->select();
             $this->query->columns($relatedAlias . '.*')->from($relatedTable, $relatedAlias);
 
             // Construct the where clause(s)

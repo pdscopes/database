@@ -13,7 +13,9 @@ class SQLite extends Compiler
         parent::__construct('"', $logger);
     }
 
-
+    /**
+     * @InheritDoc
+     */
     public function compileStatementCreateTable(array $statement)
     {
         // IF NOT EXISTS
@@ -39,6 +41,34 @@ class SQLite extends Compiler
             ')'
         ]), []];
     }
+
+    /**
+     * @InheritDoc
+     */
+    public function compileStatementAlterTable(array $statement)
+    {
+        // Table
+        $table = $this->compileSanitiseArray($statement['table']);
+        // Alterations
+        $alterations = $this->compileStatementAlterations($statement);
+
+        return [$this->concatenateSql([
+            'ALTER TABLE',
+            $table,
+            $alterations
+        ]), []];
+    }
+
+    /**
+     * @InheritDoc
+     */
+    public function compileStatementDropIndex(array $statement)
+    {
+        return ['', []];
+    }
+
+
+
 
     protected function compileStatementColumn($columnArray)
     {
@@ -127,5 +157,26 @@ class SQLite extends Compiler
         }
 
         return '';
+    }
+
+    protected function compileStatementAlterations(array $statement)
+    {
+        $sql = '';
+        foreach ($statement['alterations'] as $alteration) {
+            $sql .= "\n";
+            switch ($alteration['type']) {
+                case 'addColumn':
+                    $sql .= 'ADD ' . $this->compileStatementColumn($alteration);
+                    break;
+                case 'dropColumn':
+                    $sql .= 'DROP COLUMN ' . $alteration['column'];
+                    break;
+                case 'modifyColumn':
+                    $sql .= 'MODIFY COLUMN ' . $this->compileStatementColumn($alteration);
+                    break;
+            }
+        }
+
+        return trim($sql);
     }
 }

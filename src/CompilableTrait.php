@@ -5,10 +5,11 @@ namespace MadeSimple\Database;
 use PDO;
 use PDOException;
 use PDOStatement;
+use Psr\Log\LoggerAwareTrait;
 
 trait CompilableTrait
 {
-    use CompilerAwareTrait;
+    use CompilerAwareTrait, LoggerAwareTrait;
 
     /**
      * @var array

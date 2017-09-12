@@ -14,6 +14,9 @@ class MySQL extends Compiler
     }
 
 
+    /**
+     * @InheritDoc
+     */
     public function compileStatementCreateTable(array $statement)
     {
         // Temporary
@@ -50,6 +53,44 @@ class MySQL extends Compiler
             $options
         ]), []];
     }
+
+    /**
+     * @InheritDoc
+     */
+    public function compileStatementAlterTable(array $statement)
+    {
+        // Table
+        $table = $this->compileSanitiseArray($statement['table']);
+        // Alterations
+        $alterations = $this->compileStatementAlterations($statement);
+
+        return [$this->concatenateSql([
+            'ALTER TABLE',
+            $table,
+            $alterations
+        ]), []];
+    }
+
+    /**
+     * @InheritDoc
+     */
+    public function compileStatementDropIndex(array $statement)
+    {
+        // Table
+        $table = $this->compileSanitiseArray($statement['table']);
+        // Index
+        $name  = $this->compileSanitiseArray($statement['name']);
+
+        return [$this->concatenateSql([
+            'ALTER TABLE',
+            $table,
+            'DROP INDEX',
+            $name,
+        ]), []];
+    }
+
+
+
 
     protected function compileStatementColumn($columnArray, $createSyntax = true)
     {
@@ -178,5 +219,52 @@ class MySQL extends Compiler
         }
 
         return '';
+    }
+
+    protected function compileStatementAlterations(array $statement)
+    {
+        $sql = '';
+        foreach ($statement['alterations'] as $alteration) {
+            $sql .= "\n";
+            switch ($alteration['type']) {
+                case 'addColumn':
+                    $sql .= 'ADD ' . $this->compileStatementColumn($alteration, false);
+                    break;
+                case 'dropColumn':
+                    $sql .= 'DROP COLUMN ' . $alteration['column'];
+                    break;
+                case 'modifyColumn':
+                    $sql .= 'MODIFY COLUMN ' . $this->compileStatementColumn($alteration, false);
+                    break;
+
+                case 'addForeignKey':
+                    $columns          = implode(',', array_map([$this, 'sanitise'], $alteration['columns']));
+                    $referenceTable   = $this->sanitise($alteration['referenceTable']);
+                    $referenceColumns = implode(',', array_map([$this, 'sanitise'], $alteration['referenceColumns']));
+                    $onDelete         = (isset($alteration['onDelete']) ? ' ON DELETE ' . $alteration['onDelete'] : '');
+                    $onUpdate         = (isset($alteration['onUpdate']) ? ' ON UPDATE ' . $alteration['onUpdate'] : '');
+
+                    $sql .= 'ADD ' . ($alteration['name'] ? 'CONSTRAINT ' . $alteration['name'] . ' ' : '')
+                        . 'FOREIGN KEY '
+                        . '(' . $columns . ') REFERENCES ' . $referenceTable
+                        . '(' . $referenceColumns . ')' . $onDelete . $onUpdate;
+                    break;
+                case 'dropForeignKey':
+                    $sql .= 'DROP FOREIGN KEY ' . $alteration['foreignKey'];
+                    break;
+
+                case 'addUnique':
+                    $columns = implode(',', array_map([$this, 'sanitise'], $alteration['columns']));
+
+                    $sql .= 'ADD ' . ($alteration['name'] ? 'CONSTRAINT ' . $alteration['name'] . ' ' : '')
+                        . 'UNIQUE (' . $columns . ')';
+                    break;
+                case 'dropUnique':
+                    $sql .= 'DROP INDEX' . $alteration['unique'];
+                    break;
+            }
+        }
+
+        return trim($sql);
     }
 }

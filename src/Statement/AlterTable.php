@@ -19,34 +19,147 @@ class AlterTable extends StatementBuilder
         return $this->addToStatement('table', null === $alias ? [$table] : [$alias => $table]);
     }
 
-    // ALTER TABLE table_name
-    // ADD column_name dataType;
-    public function add($column, $dataType, $constraints)
+    /**
+     * Add a column to the statement.
+     *
+     * @param string        $name
+     * @param null|\Closure $closure function (ColumnBuilder) {...}
+     * @see ColumnBuilder
+     *
+     * @return AlterTable|ColumnBuilder
+     */
+    public function addColumn($name, \Closure $closure = null)
     {
-        $type = 'add';
+        $type = 'addColumn';
+        $columnBuilder = new ColumnBuilder($this->connection, $this->logger);
+        $this->statement['alterations'][] = compact('type', 'name', 'columnBuilder');
 
-        return $this->addToStatement('alterations', compact('type', 'column', 'dataType', 'constraints'));
+        if ($closure !== null) {
+            $closure($columnBuilder);
+            return $this;
+        } else {
+            return $columnBuilder;
+        }
     }
 
-    // ALTER TABLE table_name
-    // DROP COLUMN column_name;
-    public function drop($column)
+    /**
+     * Modify a column to the statement.
+     *
+     * @param string        $name
+     * @param null|\Closure $closure function (ColumnBuilder) {...}
+     * @see ColumnBuilder
+     *
+     * @return AlterTable|ColumnBuilder
+     */
+    public function modifyColumn($name, \Closure $closure = null)
     {
-        $type = 'drop';
+        $type = 'modifyColumn';
+        $columnBuilder = new ColumnBuilder($this->connection, $this->logger);
+        $this->statement['alterations'][] = compact('type', 'name', 'columnBuilder');
+
+        if ($closure !== null) {
+            $closure($columnBuilder);
+            return $this;
+        } else {
+            return $columnBuilder;
+        }
+    }
+
+    /**
+     * Alter a column to the statement.
+     *
+     * @param string        $name
+     * @param null|\Closure $closure function (ColumnBuilder) {...}
+     *
+     * @see ColumnBuilder
+     * @see AlterTable::modifyColumn()
+     *
+     * @return AlterTable|ColumnBuilder
+     */
+    public function alterColumn($name, \Closure $closure = null)
+    {
+        return $this->modifyColumn($name, $closure);
+    }
+
+    /**
+     * Drop a column.
+     *
+     * @param string $column
+     *
+     * @return AlterTable
+     */
+    public function dropColumn($column)
+    {
+        $type = 'dropColumn';
 
         return $this->addToStatement('alterations', compact('type', 'column'));
     }
 
-    public function modify($column, $dataType, $constraints)
-    {
-        $type = 'modify';
 
-        return $this->addToStatement('alterations', compact('type', 'column', 'dataType', 'constraints'));
+    /**
+     * Add a foreign key index to the statement.
+     *
+     * @param string|array $columns
+     * @param string       $referenceTable
+     * @param string|array $referenceColumns
+     * @param null|string  $onDelete
+     * @param null|string  $onUpdate
+     * @param null|string  $name
+     *
+     * @return AlterTable
+     */
+    public function addForeignKey($columns, $referenceTable, $referenceColumns, $onDelete = null, $onUpdate = null, $name = null)
+    {
+        $type             = 'addForeignKey';
+        $columns          = (array) $columns;
+        $referenceColumns = (array) $referenceColumns;
+        $this->addToStatement('alterations', compact('type', 'name', 'columns', 'referenceTable', 'referenceColumns', 'onDelete', 'onUpdate'));
+
+        return $this;
     }
 
-    public function alter($column, $dataType, $constraints)
+    /**
+     * Drop a foreign key constraint.
+     *
+     * @param string $foreignKey
+     *
+     * @return AlterTable
+     */
+    public function dropForeignKey($foreignKey)
     {
-        return $this->modify($column, $dataType, $constraints);
+        $type = 'dropForeignKey';
+
+        return $this->addToStatement('alterations', compact('type', 'foreignKey'));
+    }
+
+
+    /**
+     * Add a unique constraint.
+     *
+     * @param string|array $columns
+     * @param null|string  $name
+     *
+     * @return AlterTable
+     */
+    public function addUnique($columns, $name = null)
+    {
+        $type    = 'addUnique';
+        $columns = (array) $columns;
+
+        return $this->addToStatement('alterations', compact('type', 'columns', 'name'));
+    }
+
+    /**
+     * Drop a unique constraint.
+     *
+     * @param string $unique
+     *
+     * @return AlterTable
+     */
+    public function dropUnique($unique)
+    {
+        $type = 'dropUnique';
+        return $this->addToStatement('alterations', compact('type', 'unique'));
     }
 
 

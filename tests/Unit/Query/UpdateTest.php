@@ -4,9 +4,10 @@ namespace MadeSimple\Database\Tests\Unit\Query;
 
 use MadeSimple\Database\Compiler;
 use MadeSimple\Database\CompilerInterface;
+use MadeSimple\Database\Query\Select;
 use MadeSimple\Database\Query\Update;
+use MadeSimple\Database\Query\WhereBuilder;
 use MadeSimple\Database\Tests\MockConnector;
-use Psr\Log\NullLogger;
 use MadeSimple\Database\Tests\MockConnection;
 use MadeSimple\Database\Tests\TestCase;
 
@@ -157,9 +158,9 @@ class UpdateTest extends TestCase
         $sql    = 'UPDATE `table` SET `field`=? WHERE ((`foo` != ? OR `bar` IN (?,?,?)) AND `baz` = ?)';
         $select = (new Update($this->mockConnection))->table('table')
             ->set('field', 5)
-            ->where(function ($query) {
+            ->where(function (WhereBuilder $query) {
                 $query
-                    ->where(function ($query) {
+                    ->where(function (WhereBuilder $query) {
                         $query->where('foo', '!=', 5)->orWhere('bar', 'in', [1,2,3]);
                     })
                     ->where('baz', '=', 3);
@@ -253,7 +254,7 @@ class UpdateTest extends TestCase
         $sql    = 'UPDATE `table1` SET `field`=? WHERE EXISTS (SELECT * FROM `table2` WHERE `table1`.`id` = `table2`.`table1_id`)';
         $select = (new Update($this->mockConnection))->table('table1')
             ->set('field', 5)
-            ->whereExists(function ($select) {
+            ->whereExists(function (Select $select) {
                 $select->from('table2')->whereColumn('table1.id', '=', 'table2.table1_id');
             });
         $this->assertEquals($sql, $select->toSql());
@@ -267,7 +268,7 @@ class UpdateTest extends TestCase
         $sql    = 'UPDATE `table1` SET `field`=? WHERE NOT EXISTS (SELECT * FROM `table2` WHERE `table1`.`id` = `table2`.`table1_id`)';
         $select = (new Update($this->mockConnection))->table('table1')
             ->set('field', 5)
-            ->whereNotExists(function ($select) {
+            ->whereNotExists(function (Select $select) {
                 $select->from('table2')->whereColumn('table1.id', '=', 'table2.table1_id');
             });
         $this->assertEquals($sql, $select->toSql());

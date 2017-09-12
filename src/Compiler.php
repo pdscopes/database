@@ -286,32 +286,6 @@ abstract class Compiler implements CompilerInterface
         ]), []];
     }
 
-    public function compileStatementCreateTable(array $statement)
-    {
-        // Table
-        $table = $this->compileSanitiseArray($statement['table']);
-
-        return [$this->concatenateSql([
-            'CREATE TABLE',
-            $table,
-            '()'
-        ]), []];
-    }
-
-    public function compileStatementAlterTable(array $statement)
-    {
-        // Table
-        $table = $this->compileSanitiseArray($statement['table']);
-        // Alterations
-        $alterations = $this->compileStatementAlterations($statement);
-
-        return [$this->concatenateSql([
-            'ALTER TABLE',
-            $table,
-            $alterations
-        ]), []];
-    }
-
     public function compileStatementTruncateTable(array $statement)
     {
         return [$this->concatenateSql([
@@ -341,21 +315,6 @@ abstract class Compiler implements CompilerInterface
             'CREATE',
             $unique,
             'INDEX',
-            $name,
-            'ON',
-            $table,
-        ]), []];
-    }
-
-    public function compileStatementDropIndex(array $statement)
-    {
-        // Index
-        $name  = $this->compileSanitiseArray($statement['name']);
-        // Table
-        $table = $this->compileSanitiseArray($statement['table']);
-
-        return [$this->concatenateSql([
-            'DROP INDEX',
             $name,
             'ON',
             $table,
@@ -395,11 +354,11 @@ abstract class Compiler implements CompilerInterface
     public function compileStatementDropView(array $statement)
     {
         // Index
-        $name   = $this->compileSanitiseArray($statement['name']);
+        $table = $this->compileSanitiseArray($statement['table']);
 
         return [$this->concatenateSql([
             'DROP VIEW',
-            $name,
+            $table,
         ]), []];
     }
 
@@ -669,26 +628,6 @@ abstract class Compiler implements CompilerInterface
 
 
 
-    protected function compileStatementAlterations(array $statement)
-    {
-        $sql = '';
-        foreach ($statement['alterations'] as $alteration) {
-            $sql .= "\n";
-            switch ($alteration['type']) {
-                case 'add':
-                    $sql .= 'ADD ' . $alteration['column'] . ' ' . $alteration['dataType'] . ' ' . $alteration['constraints'];
-                    break;
-                case 'drop':
-                    $sql .= 'DROP COLUMN ' . $alteration['column'];
-                    break;
-                case 'modify':
-                    $sql .= 'MODIFY COLUMN ' . $alteration['column'] . ' ' . $alteration['dataType'] . ' ' . $alteration['constraints'];
-                    break;
-            }
-        }
-
-        return trim($sql);
-    }
 
     public function compileStatementSelect(array $statement)
     {
