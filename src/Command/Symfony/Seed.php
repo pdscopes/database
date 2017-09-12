@@ -24,7 +24,7 @@ class Seed extends Command
             ->setName('migrate:seed')
             ->setDescription('Seed your database with dummy data')
             ->setHelp('This command allows you to populate your database with dummy data')
-            ->addOption('seed', 's', InputOption::VALUE_OPTIONAL, 'Path to your database seed files', 'database/seeds')
+            ->addOption('seed', 's', InputOption::VALUE_REQUIRED, 'Path to your database seed files', 'database/seeds')
             ->addUsage('sqlite')
             ->addUsage('-s path/to/seed/files sqlite')
             ->addUsage('-e')
@@ -33,6 +33,10 @@ class Seed extends Command
 
     protected function initialize(InputInterface $input, OutputInterface $output)
     {
+        // Ensure default value for options with optional value
+        $input->setOption('seed', $input->getOption('seed') ?? $this->getDefinition()->getOption('seed')->getDefault());
+
+        // Ensure locations exist
         // Validate input
         $fs = new Filesystem();
         if (!$fs->exists($input->getOption('seed'))) {

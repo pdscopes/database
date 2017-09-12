@@ -30,7 +30,7 @@ class Upgrade extends Command
             ->setName('migrate:upgrade')
             ->setDescription('Upgrade to your next database migration')
             ->setHelp('This command allows you to upgrade your database to the next migration')
-            ->addOption('path', 'p', InputOption::VALUE_OPTIONAL, 'Path to your database migration files', 'database/migrations')
+            ->addOption('path', 'p', InputOption::VALUE_REQUIRED, 'Path to your database migration files', 'database/migrations')
             ->addOption('seed', 's', InputOption::VALUE_OPTIONAL, 'Path to your database seed files', 'database/seeds')
             ->addUsage('sqlite')
             ->addUsage('-p path/to/migration/files sqlite')
@@ -40,6 +40,11 @@ class Upgrade extends Command
 
     protected function initialize(InputInterface $input, OutputInterface $output)
     {
+        // Ensure default value for options with optional value
+        $input->setOption('path', $input->getOption('path') ?? $this->getDefinition()->getOption('seed')->getDefault());
+        $input->setOption('seed', $input->getOption('seed') ?? $this->getDefinition()->getOption('seed')->getDefault());
+
+        // Ensure locations exist
         $fs = new Filesystem();
         if (!$fs->exists($input->getOption('path'))) {
             throw new \InvalidArgumentException('Migrations path must be a directory that exists');
