@@ -41,7 +41,7 @@ class Migrate extends Command
         if (!$fs->exists($input->getOption('path'))) {
             throw new \InvalidArgumentException('Migrations path must be a directory that exists');
         }
-        if ($input->getParameterOption(['--seed', '-s'], false, true) && !$fs->exists($input->getOption('seed'))) {
+        if ($input->getParameterOption(['--seed', '-s'], false, true) !== false && !$fs->exists($input->getOption('seed'))) {
             throw new \InvalidArgumentException('Seed path must be a directory that exists');
         }
     }
@@ -70,7 +70,7 @@ class Migrate extends Command
         $migrator->upgrade(iterator_to_array($finder->getIterator()));
 
         // Optionally seed the database
-        if ($input->getParameterOption(['--seed', '-s'], false, true)) {
+        if ($input->getParameterOption(['--seed', '-s'], false, true) !== false) {
             $finder = new Finder();
             $finder->files()->sortByName()->in($input->getOption('seed'))->name('*.php');
             $migrator->seed(iterator_to_array($finder->getIterator()));
