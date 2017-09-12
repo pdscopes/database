@@ -446,7 +446,7 @@ class ColumnBuilder extends Builder
      */
     public function default($value)
     {
-        $this->statement['default'] = (string) $value;
+        $this->statement['default'] = $value === null ? null : (string) $value;
         unset($this->statement['useCurrent']);
         return $this;
     }

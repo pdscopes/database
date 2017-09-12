@@ -111,15 +111,15 @@ $connection
 
 ### Statements
 ```php
-$connection->statement(function (CreateTable $table) {
-    $table->name('user')->ifNotExists();
-    $table->column('id')->integer(10)->primaryKey()->autoIncrement();
-    $table->column('uuid')->char(36)->unique()->notNull();
-    $table->column('email')->char(255)->unique()->notNull();
-    $table->column('password')->char(255)->notNull();
-    $table->column('created_at')->timestamp()->notNull()->useCurrent();
-    $table->column('updated_at')->timestamp()->notNull()->useCurrent();
-    $table
+$connection->statement(function (CreateTable $create) {
+    $create->table('user')->ifNotExists();
+    $create->column('id')->integer(10)->primaryKey()->autoIncrement();
+    $create->column('uuid')->char(36)->unique()->notNull();
+    $create->column('email')->char(255)->unique()->notNull();
+    $create->column('password')->char(255)->notNull();
+    $create->column('created_at')->timestamp()->notNull()->useCurrent();
+    $create->column('updated_at')->timestamp()->notNull()->useCurrent();
+    $create
         ->engine('InnoDB')
         ->charset('utf8mb4', 'utf8mb4_general_ci');
 });

@@ -38,7 +38,7 @@
     "autoload-dev": {
         "psr-4": {
             "MadeSimple\\Database\\Tests\\": "tests/",
-            "MadeSimple\\Database2\\Example\\": "examples/"
+            "MadeSimple\\Database\\Example\\": "examples/"
         }
     },
     "bin": [

@@ -14,21 +14,22 @@ class ExampleComment implements MigrationInterface
      */
     function up(Connection $connection)
     {
-        $connection->statement(function (CreateTable $table) {
-            $table->table('comment');
-            $table->ifNotExists(true);
-            $table->column('id')->integer(11, true)->notNull()->autoIncrement();
-            $table->column('uuid')->char(36)->notNull();
-            $table->column('user_id')->integer(11, true)->null(true);
-            $table->column('post_id')->integer(11, true)->null(true);
-            $table->column('content')->text()->notNull();
-            $table->column('created_at')->timestamp()->notNull()->useCurrent();
-            $table->column('updated_at')->timestamp()->notNull()->useCurrent();
+        $connection->statement(function (CreateTable $create) {
+            $create->table('comment');
+            $create->ifNotExists(true);
+            $create->column('id')->integer(11, true)->notNull()->autoIncrement();
+            $create->column('uuid')->char(36)->notNull();
+            $create->column('user_id')->integer(11, true)->null(true);
+            $create->column('post_id')->integer(11, true)->null(true);
+            $create->column('content')->text()->notNull();
+            $create->column('created_at')->timestamp()->notNull()->useCurrent();
+            $create->column('updated_at')->timestamp()->notNull()->useCurrent();
 
 
-            $table->primaryKey('id')
-                  ->foreignKey('post_id', 'post', 'id', 'CASCADE')
-                  ->engine('InnoDB');
+            $create
+                ->primaryKey('id')
+                ->foreignKey('post_id', 'post', 'id', 'CASCADE')
+                ->engine('InnoDB');
         });
     }
 

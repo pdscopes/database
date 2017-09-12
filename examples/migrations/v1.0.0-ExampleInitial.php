@@ -14,34 +14,35 @@ class ExampleInitial implements MigrationInterface
      */
     function up(Connection $connection)
     {
-        $connection->statement(function (CreateTable $table) {
-            $table->table('user');
-            $table->ifNotExists();
-            $table->column('id')->integer(11, true)->notNull()->autoIncrement()->primaryKey();
-            $table->column('uuid')->char(36)->notNull()->unique();
-            $table->column('email')->char(255)->notNull()->unique();
-            $table->column('password')->char(255)->notNull();
-            $table->column('created_at')->timestamp()->notNull()->useCurrent();
-            $table->column('updated_at')->timestamp()->notNull()->useCurrent();
+        $connection->statement(function (CreateTable $create) {
+            $create->table('user');
+            $create->ifNotExists();
+            $create->column('id')->integer(11, true)->notNull()->autoIncrement()->primaryKey();
+            $create->column('uuid')->char(36)->notNull()->unique();
+            $create->column('email')->char(255)->notNull()->unique();
+            $create->column('password')->char(255)->notNull();
+            $create->column('created_at')->timestamp()->notNull()->useCurrent();
+            $create->column('updated_at')->timestamp()->notNull()->useCurrent();
 
-            $table->engine('InnoDB')->charset('utf8mb4', 'utf8mb4_general_ci');
+            $create->engine('InnoDB')->charset('utf8mb4', 'utf8mb4_general_ci');
         });
 
-        $connection->statement(function (CreateTable $table) {
-            $table->table('post');
-            $table->ifNotExists(true);
-            $table->column('id')->integer(11, true)->notNull()->autoIncrement();
-            $table->column('uuid')->char(36)->notNull();
-            $table->column('user_id')->integer(11, true)->null(true);
-            $table->column('title')->char(255)->notNull();
-            $table->column('content')->text()->notNull();
-            $table->column('created_at')->timestamp()->notNull()->useCurrent();
-            $table->column('updated_at')->timestamp()->notNull()->useCurrent();
+        $connection->statement(function (CreateTable $create) {
+            $create->table('post');
+            $create->ifNotExists(true);
+            $create->column('id')->integer(11, true)->notNull()->autoIncrement();
+            $create->column('uuid')->char(36)->notNull();
+            $create->column('user_id')->integer(11, true)->null(true);
+            $create->column('title')->char(255)->notNull();
+            $create->column('content')->text()->notNull();
+            $create->column('created_at')->timestamp()->notNull()->useCurrent();
+            $create->column('updated_at')->timestamp()->notNull()->useCurrent();
 
 
-            $table->primaryKey('id')
-                  ->foreignKey('user_id', 'user', 'id', 'CASCADE')
-                  ->engine('InnoDB');
+            $create
+                ->primaryKey('id')
+                ->foreignKey('user_id', 'user', 'id', 'CASCADE')
+                ->engine('InnoDB');
         });
     }
 

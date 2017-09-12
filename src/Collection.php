@@ -30,7 +30,7 @@ class Collection extends \MadeSimple\Arrays\Collection
                         $pointer = &$pointer[$segment];
                     } elseif (property_exists($pointer, $segment)) {
                         $pointer = &$pointer->{$segment};
-                    } elseif (method_exists($pointer, $segment) && $pointer instanceof Relational) {
+                    } elseif (method_exists($pointer, $segment) && method_exists($pointer, 'relation')) {
                         $pointer = $pointer->relation($segment);
                     } else {
                         throw new \RuntimeException('Could not find ' . $key);
