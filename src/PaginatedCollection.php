@@ -39,8 +39,8 @@ class PaginatedCollection implements ArrayAccess, Countable, IteratorAggregate, 
     function __construct($items, $page, $total)
     {
         $this->items = $this->extractCollectibleItems($items);
-        $this->page  = $page;
-        $this->total = $total;
+        $this->page  = (int) $page;
+        $this->total = (int) $total;
     }
 
     /**
