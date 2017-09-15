@@ -67,6 +67,7 @@ class ToOneTest extends TestCase
         $entity = new ToOneRelatedEntity($this->mockPool);
         $entity->key = 5;
         $relation = (new ToOne($entity))->has(ToOneEntity::class, 'e', 'foreign_key');
+        /** @var ToOneEntity $related */
         $related  = $relation->fetch();
 
         $this->assertInstanceOf(ToOneEntity::class, $related);
@@ -94,6 +95,7 @@ class ToOneTest extends TestCase
         $entity = new ToOneEntity($this->mockPool);
         $entity->foreignKey = 5;
         $relation = (new ToOne($entity))->belongsTo(ToOneRelatedEntity::class, 'r', 'foreign_key');
+        /** @var ToOneRelatedEntity $related */
         $related  = $relation->fetch();
 
         $this->assertInstanceOf(ToOneRelatedEntity::class, $related);

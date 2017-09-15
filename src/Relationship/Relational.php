@@ -2,21 +2,30 @@
 
 namespace MadeSimple\Database\Relationship;
 
-use MadeSimple\Database\Collection;
+use MadeSimple\Arrays\Arrayable;
+use MadeSimple\Database\EntityCollection;
 use MadeSimple\Database\Entity;
+use MadeSimple\Database\EntityMap;
 
 trait Relational
 {
+    use Entity\PropertiesToArrayTrait, Entity\CastPropertyTrait;
+
     /**
-     * @var Collection[]|Entity[]
+     * @var EntityCollection[]|Entity[]
      */
     protected $relationships = [];
+
+    /**
+     * @return EntityMap
+     */
+    public abstract function getMap();
 
     /**
      * @param string $relationship
      * @param array  $args
      *
-     * @return Collection|Entity
+     * @return EntityCollection|Entity
      */
     public function relation($relationship, ... $args)
     {
@@ -54,5 +63,23 @@ trait Relational
             return new ToMany($this);
         }
         throw new \RuntimeException('Cannot create to many relationship for non-entities');
+    }
+
+
+    /**
+     * @return array
+     */
+    public function toArray()
+    {
+        $properties = $this->propertiesToArray($this->getMap()->columnMap());
+
+        foreach ($this->relationships as $property => $value) {
+            if (in_array($property, $this->hidden)) {
+                continue;
+            }
+            $properties[$property] = $value instanceof Arrayable ? $value->toArray() : $this->cast($property);
+        }
+
+        return $properties;
     }
 }

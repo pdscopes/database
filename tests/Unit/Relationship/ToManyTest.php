@@ -2,7 +2,7 @@
 
 namespace MadeSimple\Database\Tests\Unit\Relationship;
 
-use MadeSimple\Database\Collection;
+use MadeSimple\Database\EntityCollection;
 use MadeSimple\Database\Connection;
 use MadeSimple\Database\Entity;
 use MadeSimple\Database\EntityMap;
@@ -69,7 +69,7 @@ class ToManyTest extends TestCase
         $relation = (new ToMany($entity))->has(ToManyEntity::class, 'e', 'foreign_key');
         $items    = $relation->fetch();
 
-        $this->assertInstanceOf(Collection::class, $items);
+        $this->assertInstanceOf(EntityCollection::class, $items);
         $this->assertCount(1, $items);
         $this->assertInstanceOf(ToManyEntity::class, $items[0]);
         $this->assertEquals(5, $items[0]->foreignKey);
@@ -97,7 +97,7 @@ class ToManyTest extends TestCase
         $relation = (new ToMany($entity))->belongsTo(ToManyRelatedEntity::class, 'r', 'foreign_key');
         $items    = $relation->fetch();
 
-        $this->assertInstanceOf(Collection::class, $items);
+        $this->assertInstanceOf(EntityCollection::class, $items);
         $this->assertCount(1, $items);
         $this->assertInstanceOf(ToManyRelatedEntity::class, $items[0]);
         $this->assertEquals(5, $items[0]->key);

@@ -2,7 +2,7 @@
 
 namespace MadeSimple\Database\Tests\Unit;
 
-use MadeSimple\Database\Collection;
+use MadeSimple\Database\EntityCollection;
 use MadeSimple\Database\Connection;
 use MadeSimple\Database\Entity;
 use MadeSimple\Database\EntityMap;
@@ -57,7 +57,7 @@ class RepositoryTest extends TestCase
         $repository = new Repository($this->mockPool, RepositoryEntity::class);
         $items      = $repository->findBy();
 
-        $this->assertInstanceOf(Collection::class, $items);
+        $this->assertInstanceOf(EntityCollection::class, $items);
         $this->assertCount(1, $items);
         $this->assertInstanceOf(RepositoryEntity::class, $items[0]);
     }
@@ -81,7 +81,7 @@ class RepositoryTest extends TestCase
         $repository = new Repository($this->mockPool, RepositoryEntity::class);
         $items      = $repository->findBy(['column' => 'value']);
 
-        $this->assertInstanceOf(Collection::class, $items);
+        $this->assertInstanceOf(EntityCollection::class, $items);
         $this->assertCount(1, $items);
         $this->assertInstanceOf(RepositoryEntity::class, $items[0]);
     }
@@ -106,7 +106,7 @@ class RepositoryTest extends TestCase
         $repository = new Repository($this->mockPool, RepositoryEntity::class);
         $items      = $repository->findBy(['c1' => 'v1', 'c2' => 'v2']);
 
-        $this->assertInstanceOf(Collection::class, $items);
+        $this->assertInstanceOf(EntityCollection::class, $items);
         $this->assertCount(1, $items);
         $this->assertInstanceOf(RepositoryEntity::class, $items[0]);
     }
@@ -129,7 +129,7 @@ class RepositoryTest extends TestCase
         $repository = new Repository($this->mockPool, RepositoryEntity::class);
         $items      = $repository->findBy([], ['o1']);
 
-        $this->assertInstanceOf(Collection::class, $items);
+        $this->assertInstanceOf(EntityCollection::class, $items);
         $this->assertCount(1, $items);
         $this->assertInstanceOf(RepositoryEntity::class, $items[0]);
     }

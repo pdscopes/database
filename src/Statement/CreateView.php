@@ -2,8 +2,6 @@
 
 namespace MadeSimple\Database\Statement;
 
-use MadeSimple\Database\Migration\SeedInterface;
-
 class CreateView extends StatementBuilder
 {
     /**

@@ -2,14 +2,14 @@
 
 namespace MadeSimple\Database\Relationship;
 
-use MadeSimple\Database\Collection;
+use MadeSimple\Database\EntityCollection;
 use MadeSimple\Database\Entity;
 use MadeSimple\Database\Relationship;
 
 class ToMany extends Relationship
 {
     /**
-     * @return Collection
+     * @return EntityCollection
      */
     public function fetch()
     {
@@ -29,7 +29,7 @@ class ToMany extends Relationship
             $items[] = $entity->populate($row, $map);
         }
 
-        return new Collection($items);
+        return new EntityCollection($items);
     }
 
 }
