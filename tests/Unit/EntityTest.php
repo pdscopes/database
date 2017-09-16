@@ -233,6 +233,32 @@ class EntityTest extends TestCase
     }
 
     /**
+     * Test update a subset of properties on an entity with a single primary key.
+     */
+    public function testUpdateSinglePrimaryKeyPropertiesSubset()
+    {
+        /** @var \Mockery\Mock $mockUpdate */
+        $mockUpdate = \Mockery::mock(Query\Update::class);
+
+        $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
+        $this->mockConnection->shouldReceive('update')->once()->withNoArgs()->andReturn($mockUpdate);
+        $mockUpdate->shouldReceive('table')->once()->with('dummy')->andReturnSelf();
+        $mockUpdate->shouldReceive('columns')->once()->with(['first_name' => 'Test', 'last_name' => 'Person'])->andReturnSelf();
+        $mockUpdate->shouldReceive('where')->once()->with('ID', '=', 5);
+        $mockUpdate->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
+        $mockUpdate->shouldReceive('affectedRows')->once()->withNoArgs()->andReturn(1);
+
+
+        $entity = new SingleKeyEntity($this->mockPool);
+        $entity->id        = 5;
+        $entity->firstName = 'Test';
+        $entity->lastName  = 'Person';
+
+        $this->assertTrue($entity->update(['firstName', 'lastName']));
+        $this->assertFalse($entity->createdRecently);
+    }
+
+    /**
      * Test update with a composite primary key
      */
     public function testUpdateCompositePrimaryKey()
@@ -256,6 +282,33 @@ class EntityTest extends TestCase
         $entity->value     = 'value';
 
         $this->assertTrue($entity->update());
+        $this->assertFalse($entity->createdRecently);
+    }
+
+    /**
+     * Test update a subset of properties on an entity with a composite primary key
+     */
+    public function testUpdateCompositePrimaryKeyPropertiesSubset()
+    {
+        /** @var \Mockery\Mock $mockUpdate */
+        $mockUpdate = \Mockery::mock(Query\Update::class);
+
+        $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
+        $this->mockConnection->shouldReceive('update')->once()->withNoArgs()->andReturn($mockUpdate);
+        $mockUpdate->shouldReceive('table')->once()->with('dummy_link')->andReturnSelf();
+        $mockUpdate->shouldReceive('columns')->once()->with(['value' => 'value'])->andReturnSelf();
+        $mockUpdate->shouldReceive('where')->once()->with('user_id', '=', 5);
+        $mockUpdate->shouldReceive('where')->once()->with('company_id', '=', 7);
+        $mockUpdate->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
+        $mockUpdate->shouldReceive('affectedRows')->once()->withNoArgs()->andReturn(1);
+
+
+        $entity = new CompositeKeyEntity($this->mockPool);
+        $entity->userId    = 5;
+        $entity->companyId = 7;
+        $entity->value     = 'value';
+
+        $this->assertTrue($entity->update('value'));
         $this->assertFalse($entity->createdRecently);
     }
 

@@ -131,25 +131,31 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
     }
 
     /**
+     * @param string|array $properties
+     *
      * @return bool True if the entity was successfully updated
      */
-    public function update()
+    public function update($properties = null)
     {
-        $connection = $this->pool->get(static::$connection);
-
-        $map    = $this->getMap();
-        $values = [];
-        foreach ($map->columnMap() as $dbField => $property) {
-            $values[$dbField] = $this->{$property};
+        // Calculate the columns to be updated
+        $map     = $this->getMap();
+        $columns = array_intersect($map->columnMap(), (array) ($properties ?? $map->columnMap()));
+        if (empty($columns)) {
+            return true;
         }
-        $update = $connection->update()
+
+        // Retrieve the property values
+        foreach ($columns as $dbField => $property) {
+            $columns[$dbField] = $this->{$property};
+        }
+        $update = $this->pool->get(static::$connection)
+            ->update()
             ->table($map->tableName())
-            ->columns($values);
+            ->columns($columns);
 
         foreach ($map->primaryKeys() as $idx => $key) {
             $update->where($idx, '=', $this->{$key});
         }
-
 
         return 1 === $update->query()->affectedRows();
     }
