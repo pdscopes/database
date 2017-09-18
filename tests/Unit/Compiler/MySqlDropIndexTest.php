@@ -1,16 +1,16 @@
 <?php
 
-namespace MadeSimple\Database\Tests\Unit\Statement;
+namespace MadeSimple\Database\Tests\Unit\Compiler;
 
 use MadeSimple\Database\Statement\DropIndex;
 use MadeSimple\Database\Tests\CompilableMySqlTestCase;
 
-class DropIndexTest extends CompilableMySqlTestCase
+class MySqlDropIndexTest extends CompilableMySqlTestCase
 {
     /**
      * Test setting the index name.
      */
-    public function testIndex()
+    public function testDropIndexIndex()
     {
         $sql       = 'ALTER TABLE `table` DROP INDEX `name`';
         $statement = (new DropIndex($this->mockConnection))->index('name')->table('table');

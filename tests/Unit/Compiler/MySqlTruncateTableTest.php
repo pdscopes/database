@@ -1,16 +1,16 @@
 <?php
 
-namespace MadeSimple\Database\Tests\Unit\Statement;
+namespace MadeSimple\Database\Tests\Unit\Compiler;
 
 use MadeSimple\Database\Statement\TruncateTable;
 use MadeSimple\Database\Tests\CompilableMySqlTestCase;
 
-class TruncateTableTest extends CompilableMySqlTestCase
+class MySqlTruncateTableTest extends CompilableMySqlTestCase
 {
     /**
-     * Test setting the index name.
+     * Test truncating a table.
      */
-    public function testIndex()
+    public function testTruncateTableTable()
     {
         $sql       = 'TRUNCATE TABLE `name`';
         $statement = (new TruncateTable($this->mockConnection))->table('name');

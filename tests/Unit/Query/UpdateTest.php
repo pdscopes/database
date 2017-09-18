@@ -2,9 +2,7 @@
 
 namespace MadeSimple\Database\Tests\Unit\Query;
 
-use MadeSimple\Database\Query\Select;
 use MadeSimple\Database\Query\Update;
-use MadeSimple\Database\Query\WhereBuilder;
 use MadeSimple\Database\Tests\CompilableTestCase;
 
 class UpdateTest extends CompilableTestCase
@@ -14,10 +12,12 @@ class UpdateTest extends CompilableTestCase
      */
     public function testTable()
     {
-        $sql    = 'UPDATE `table` SET `foo`=?';
-        $update = (new Update($this->mockConnection))->table('table')->set('foo', 5);
+        $query = (new Update($this->mockConnection))->table('table');
+        $array = $query->toArray();
 
-        $this->assertEquals($sql, $update->toSql());
+        $this->assertInstanceOf(Update::class, $query);
+        $this->assertArrayHasKey('table', $array);
+        $this->assertEquals('table', $array['table']);
     }
 
     /**
@@ -25,10 +25,14 @@ class UpdateTest extends CompilableTestCase
      */
     public function testSet()
     {
-        $sql    = 'UPDATE `table` SET `foo`=?,`bar`=?';
-        $update = (new Update($this->mockConnection))->table('table')->set('foo', 1)->set('bar', 2);
+        $query = (new Update($this->mockConnection))->set('field', 'val');
+        $array = $query->toArray();
 
-        $this->assertEquals($sql, $update->toSql());
+        $this->assertInstanceOf(Update::class, $query);
+        $this->assertArrayHasKey('columns', $array);
+        $this->assertArrayHasKey('values', $array);
+        $this->assertEquals(['field'], $array['columns']);
+        $this->assertEquals(['val'], $array['values']);
     }
 
     /**
@@ -36,10 +40,14 @@ class UpdateTest extends CompilableTestCase
      */
     public function testColumnsSingle()
     {
-        $sql    = 'UPDATE `table` SET `foo`=?';
-        $update = (new Update($this->mockConnection))->table('table')->columns(['foo' => 5]);
+        $query = (new Update($this->mockConnection))->columns(['field' => 'val']);
+        $array = $query->toArray();
 
-        $this->assertEquals($sql, $update->toSql());
+        $this->assertInstanceOf(Update::class, $query);
+        $this->assertArrayHasKey('columns', $array);
+        $this->assertArrayHasKey('values', $array);
+        $this->assertEquals(['field'], $array['columns']);
+        $this->assertEquals(['val'], $array['values']);
     }
 
     /**
@@ -47,189 +55,67 @@ class UpdateTest extends CompilableTestCase
      */
     public function testColumnsMultiple()
     {
-        $sql    = 'UPDATE `table` SET `foo`=?,`bar`=?';
-        $update = (new Update($this->mockConnection))->table('table')->columns(['foo' => 5, 'bar' => 6]);
+        $query = (new Update($this->mockConnection))->columns(['field1' => 'val1', 'field2' => 'val2']);
+        $array = $query->toArray();
 
-        $this->assertEquals($sql, $update->toSql());
+        $this->assertInstanceOf(Update::class, $query);
+        $this->assertArrayHasKey('columns', $array);
+        $this->assertArrayHasKey('values', $array);
+        $this->assertEquals(['field1', 'field2'], $array['columns']);
+        $this->assertEquals(['val1', 'val2'], $array['values']);
     }
 
 
-
     /**
-     * Test where.
+     * Test affectedRows uses the PDOStatement to retrieve row count.
      */
-    public function testWhere()
+    public function testAffectedRow()
     {
-        $sql    = 'UPDATE `table` SET `field`=? WHERE `foo` = ?';
-        $select = (new Update($this->mockConnection))->table('table')
-            ->set('field', 5)
-            ->where('foo', '=', 1);
-        $this->assertEquals($sql, $select->toSql());
+        $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs();
+        $this->mockPdoStatement->shouldReceive('rowCount')->once()->withNoArgs()->andReturn(4);
+        $this->mockPdo->shouldReceive('prepare')->once()->with('SQL')->andReturn($this->mockPdoStatement);
+
+
+        $query = (new Update($this->mockConnection));
+        $query->query('SQL', []);
+        $this->assertEquals(4, $query->affectedRows());
     }
 
     /**
-     * Test where comparison operators.
+     * Test buildSql calls Compiler::compileQueryUpdate.
      */
-    public function testWhereComparisonOperators()
+    public function testBuildSql()
     {
-        $sql    = 'UPDATE `table` SET `field`=? WHERE `field1` = ? AND `field2` > ? AND `field3` < ? AND `field4` >= ? AND `field5` <= ? AND `field6` <> ?';
-        $select = (new Update($this->mockConnection))
-            ->table('table')
-            ->set('field', 5)
-            ->where('field1', '=', 1)
-            ->where('field2', '>', 1)
-            ->where('field3', '<', 1)
-            ->where('field4', '>=', 1)
-            ->where('field5', '<=', 1)
-            ->where('field6', '<>', 1);
-        $this->assertEquals($sql, $select->toSql());
+        $statement = ['table' => ['table' => 't']];
+        $this->mockCompiler->shouldReceive('compileQueryUpdate')->once()->with($statement)->andReturn(['SQL', []]);
+
+        $query = (new Update($this->mockConnection));
+        list($sql, $bindings) = $query->buildSql($statement);
+        $this->assertEquals('SQL', $sql);
+        $this->assertEquals([], $bindings);
     }
 
     /**
-     * Test where between.
+     * Test insert query is tidies properly after execution.
      */
-    public function testWhereBetween()
+    public function testTidyAfterExecution()
     {
-        $sql    = 'UPDATE `table` SET `field`=? WHERE `field` BETWEEN ? AND ?';
-        $select = (new Update($this->mockConnection))->table('table')
-            ->set('field', 5)
-            ->where('field', 'between', [1, 9]);
-        $this->assertEquals($sql, $select->toSql());
-    }
+        $this->mockCompiler->shouldReceive('compileQueryUpdate')->once()->withAnyArgs()->andReturn(['SQL', []]);
+        $this->mockPdo->shouldReceive('prepare')->once()->with('SQL')->andReturn($this->mockPdoStatement);
+        $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs();
 
-    /**
-     * Test where in.
-     */
-    public function testWhereIn()
-    {
-        $sql    = 'UPDATE `table` SET `field`=? WHERE `field` IN (?,?,?,?,?)';
-        $select = (new Update($this->mockConnection))->table('table')
-            ->set('field', 5)
-            ->where('field', 'in', [1, 2, 3, 4, 5]);
-        $this->assertEquals($sql, $select->toSql());
-    }
+        $query = (new Update($this->mockConnection))->table('table')->columns(['field' => 'val']);
+        $array  = $query->toArray();
 
-    /**
-     * Test where with closure.
-     */
-    public function testWhereClosure()
-    {
-        $sql    = 'UPDATE `table` SET `field`=? WHERE ((`foo` != ? OR `bar` IN (?,?,?)) AND `baz` = ?)';
-        $select = (new Update($this->mockConnection))->table('table')
-            ->set('field', 5)
-            ->where(function (WhereBuilder $query) {
-                $query
-                    ->where(function (WhereBuilder $query) {
-                        $query->where('foo', '!=', 5)->orWhere('bar', 'in', [1,2,3]);
-                    })
-                    ->where('baz', '=', 3);
-            });
-        $this->assertEquals($sql, $select->toSql());
-    }
+        $this->assertArrayHasKey('table', $array);
+        $this->assertArrayHasKey('columns', $array);
+        $this->assertArrayHasKey('values', $array);
 
-    /**
-     * Test multiple wheres with AND boolean.
-     */
-    public function testAndWhere()
-    {
-        $sql    = 'UPDATE `table` SET `field`=? WHERE `foo` = ? AND `bar` = ?';
-        $select = (new Update($this->mockConnection))->table('table')
-            ->set('field', 5)
-            ->where('foo', '=', 1)
-            ->where('bar', '=', 2);
-        $this->assertEquals($sql, $select->toSql());
-    }
+        $query->statement();
 
-    /**
-     * Test multiple wheres with AND boolean.
-     */
-    public function testOrWhere()
-    {
-        $sql    = 'UPDATE `table` SET `field`=? WHERE `foo` = ? OR `bar` = ?';
-        $select = (new Update($this->mockConnection))->table('table')
-            ->set('field', 5)
-            ->where('foo', '=', 1)
-            ->orWhere('bar', '=', 2);
-        $this->assertEquals($sql, $select->toSql());
-    }
-
-    /**
-     * Test where with a raw value.
-     */
-    public function testWhereRaw()
-    {
-        $sql    = 'UPDATE `table` SET `field`=? WHERE `foo` = ? AND `bar` = COUNT(`qux`)';
-        $select = (new Update($this->mockConnection))->table('table')
-            ->set('field', 5)
-            ->where('foo', '=', 5)
-            ->whereRaw('bar', '=', 'COUNT(`qux`)');
-        $this->assertEquals($sql, $select->toSql());
-    }
-
-    /**
-     * Test or where with a raw value.
-     */
-    public function testOrWhereRaw()
-    {
-        $sql    = 'UPDATE `table` SET `field`=? WHERE `foo` = ? OR `bar` = COUNT(`qux`)';
-        $select = (new Update($this->mockConnection))->table('table')
-            ->set('field', 5)
-            ->where('foo', '=', 5)
-            ->orWhereRaw('bar', '=', 'COUNT(`qux`)');
-        $this->assertEquals($sql, $select->toSql());
-    }
-
-    /**
-     * Test where comparison of two columns.
-     */
-    public function testWhereColumn()
-    {
-        $sql    = 'UPDATE `table` SET `field`=? WHERE `foo` = ? AND `bar` = `qux`';
-        $select = (new Update($this->mockConnection))->table('table')
-            ->set('field', 5)
-            ->where('foo', '=', 5)
-            ->whereColumn('bar', '=', 'qux');
-        $this->assertEquals($sql, $select->toSql());
-    }
-
-    /**
-     * Test or where comparison of two columns.
-     */
-    public function testOrWhereColumn()
-    {
-        $sql    = 'UPDATE `table` SET `field`=? WHERE `foo` = ? OR `bar` = `qux`';
-        $select = (new Update($this->mockConnection))->table('table')
-            ->set('field', 5)
-            ->where('foo', '=', 5)
-            ->orWhereColumn('bar', '=', 'qux');
-        $this->assertEquals($sql, $select->toSql());
-    }
-
-    /**
-     * Test where exists.
-     */
-    public function testWhereExists()
-    {
-        $sql    = 'UPDATE `table1` SET `field`=? WHERE EXISTS (SELECT * FROM `table2` WHERE `table1`.`id` = `table2`.`table1_id`)';
-        $select = (new Update($this->mockConnection))->table('table1')
-            ->set('field', 5)
-            ->whereExists(function (Select $select) {
-                $select->from('table2')->whereColumn('table1.id', '=', 'table2.table1_id');
-            });
-        $this->assertEquals($sql, $select->toSql());
-    }
-
-    /**
-     * Test where not exists.
-     */
-    public function testWhereNotExists()
-    {
-        $sql    = 'UPDATE `table1` SET `field`=? WHERE NOT EXISTS (SELECT * FROM `table2` WHERE `table1`.`id` = `table2`.`table1_id`)';
-        $select = (new Update($this->mockConnection))->table('table1')
-            ->set('field', 5)
-            ->whereNotExists(function (Select $select) {
-                $select->from('table2')->whereColumn('table1.id', '=', 'table2.table1_id');
-            });
-        $this->assertEquals($sql, $select->toSql());
+        $array  = $query->toArray();
+        $this->assertArrayHasKey('table', $array);
+        $this->assertArrayNotHasKey('columns', $array);
+        $this->assertArrayNotHasKey('values', $array);
     }
 }

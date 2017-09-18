@@ -12,10 +12,13 @@ class InsertTest extends CompilableTestCase
      */
     public function testInto()
     {
-        $sql    = 'INSERT INTO `table`';
-        $insert = (new Insert($this->mockConnection))->into('table');
+        $query = (new Insert($this->mockConnection))->into('table');
+        $array = $query->toArray();
 
-        $this->assertEquals($sql, $insert->toSql());
+        $this->assertInstanceOf(Insert::class, $query);
+        $this->assertArrayHasKey('into', $array);
+        $this->assertArrayHasKey('table', $array['into']);
+        $this->assertEquals('table', $array['into']['table']);
     }
 
     /**
@@ -23,10 +26,12 @@ class InsertTest extends CompilableTestCase
      */
     public function testColumnsSingle()
     {
-        $sql    = 'INSERT INTO `table` (`foo`)';
-        $insert = (new Insert($this->mockConnection))->into('table')->columns('foo');
+        $query = (new Insert($this->mockConnection))->columns('field1');
+        $array = $query->toArray();
 
-        $this->assertEquals($sql, $insert->toSql());
+        $this->assertInstanceOf(Insert::class, $query);
+        $this->assertArrayHasKey('columns', $array);
+        $this->assertEquals(['field1'], $array['columns']);
     }
 
     /**
@@ -34,10 +39,12 @@ class InsertTest extends CompilableTestCase
      */
     public function testColumnsMultiple()
     {
-        $sql    = 'INSERT INTO `table` (`foo`,`bar`)';
-        $insert = (new Insert($this->mockConnection))->into('table')->columns('foo', 'bar');
+        $query = (new Insert($this->mockConnection))->columns('field1', 'field2');
+        $array = $query->toArray();
 
-        $this->assertEquals($sql, $insert->toSql());
+        $this->assertInstanceOf(Insert::class, $query);
+        $this->assertArrayHasKey('columns', $array);
+        $this->assertEquals(['field1', 'field2'], $array['columns']);
     }
 
     /**
@@ -45,141 +52,134 @@ class InsertTest extends CompilableTestCase
      */
     public function testColumnsArray()
     {
-        $sql    = 'INSERT INTO `table` (`foo`,`bar`)';
-        $insert = (new Insert($this->mockConnection))->into('table')->columns(['foo', 'bar']);
+        $query = (new Insert($this->mockConnection))->columns(['field1', 'field2']);
+        $array = $query->toArray();
 
-        $this->assertEquals($sql, $insert->toSql());
+        $this->assertInstanceOf(Insert::class, $query);
+        $this->assertArrayHasKey('columns', $array);
+        $this->assertEquals(['field1', 'field2'], $array['columns']);
     }
 
     /**
      * Test insert with a single value and single row.
      */
-    public function testValuesSingleRowSingleValue()
+    public function testValuesSingleValue()
     {
-        $sql = 'INSERT INTO `table` (`foo`) VALUES (?)';
+        $query = (new Insert($this->mockConnection))->values(2);
+        $array = $query->toArray();
 
-        $this->mockPdo->shouldReceive('prepare')->once()->with($sql)->andReturn($this->mockPdoStatement);
-        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(1, 2, \PDO::PARAM_INT)->andReturn(true);
-        $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs();
-
-        $insert = (new Insert($this->mockConnection))->into('table')->columns('foo')->values(2);
-        $compiledSql        = $insert->toSql();
-        list($pdoStatement) = $insert->statement();
-
-        $this->assertEquals($sql, $compiledSql);
-        $this->assertEquals($this->mockPdoStatement, $pdoStatement);
-
+        $this->assertInstanceOf(Insert::class, $query);
+        $this->assertArrayHasKey('values', $array);
+        $this->assertEquals([2], $array['values']);
     }
 
     /**
      * Test insert with multiple values and single row.
      */
-    public function testValuesSingleRowMultipleValues()
+    public function testValuesMultipleValues()
     {
-        $sql = 'INSERT INTO `table` (`foo`,`bar`) VALUES (?,?)';
+        $query = (new Insert($this->mockConnection))->values(2, 3);
+        $array = $query->toArray();
 
-        $this->mockPdo->shouldReceive('prepare')->once()->with($sql)->andReturn($this->mockPdoStatement);
-        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(1, 2, \PDO::PARAM_INT)->andReturn(true);
-        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(2, 3, \PDO::PARAM_INT)->andReturn(true);
-        $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs();
-
-        $insert = (new Insert($this->mockConnection))->into('table')->columns('foo', 'bar')->values(2, 3);
-        $compiledSql        = $insert->toSql();
-        list($pdoStatement) = $insert->statement();
-
-        $this->assertEquals($sql, $compiledSql);
-        $this->assertEquals($this->mockPdoStatement, $pdoStatement);
-
+        $this->assertInstanceOf(Insert::class, $query);
+        $this->assertArrayHasKey('values', $array);
+        $this->assertEquals([2, 3], $array['values']);
     }
 
     /**
      * Test insert with an array of values and single row.
      */
-    public function testValuesSingleRowArrayValues()
+    public function testValuesArrayValues()
     {
-        $sql = 'INSERT INTO `table` (`foo`,`bar`) VALUES (?,?)';
+        $query = (new Insert($this->mockConnection))->values([2, 3]);
+        $array = $query->toArray();
 
-        $this->mockPdo->shouldReceive('prepare')->once()->with($sql)->andReturn($this->mockPdoStatement);
-        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(1, 2, \PDO::PARAM_INT)->andReturn(true);
-        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(2, 3, \PDO::PARAM_INT)->andReturn(true);
+        $this->assertInstanceOf(Insert::class, $query);
+        $this->assertArrayHasKey('values', $array);
+        $this->assertEquals([2, 3], $array['values']);
+    }
+
+
+    /**
+     * Test affectedRows uses the PDOStatement to retrieve row count.
+     */
+    public function testAffectedRow()
+    {
+        $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs();
+        $this->mockPdoStatement->shouldReceive('rowCount')->once()->withNoArgs()->andReturn(4);
+        $this->mockPdo->shouldReceive('prepare')->once()->with('SQL')->andReturn($this->mockPdoStatement);
+
+
+        $delete = (new Insert($this->mockConnection));
+        $delete->query('SQL', []);
+        $this->assertEquals(4, $delete->affectedRows());
+    }
+
+    /**
+     * Test affectedRows uses the PDO to retrieve last insert id.
+     */
+    public function testLastInsertId()
+    {
+        $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs();
+        $this->mockPdo->shouldReceive('lastInsertId')->once()->with(null)->andReturn(4);
+        $this->mockPdo->shouldReceive('prepare')->once()->with('SQL')->andReturn($this->mockPdoStatement);
+
+
+        $query = (new Insert($this->mockConnection));
+        $query->query('SQL', []);
+        $this->assertEquals(4, $query->lastInsertId());
+    }
+
+    /**
+     * Test affectedRows uses the PDO to retrieve last insert id - with name.
+     */
+    public function testLastInsertIdWithName()
+    {
+        $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs();
+        $this->mockPdo->shouldReceive('lastInsertId')->once()->with('name')->andReturn(4);
+        $this->mockPdo->shouldReceive('prepare')->once()->with('SQL')->andReturn($this->mockPdoStatement);
+
+
+        $query = (new Insert($this->mockConnection));
+        $query->query('SQL', []);
+        $this->assertEquals(4, $query->lastInsertId('name'));
+    }
+
+    /**
+     * Test buildSql calls Compiler::compileQueryInsert.
+     */
+    public function testBuildSql()
+    {
+        $statement = ['from' => ['table' => 't']];
+        $this->mockCompiler->shouldReceive('compileQueryInsert')->once()->with($statement)->andReturn(['SQL', []]);
+
+        $query = (new Insert($this->mockConnection));
+        list($sql, $bindings) = $query->buildSql($statement);
+        $this->assertEquals('SQL', $sql);
+        $this->assertEquals([], $bindings);
+    }
+
+    /**
+     * Test insert query is tidies properly after execution.
+     */
+    public function testTidyAfterExecution()
+    {
+        $this->mockCompiler->shouldReceive('compileQueryInsert')->once()->withAnyArgs()->andReturn(['SQL', []]);
+        $this->mockPdo->shouldReceive('prepare')->once()->with('SQL')->andReturn($this->mockPdoStatement);
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs();
 
-        $insert = (new Insert($this->mockConnection))->into('table')->columns(['foo', 'bar'])->values([2, 3]);
-        $compiledSql        = $insert->toSql();
-        list($pdoStatement) = $insert->statement();
+        $query = (new Insert($this->mockConnection))->into('table')->columns('field')->values('val');
+        $array  = $query->toArray();
 
-        $this->assertEquals($sql, $compiledSql);
-        $this->assertEquals($this->mockPdoStatement, $pdoStatement);
+        $this->assertArrayHasKey('into', $array);
+        $this->assertArrayHasKey('columns', $array);
+        $this->assertArrayHasKey('values', $array);
 
-    }
+        $query->statement();
 
-    /**
-     * Test insert with a single value and single row.
-     */
-    public function testValuesMultipleRowSingleValue()
-    {
-        $sql = 'INSERT INTO `table` (`foo`) VALUES (?),(?)';
-
-        $this->mockPdo->shouldReceive('prepare')->once()->with($sql)->andReturn($this->mockPdoStatement);
-        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(1, 2, \PDO::PARAM_INT)->andReturn(true);
-        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(2, 3, \PDO::PARAM_INT)->andReturn(true);
-        $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
-
-        $insert = (new Insert($this->mockConnection))->into('table')->columns('foo')->values(2, 3);
-        $compiledSql        = $insert->toSql();
-        list($pdoStatement) = $insert->statement();
-
-        $this->assertEquals($sql, $compiledSql);
-        $this->assertEquals($this->mockPdoStatement, $pdoStatement);
-
-    }
-
-    /**
-     * Test insert with multiple values and single row.
-     */
-    public function testValuesMultipleRowMultipleValues()
-    {
-        $sql = 'INSERT INTO `table` (`foo`,`bar`) VALUES (?,?),(?,?)';
-
-        $this->mockPdo->shouldReceive('prepare')->once()->with($sql)->andReturn($this->mockPdoStatement);
-        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(1, 2, \PDO::PARAM_INT)->andReturn(true);
-        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(2, 3, \PDO::PARAM_INT)->andReturn(true);
-        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(3, 5, \PDO::PARAM_INT)->andReturn(true);
-        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(4, 7, \PDO::PARAM_INT)->andReturn(true);
-        $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
-
-        $insert = (new Insert($this->mockConnection))->into('table')->columns('foo', 'bar')->values(2, 3, 5, 7);
-        $compiledSql        = $insert->toSql();
-        list($pdoStatement) = $insert->statement();
-
-        $this->assertEquals($sql, $compiledSql);
-        $this->assertEquals($this->mockPdoStatement, $pdoStatement);
-
-    }
-
-    /**
-     * Test insert with an array of values and single row.
-     */
-    public function testValuesMultipleRowArrayValues()
-    {
-        $sql = 'INSERT INTO `table` (`foo`,`bar`) VALUES (?,?),(?,?)';
-
-        $this->mockPdo->shouldReceive('prepare')->once()->with($sql)->andReturn($this->mockPdoStatement);
-        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(1, 2, \PDO::PARAM_INT)->andReturn(true);
-        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(2, 3, \PDO::PARAM_INT)->andReturn(true);
-        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(3, 5, \PDO::PARAM_INT)->andReturn(true);
-        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(4, 7, \PDO::PARAM_INT)->andReturn(true);
-        $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs()->andReturn('statement');
-
-        $insert = (new Insert($this->mockConnection))->into('table')
-            ->columns(['foo', 'bar'])
-            ->values([2, 3])
-            ->values([5, 7]);
-        $compiledSql        = $insert->toSql();
-        list($pdoStatement) = $insert->statement();
-
-        $this->assertEquals($sql, $compiledSql);
-        $this->assertEquals($this->mockPdoStatement, $pdoStatement);
-
+        $array  = $query->toArray();
+        $this->assertArrayHasKey('into', $array);
+        $this->assertArrayHasKey('columns', $array);
+        $this->assertArrayNotHasKey('values', $array);
     }
 }

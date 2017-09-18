@@ -2,9 +2,10 @@
 
 namespace MadeSimple\Database\Tests;
 
+use MadeSimple\Database\Compiler;
 use MadeSimple\Database\CompilerInterface;
 
-class CompilableTestCase extends TestCase
+class CompilableMySqlTestCase extends TestCase
 {
     /**
      * @var MockConnection
@@ -27,9 +28,9 @@ class CompilableTestCase extends TestCase
     protected $mockConnector;
 
     /**
-     * @var \Mockery\Mock|CompilerInterface
+     * @var CompilerInterface
      */
-    protected $mockCompiler;
+    protected $compiler;
 
     protected function setUp()
     {
@@ -38,8 +39,7 @@ class CompilableTestCase extends TestCase
         $this->mockPdo          = \Mockery::mock(\PDO::class);
         $this->mockPdoStatement = \Mockery::mock(\PDOStatement::class);
         $this->mockConnector    = new MockConnector($this->mockPdo);
-        $this->mockCompiler     = \Mockery::mock(CompilerInterface::class);
-        $this->mockCompiler->shouldReceive('setConnection')->once();
-        $this->mockConnection   = new MockConnection($this->mockConnector, $this->mockCompiler);
+        $this->compiler         = new Compiler\MySQL();
+        $this->mockConnection   = new MockConnection($this->mockConnector, $this->compiler);
     }
 }

@@ -1,16 +1,16 @@
 <?php
 
-namespace MadeSimple\Database\Tests\Unit\Statement;
+namespace MadeSimple\Database\Tests\Unit\Compiler;
 
 use MadeSimple\Database\Statement\DropDb;
 use MadeSimple\Database\Tests\CompilableMySqlTestCase;
 
-class DropDbTest extends CompilableMySqlTestCase
+class MySqlDropDbTest extends CompilableMySqlTestCase
 {
     /**
      * Test setting the database name.
      */
-    public function testDatabase()
+    public function testDropDbDatabase()
     {
         $sql       = 'DROP DATABASE `name`';
         $statement = (new DropDb($this->mockConnection))->database('name');

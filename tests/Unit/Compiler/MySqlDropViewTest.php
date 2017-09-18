@@ -1,16 +1,16 @@
 <?php
 
-namespace MadeSimple\Database\Tests\Unit\Statement;
+namespace MadeSimple\Database\Tests\Unit\Compiler;
 
 use MadeSimple\Database\Statement\DropView;
 use MadeSimple\Database\Tests\CompilableMySqlTestCase;
 
-class DropViewTest extends CompilableMySqlTestCase
+class MySqlDropViewTest extends CompilableMySqlTestCase
 {
     /**
      * Test setting the index name.
      */
-    public function testIndex()
+    public function testDropViewIndex()
     {
         $sql       = 'DROP VIEW `name`';
         $statement = (new DropView($this->mockConnection))->view('name');

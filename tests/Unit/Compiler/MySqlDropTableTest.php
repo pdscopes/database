@@ -1,16 +1,16 @@
 <?php
 
-namespace MadeSimple\Database\Tests\Unit\Statement;
+namespace MadeSimple\Database\Tests\Unit\Compiler;
 
 use MadeSimple\Database\Statement\DropTable;
 use MadeSimple\Database\Tests\CompilableMySqlTestCase;
 
-class DropTableTest extends CompilableMySqlTestCase
+class MySqlDropTableTest extends CompilableMySqlTestCase
 {
     /**
      * Test setting the index name.
      */
-    public function testIndex()
+    public function testDropTableIndex()
     {
         $sql       = 'DROP TABLE `name`';
         $statement = (new DropTable($this->mockConnection))->table('name');

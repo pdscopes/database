@@ -1,17 +1,17 @@
 <?php
 
-namespace MadeSimple\Database\Tests\Unit\Statement;
+namespace MadeSimple\Database\Tests\Unit\Compiler;
 
 use MadeSimple\Database\Query\Select;
 use MadeSimple\Database\Statement\UpdateView;
 use MadeSimple\Database\Tests\CompilableMySqlTestCase;
 
-class UpdateViewTest extends CompilableMySqlTestCase
+class MySqlUpdateViewTest extends CompilableMySqlTestCase
 {
     /**
      * Test setting the view name.
      */
-    public function testView()
+    public function testUpdateViewView()
     {
         $sql       = 'CREATE OR REPLACE VIEW `name` AS';
         $statement = (new UpdateView($this->mockConnection))->view('name');
@@ -21,7 +21,7 @@ class UpdateViewTest extends CompilableMySqlTestCase
     /**
      * Test setting the select query.
      */
-    public function testAsSelect()
+    public function testUpdateViewAsSelect()
     {
         $sql       = 'CREATE OR REPLACE VIEW `name` AS SELECT * FROM `table`';
         $statement = (new UpdateView($this->mockConnection))->view('name')

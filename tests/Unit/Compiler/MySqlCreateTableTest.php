@@ -1,16 +1,16 @@
 <?php
 
-namespace MadeSimple\Database\Tests\Unit\Statement;
+namespace MadeSimple\Database\Tests\Unit\Compiler;
 
 use MadeSimple\Database\Statement\CreateTable;
 use MadeSimple\Database\Tests\CompilableMySqlTestCase;
 
-class CreateTableTest extends CompilableMySqlTestCase
+class MySqlCreateTableTest extends CompilableMySqlTestCase
 {
     /**
      * Test setting the table name.
      */
-    public function testTable()
+    public function testCreateTableTable()
     {
         $sql       = 'CREATE TABLE `name` ( )';
         $statement = (new CreateTable($this->mockConnection))->table('name');
@@ -20,7 +20,7 @@ class CreateTableTest extends CompilableMySqlTestCase
     /**
      * Test setting the temporary flag.
      */
-    public function testTemporary()
+    public function testCreateTableTemporary()
     {
         $sql       = 'CREATE TEMPORARY TABLE `name` ( )';
         $statement = (new CreateTable($this->mockConnection))->table('name')
@@ -31,7 +31,7 @@ class CreateTableTest extends CompilableMySqlTestCase
     /**
      * Test setting "if not exists" flag.
      */
-    public function testIfNotExists()
+    public function testCreateTableIfNotExists()
     {
         $sql       = 'CREATE TABLE IF NOT EXISTS `name` ( )';
         $statement = (new CreateTable($this->mockConnection))->table('name')
@@ -42,7 +42,7 @@ class CreateTableTest extends CompilableMySqlTestCase
     /**
      * Test adding a primary key.
      */
-    public function testPrimaryKey()
+    public function testCreateTablePrimaryKey()
     {
         $sql       = 'CREATE TABLE `name` ( ,PRIMARY KEY (`id`) )';
         $statement = (new CreateTable($this->mockConnection))->table('name')
@@ -53,7 +53,7 @@ class CreateTableTest extends CompilableMySqlTestCase
     /**
      * Test adding a composite primary key.
      */
-    public function testPrimaryKeyComposite()
+    public function testCreateTablePrimaryKeyComposite()
     {
         $sql       = 'CREATE TABLE `name` ( ,PRIMARY KEY (`id1`,`id2`) )';
         $statement = (new CreateTable($this->mockConnection))->table('name')
@@ -64,7 +64,7 @@ class CreateTableTest extends CompilableMySqlTestCase
     /**
      * Test adding an index.
      */
-    public function testIndex()
+    public function testCreateTableIndex()
     {
         $sql       = 'CREATE TABLE `name` ( ,INDEX (`column`) )';
         $statement = (new CreateTable($this->mockConnection))->table('name')
@@ -75,7 +75,7 @@ class CreateTableTest extends CompilableMySqlTestCase
     /**
      * Test adding a named index.
      */
-    public function testIndexNamed()
+    public function testCreateTableIndexNamed()
     {
         $sql       = 'CREATE TABLE `name` ( ,INDEX `name`(`column`) )';
         $statement = (new CreateTable($this->mockConnection))->table('name')
@@ -86,7 +86,7 @@ class CreateTableTest extends CompilableMySqlTestCase
     /**
      * Test adding a composite index.
      */
-    public function testIndexComposite()
+    public function testCreateTableIndexComposite()
     {
         $sql       = 'CREATE TABLE `name` ( ,INDEX (`column1`,`column2`) )';
         $statement = (new CreateTable($this->mockConnection))->table('name')
@@ -97,7 +97,7 @@ class CreateTableTest extends CompilableMySqlTestCase
     /**
      * Test adding a unique index.
      */
-    public function testUnique()
+    public function testCreateTableUnique()
     {
         $sql       = 'CREATE TABLE `name` ( ,UNIQUE (`column`) )';
         $statement = (new CreateTable($this->mockConnection))->table('name')
@@ -108,7 +108,7 @@ class CreateTableTest extends CompilableMySqlTestCase
     /**
      * Test adding a named unique index.
      */
-    public function testUniqueNamed()
+    public function testCreateTableUniqueNamed()
     {
         $sql       = 'CREATE TABLE `name` ( ,UNIQUE `name`(`column`) )';
         $statement = (new CreateTable($this->mockConnection))->table('name')
@@ -119,7 +119,7 @@ class CreateTableTest extends CompilableMySqlTestCase
     /**
      * Test adding a composite unique index.
      */
-    public function testUniqueComposite()
+    public function testCreateTableUniqueComposite()
     {
         $sql       = 'CREATE TABLE `name` ( ,UNIQUE (`column1`,`column2`) )';
         $statement = (new CreateTable($this->mockConnection))->table('name')
@@ -130,7 +130,7 @@ class CreateTableTest extends CompilableMySqlTestCase
     /**
      * Test adding a foreign key.
      */
-    public function testForeignKey()
+    public function testCreateTableForeignKey()
     {
         $sql       = 'CREATE TABLE `name` ( ,FOREIGN KEY (`column`) REFERENCES `table`(`id`) )';
         $statement = (new CreateTable($this->mockConnection))->table('name')
@@ -141,7 +141,7 @@ class CreateTableTest extends CompilableMySqlTestCase
     /**
      * Test adding a foreign key with name.
      */
-    public function testForeignKeyWithName()
+    public function testCreateTableForeignKeyWithName()
     {
         $sql       = 'CREATE TABLE `name` ( ,FOREIGN KEY `fk`(`column`) REFERENCES `table`(`id`) )';
         $statement = (new CreateTable($this->mockConnection))->table('name')
@@ -152,7 +152,7 @@ class CreateTableTest extends CompilableMySqlTestCase
     /**
      * Test adding a foreign key with on delete.
      */
-    public function testForeignKeyWithOnDelete()
+    public function testCreateTableForeignKeyWithOnDelete()
     {
         $sql       = 'CREATE TABLE `name` ( ,FOREIGN KEY (`column`) REFERENCES `table`(`id`) ON DELETE CASCADE )';
         $statement = (new CreateTable($this->mockConnection))->table('name')
@@ -163,7 +163,7 @@ class CreateTableTest extends CompilableMySqlTestCase
     /**
      * Test adding a foreign key with on update.
      */
-    public function testForeignKeyWithOnUpdate()
+    public function testCreateTableForeignKeyWithOnUpdate()
     {
         $sql       = 'CREATE TABLE `name` ( ,FOREIGN KEY (`column`) REFERENCES `table`(`id`) ON UPDATE CASCADE )';
         $statement = (new CreateTable($this->mockConnection))->table('name')
@@ -174,7 +174,7 @@ class CreateTableTest extends CompilableMySqlTestCase
     /**
      * Test setting the table engine.
      */
-    public function testEngine()
+    public function testCreateTableEngine()
     {
         $sql       = 'CREATE TABLE `name` ( ) ENGINE=InnoDB';
         $statement = (new CreateTable($this->mockConnection))->table('name')
@@ -185,7 +185,7 @@ class CreateTableTest extends CompilableMySqlTestCase
     /**
      * Test setting the table charset.
      */
-    public function testCharset()
+    public function testCreateTableCharset()
     {
         $sql       = 'CREATE TABLE `name` ( ) DEFAULT CHARACTER SET=utf8';
         $statement = (new CreateTable($this->mockConnection))->table('name')
@@ -196,7 +196,7 @@ class CreateTableTest extends CompilableMySqlTestCase
     /**
      * Test setting the table collation.
      */
-    public function testCollation()
+    public function testCreateTableCollation()
     {
         $sql       = 'CREATE TABLE `name` ( ) COLLATE=utf8_ci';
         $statement = (new CreateTable($this->mockConnection))->table('name')
@@ -207,7 +207,7 @@ class CreateTableTest extends CompilableMySqlTestCase
     /**
      * Test setting the table comment.
      */
-    public function testComment()
+    public function testCreateTableComment()
     {
         $sql       = 'CREATE TABLE `name` ( ) COMMENT=\'comment text\'';
         $statement = (new CreateTable($this->mockConnection))->table('name')
@@ -219,7 +219,7 @@ class CreateTableTest extends CompilableMySqlTestCase
     /**
      * Test adding a column to the table.
      */
-    public function testColumn()
+    public function testCreateTableColumn()
     {
         $sql       = 'CREATE TABLE `name` ( `column` INT(10) )';
         $statement = (new CreateTable($this->mockConnection))->table('name');
