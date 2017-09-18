@@ -149,7 +149,7 @@ class MySQL extends Compiler
                 case 'blob':
                 case 'mediumBlob':
                 case 'longBlob':
-                    $dataType = $dataType;
+                    // Datatype already set
                     break;
                 case 'tinyText':
                 case 'text':
