@@ -2,11 +2,12 @@
 
 namespace MadeSimple\Database;
 
+use MadeSimple\Arrays\Arrayable;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
-abstract class Builder
+abstract class Builder implements Arrayable
 {
     use ConnectionAwareTrait, LoggerAwareTrait;
 
@@ -52,5 +53,13 @@ abstract class Builder
         }
 
         return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function toArray()
+    {
+        return $this->statement;
     }
 }
