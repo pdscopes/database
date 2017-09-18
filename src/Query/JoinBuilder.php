@@ -53,6 +53,6 @@ class JoinBuilder extends Builder
      */
     public function orWhere($column, $operator = null, $value = null)
     {
-        return $this->orWhereColumn($column, $operator, $value);
+        return $this->whereColumn($column, $operator, $value, 'or');
     }
 }
