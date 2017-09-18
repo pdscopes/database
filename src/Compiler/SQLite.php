@@ -72,6 +72,11 @@ class SQLite extends Compiler
 
     protected function compileStatementColumn($columnArray)
     {
+        if (!isset($columnArray['columnBuilder'])) {
+            return $this->sanitise($columnArray['name']);
+        }
+        $columnArray  += ['dataType' => ['type' => '']];
+
         /** @var ColumnBuilder $columnBuilder */
         $columnBuilder = $columnArray['columnBuilder'];
         $statement     = $columnBuilder->getStatement();
@@ -79,39 +84,41 @@ class SQLite extends Compiler
         // Name
         $name = $this->sanitise($columnArray['name']);
         // Data Type
-        $dataType = strtoupper($statement['dataType']['type']);
-        switch ($statement['dataType']['type']) {
-            case 'tinyInteger':
-            case 'smallInteger':
-            case 'mediumInteger':
-            case 'integer':
-            case 'bigInteger':
-                $dataType = 'INTEGER';
-                break;
-            case 'double':
-            case 'float':
-            case 'decimal':
-                $dataType = 'REAL';
-                break;
-            case 'date':
-            case 'time':
-            case 'timestamp':
-            case 'dateTime':
-            case 'char':
-            case 'varchar':
-            case 'binary':
-            case 'tinyBlob':
-            case 'blob':
-            case 'mediumBlob':
-            case 'longBlob':
-            case 'tinyText':
-            case 'text':
-            case 'mediumText':
-            case 'longText':
-            case 'enum':
-            case 'json':
-                $dataType = 'TEXT';
-                break;
+        $dataType = '';
+        if (isset($statement['dataType'])) {
+            switch ($statement['dataType']['type']) {
+                case 'tinyInteger':
+                case 'smallInteger':
+                case 'mediumInteger':
+                case 'integer':
+                case 'bigInteger':
+                    $dataType = 'INTEGER';
+                    break;
+                case 'double':
+                case 'float':
+                case 'decimal':
+                    $dataType = 'REAL';
+                    break;
+                case 'date':
+                case 'time':
+                case 'timestamp':
+                case 'dateTime':
+                case 'char':
+                case 'varchar':
+                case 'binary':
+                case 'tinyBlob':
+                case 'blob':
+                case 'mediumBlob':
+                case 'longBlob':
+                case 'tinyText':
+                case 'text':
+                case 'mediumText':
+                case 'longText':
+                case 'enum':
+                case 'json':
+                    $dataType = 'TEXT';
+                    break;
+            }
         }
         // Use Current
         $useCurrent = isset($statement['useCurrent']) ? "DEFAULT CURRENT_TIMESTAMP" : '';
@@ -173,6 +180,10 @@ class SQLite extends Compiler
                     break;
                 case 'modifyColumn':
                     $sql .= 'MODIFY COLUMN ' . $this->compileStatementColumn($alteration);
+                    break;
+
+                case 'renameColumn':
+                    $sql .= 'CHANGE ' . $this->sanitise($alteration['currentName']) . ' ' . $this->compileStatementColumn($alteration);
                     break;
             }
         }

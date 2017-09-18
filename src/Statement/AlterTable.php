@@ -80,6 +80,45 @@ class AlterTable extends StatementBuilder
     }
 
     /**
+     * Alter the table by renaming a column.
+     * Optionally change the datatype of the column.
+     *
+     * @param string        $currentName
+     * @param string        $name
+     * @return AlterTable
+     */
+    public function renameColumn($currentName, $name)
+    {
+        $type = 'renameColumn';
+        $this->statement['alterations'][] = compact('type', 'currentName', 'name');
+
+        return $this;
+    }
+
+    /**
+     * Alter the table by changing a column's name.
+     * Optionally change the datatype of the column.
+     *
+     * @param string        $currentName
+     * @param string        $name
+     * @param \Closure|null $closure
+     * @return AlterTable|ColumnBuilder
+     */
+    public function changeColumn($currentName, $name, \Closure $closure = null)
+    {
+        $type = 'renameColumn';
+        $columnBuilder = new ColumnBuilder($this->connection, $this->logger);
+        $this->statement['alterations'][] = compact('type', 'currentName', 'name', 'columnBuilder');
+
+        if ($closure !== null) {
+            $closure($columnBuilder);
+            return $this;
+        } else {
+            return $columnBuilder;
+        }
+    }
+
+    /**
      * Alter the table by dropping a column.
      *
      * @param string $column

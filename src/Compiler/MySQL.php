@@ -94,6 +94,10 @@ class MySQL extends Compiler
 
     protected function compileStatementColumn($columnArray, $createSyntax = true)
     {
+        if (!isset($columnArray['columnBuilder'])) {
+            return $this->sanitise($columnArray['name']);
+        }
+
         /** @var ColumnBuilder $columnBuilder */
         $columnBuilder = $columnArray['columnBuilder'];
         $statement     = $columnBuilder->getStatement();
@@ -101,63 +105,70 @@ class MySQL extends Compiler
         // Name
         $name = $this->sanitise($columnArray['name']);
         // Data Type
-        $dataType = strtoupper($statement['dataType']['type']);
-        switch ($statement['dataType']['type']) {
-            case 'tinyInteger':
-            case 'smallInteger':
-            case 'mediumInteger':
-            case 'integer':
-            case 'bigInteger':
-                $dataType = str_replace('INTEGER', 'INT', $dataType);
-                $dataType = $dataType . '(' . $statement['dataType']['length'] . ')'
-                    . ($statement['dataType']['unsigned'] ? ' UNSIGNED' :'')
-                    . ($statement['dataType']['zerofill'] ? ' ZEROFILL' : '');
-                break;
-            case 'double':
-            case 'float':
-            case 'decimal':
-                $dataType = 'REAL(' . $statement['dataType']['length'] . ',' . $statement['dataType']['decimals'] . ')'
-                    . ($statement['dataType']['unsigned'] ? ' UNSIGNED' :'')
-                    . ($statement['dataType']['zerofill'] ? ' ZEROFILL' : '');
-                break;
-            case 'date':
-                $dataType = 'DATE';
-                break;
-            case 'time':
-            case 'timestamp':
-            case 'dateTime':
-                $dataType = $dataType . (null !== $statement['dataType']['fsp'] ? '(' . $statement['dataType']['fsp'] . ')' : '');
-                break;
-            case 'char':
-            case 'varchar':
-                $dataType = $dataType . '(' . $statement['dataType']['length'] . ')' . ($statement['dataType']['binary'] ? ' BINARY' : '')
-                    . (null !== $statement['dataType']['charset'] ? ' CHARACTER SET ' . $statement['dataType']['charset'] : '')
-                    . (null !== $statement['dataType']['collate'] ? ' COLLATE ' . $statement['dataType']['collate'] : '');
-                break;
-            case 'binary':
-                $dataType = 'BINARY(' . $statement['dataType']['length']. ')';
-                break;
-            case 'tinyBlob':
-            case 'blob':
-            case 'mediumBlob':
-            case 'longBlob':
-                break;
-            case 'tinyText':
-            case 'text':
-            case 'mediumText':
-            case 'longText':
-                $dataType = $dataType . ($statement['dataType']['binary'] ? ' BINARY' :'')
-                    . (null !== $statement['dataType']['charset'] ? ' CHARACTER SET ' . $statement['dataType']['charset'] : '')
-                    . (null !== $statement['dataType']['collate'] ? ' COLLATE ' . $statement['dataType']['collate'] : '');
-                break;
-            case 'enum':
-                $dataType = 'ENUM(\'' . implode('\',\'', $statement['dataType']['values']) . '\')'
-                    . (null !== $statement['dataType']['charset'] ? ' CHARACTER SET ' . $statement['dataType']['charset'] : '')
-                    . (null !== $statement['dataType']['collate'] ? ' COLLATE ' . $statement['dataType']['collate'] : '');
-                break;
-            case 'json':
-                $dataType = 'JSON';
-                break;
+        $dataType = '';
+        if (isset($statement['dataType'])) {
+            $dataType = strtoupper($statement['dataType']['type']);
+            switch ($statement['dataType']['type']) {
+                case 'tinyInteger':
+                case 'smallInteger':
+                case 'mediumInteger':
+                case 'integer':
+                case 'bigInteger':
+                    $dataType = str_replace('INTEGER', 'INT', $dataType)
+                        . '(' . $statement['dataType']['length'] . ')'
+                        . ($statement['dataType']['unsigned'] ? ' UNSIGNED' :'')
+                        . ($statement['dataType']['zerofill'] ? ' ZEROFILL' : '');
+                    break;
+                case 'double':
+                case 'float':
+                case 'decimal':
+                    $dataType = 'REAL(' . $statement['dataType']['length'] . ',' . $statement['dataType']['decimals'] . ')'
+                        . ($statement['dataType']['unsigned'] ? ' UNSIGNED' :'')
+                        . ($statement['dataType']['zerofill'] ? ' ZEROFILL' : '');
+                    break;
+                case 'date':
+                    $dataType = 'DATE';
+                    break;
+                case 'time':
+                case 'timestamp':
+                case 'dateTime':
+                    $dataType = $dataType
+                        . (null !== $statement['dataType']['fsp'] ? '(' . $statement['dataType']['fsp'] . ')' : '');
+                    break;
+                case 'char':
+                case 'varchar':
+                    $dataType = $dataType
+                        . '(' . $statement['dataType']['length'] . ')' . ($statement['dataType']['binary'] ? ' BINARY' : '')
+                        . (null !== $statement['dataType']['charset'] ? ' CHARACTER SET ' . $statement['dataType']['charset'] : '')
+                        . (null !== $statement['dataType']['collate'] ? ' COLLATE ' . $statement['dataType']['collate'] : '');
+                    break;
+                case 'binary':
+                    $dataType = 'BINARY(' . $statement['dataType']['length']. ')';
+                    break;
+                case 'tinyBlob':
+                case 'blob':
+                case 'mediumBlob':
+                case 'longBlob':
+                    $dataType = $dataType;
+                    break;
+                case 'tinyText':
+                case 'text':
+                case 'mediumText':
+                case 'longText':
+                    $dataType = $dataType
+                        . ($statement['dataType']['binary'] ? ' BINARY' :'')
+                        . (null !== $statement['dataType']['charset'] ? ' CHARACTER SET ' . $statement['dataType']['charset'] : '')
+                        . (null !== $statement['dataType']['collate'] ? ' COLLATE ' . $statement['dataType']['collate'] : '');
+                    break;
+                case 'enum':
+                    $dataType = 'ENUM(\'' . implode('\',\'', $statement['dataType']['values']) . '\')'
+                        . (null !== $statement['dataType']['charset'] ? ' CHARACTER SET ' . $statement['dataType']['charset'] : '')
+                        . (null !== $statement['dataType']['collate'] ? ' COLLATE ' . $statement['dataType']['collate'] : '');
+                    break;
+                case 'json':
+                    $dataType = 'JSON';
+                    break;
+            }
         }
         // Null
         $null = isset($statement['null']) ? ($statement['null'] ? 'NULL': 'NOT NULL') : '';
@@ -237,6 +248,9 @@ class MySQL extends Compiler
                     break;
                 case 'modifyColumn':
                     $sql .= 'MODIFY COLUMN ' . $this->compileStatementColumn($alteration, false);
+                    break;
+                case 'renameColumn':
+                    $sql .= 'CHANGE ' . $this->sanitise($alteration['currentName']) . ' ' . $this->compileStatementColumn($alteration);
                     break;
 
                 case 'addForeignKey':
