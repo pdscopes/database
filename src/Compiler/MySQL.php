@@ -243,6 +243,9 @@ class MySQL extends Compiler
                 case 'renameTable':
                     $sql .= 'RENAME TO ' . $this->sanitise($alteration['name']);
                     break;
+                case 'engine':
+                    $sql .= 'ENGINE = ' . $alteration['engine'];
+                    break;
 
                 case 'addColumn':
                     $sql .= 'ADD ' . $this->compileStatementColumn($alteration, false);

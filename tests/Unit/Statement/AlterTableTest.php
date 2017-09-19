@@ -44,6 +44,26 @@ class AlterTableTest extends CompilableTestCase
     }
 
     /**
+     * Test changing engine.
+     */
+    public function testEngine()
+    {
+        $statement = (new AlterTable($this->mockConnection));
+        $return    = $statement->engine('EngineType');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(AlterTable::class, $return);
+        $this->assertEquals([
+            'alterations' => [
+                [
+                    'type'   => 'engine',
+                    'engine' => 'EngineType',
+                ]
+            ],
+        ], $array);
+    }
+
+    /**
      * Test adding a column - without closure.
      */
     public function testAddColumnWithoutClosure()

@@ -29,6 +29,17 @@ class MySqlAlterTableTest extends CompilableMySqlTestCase
     }
 
     /**
+     * Test changing a table engine.
+     */
+    public function testAlterTableEngine()
+    {
+        $sql       = 'ALTER TABLE `table` ENGINE = EngineType';
+        $statement = (new AlterTable($this->mockConnection))->table('table');
+        $statement->engine('EngineType');
+        $this->assertEquals($sql, $statement->toSql());
+    }
+
+    /**
      * Test adding a column.
      */
     public function testAlterTableAddColumn()

@@ -32,6 +32,20 @@ class AlterTable extends StatementBuilder
     }
 
     /**
+     * Alter the table by settings the engine.
+     *
+     * @param string $engine e.g. InnoDB
+     *
+     * @return AlterTable
+     */
+    public function engine($engine)
+    {
+        $type = 'engine';
+        $this->statement['alterations'][] = compact('type', 'engine');
+        return $this;
+    }
+
+    /**
      * Alter the table by adding a column.
      *
      * @param string        $name
