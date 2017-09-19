@@ -188,7 +188,7 @@ class MySQL extends Compiler
         // First
         $first = !$createSyntax && isset($statement['first']) ? 'FIRST' : '';
         // After
-        $after = !$createSyntax && isset($statement['first']) ? 'AFTER ' . $this->sanitise($statement['after']) : '';
+        $after = !$createSyntax && isset($statement['after']) ? 'AFTER ' . $this->sanitise($statement['after']) : '';
 
 
         return $this->concatenateSql([

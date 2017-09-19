@@ -40,6 +40,28 @@ class MySqlAlterTableTest extends CompilableMySqlTestCase
     }
 
     /**
+     * Test adding a column first.
+     */
+    public function testAlterTableAddColumnFirst()
+    {
+        $sql       = 'ALTER TABLE `table` ADD `column` INT(10) FIRST';
+        $statement = (new AlterTable($this->mockConnection))->table('table');
+        $statement->addColumn('column')->integer(10)->first();
+        $this->assertEquals($sql, $statement->toSql());
+    }
+
+    /**
+     * Test adding a column after other_column.
+     */
+    public function testAlterTableAddColumnAfter()
+    {
+        $sql       = 'ALTER TABLE `table` ADD `column` INT(10) AFTER `other_column`';
+        $statement = (new AlterTable($this->mockConnection))->table('table');
+        $statement->addColumn('column')->integer(10)->after('other_column');
+        $this->assertEquals($sql, $statement->toSql());
+    }
+
+    /**
      * Test modifying a column.
      */
     public function testAlterTableModifyColumn()
