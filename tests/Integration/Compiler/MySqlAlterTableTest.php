@@ -1,6 +1,6 @@
 <?php
 
-namespace MadeSimple\Database\Tests\Unit\Compiler;
+namespace MadeSimple\Database\Tests\Integration\Compiler;
 
 use MadeSimple\Database\Statement\AlterTable;
 use MadeSimple\Database\Tests\CompilableMySqlTestCase;
@@ -14,6 +14,17 @@ class MySqlAlterTableTest extends CompilableMySqlTestCase
     {
         $sql       = 'ALTER TABLE `table`';
         $statement = (new AlterTable($this->mockConnection))->table('table');
+        $this->assertEquals($sql, $statement->toSql());
+    }
+
+    /**
+     * Test renaming a table.
+     */
+    public function testAlterTableRenameTable()
+    {
+        $sql       = 'ALTER TABLE `table` RENAME TO `table1`';
+        $statement = (new AlterTable($this->mockConnection))->table('table');
+        $statement->renameTable('table1');
         $this->assertEquals($sql, $statement->toSql());
     }
 

@@ -100,50 +100,50 @@ class MySQL extends Compiler
 
         /** @var ColumnBuilder $columnBuilder */
         $columnBuilder = $columnArray['columnBuilder'];
-        $statement     = $columnBuilder->getStatement();
+        $statement     = $columnBuilder->toArray();
 
         // Name
         $name = $this->sanitise($columnArray['name']);
         // Data Type
-        $dataType = '';
-        if (isset($statement['dataType'])) {
-            $dataType = strtoupper($statement['dataType']['type']);
-            switch ($statement['dataType']['type']) {
+        $datatype = '';
+        if (isset($statement['datatype'])) {
+            $datatype = strtoupper($statement['datatype']['type']);
+            switch ($statement['datatype']['type']) {
                 case 'tinyInteger':
                 case 'smallInteger':
                 case 'mediumInteger':
                 case 'integer':
                 case 'bigInteger':
-                    $dataType = str_replace('INTEGER', 'INT', $dataType)
-                        . '(' . $statement['dataType']['length'] . ')'
-                        . ($statement['dataType']['unsigned'] ? ' UNSIGNED' :'')
-                        . ($statement['dataType']['zerofill'] ? ' ZEROFILL' : '');
+                    $datatype = str_replace('INTEGER', 'INT', $datatype)
+                        . '(' . $statement['datatype']['length'] . ')'
+                        . ($statement['datatype']['unsigned'] ? ' UNSIGNED' :'')
+                        . ($statement['datatype']['zerofill'] ? ' ZEROFILL' : '');
                     break;
                 case 'double':
                 case 'float':
                 case 'decimal':
-                    $dataType = 'REAL(' . $statement['dataType']['length'] . ',' . $statement['dataType']['decimals'] . ')'
-                        . ($statement['dataType']['unsigned'] ? ' UNSIGNED' :'')
-                        . ($statement['dataType']['zerofill'] ? ' ZEROFILL' : '');
+                    $datatype = 'REAL(' . $statement['datatype']['length'] . ',' . $statement['datatype']['decimals'] . ')'
+                        . ($statement['datatype']['unsigned'] ? ' UNSIGNED' :'')
+                        . ($statement['datatype']['zerofill'] ? ' ZEROFILL' : '');
                     break;
                 case 'date':
-                    $dataType = 'DATE';
+                    $datatype = 'DATE';
                     break;
                 case 'time':
                 case 'timestamp':
                 case 'dateTime':
-                    $dataType = $dataType
-                        . (null !== $statement['dataType']['fsp'] ? '(' . $statement['dataType']['fsp'] . ')' : '');
+                    $datatype = $datatype
+                        . (null !== $statement['datatype']['fsp'] ? '(' . $statement['datatype']['fsp'] . ')' : '');
                     break;
                 case 'char':
                 case 'varchar':
-                    $dataType = $dataType
-                        . '(' . $statement['dataType']['length'] . ')' . ($statement['dataType']['binary'] ? ' BINARY' : '')
-                        . (null !== $statement['dataType']['charset'] ? ' CHARACTER SET ' . $statement['dataType']['charset'] : '')
-                        . (null !== $statement['dataType']['collate'] ? ' COLLATE ' . $statement['dataType']['collate'] : '');
+                    $datatype = $datatype
+                        . '(' . $statement['datatype']['length'] . ')' . ($statement['datatype']['binary'] ? ' BINARY' : '')
+                        . (null !== $statement['datatype']['charset'] ? ' CHARACTER SET ' . $statement['datatype']['charset'] : '')
+                        . (null !== $statement['datatype']['collate'] ? ' COLLATE ' . $statement['datatype']['collate'] : '');
                     break;
                 case 'binary':
-                    $dataType = 'BINARY(' . $statement['dataType']['length']. ')';
+                    $datatype = 'BINARY(' . $statement['datatype']['length']. ')';
                     break;
                 case 'tinyBlob':
                 case 'blob':
@@ -155,18 +155,18 @@ class MySQL extends Compiler
                 case 'text':
                 case 'mediumText':
                 case 'longText':
-                    $dataType = $dataType
-                        . ($statement['dataType']['binary'] ? ' BINARY' :'')
-                        . (null !== $statement['dataType']['charset'] ? ' CHARACTER SET ' . $statement['dataType']['charset'] : '')
-                        . (null !== $statement['dataType']['collate'] ? ' COLLATE ' . $statement['dataType']['collate'] : '');
+                    $datatype = $datatype
+                        . ($statement['datatype']['binary'] ? ' BINARY' :'')
+                        . (null !== $statement['datatype']['charset'] ? ' CHARACTER SET ' . $statement['datatype']['charset'] : '')
+                        . (null !== $statement['datatype']['collate'] ? ' COLLATE ' . $statement['datatype']['collate'] : '');
                     break;
                 case 'enum':
-                    $dataType = 'ENUM(\'' . implode('\',\'', $statement['dataType']['values']) . '\')'
-                        . (null !== $statement['dataType']['charset'] ? ' CHARACTER SET ' . $statement['dataType']['charset'] : '')
-                        . (null !== $statement['dataType']['collate'] ? ' COLLATE ' . $statement['dataType']['collate'] : '');
+                    $datatype = 'ENUM(\'' . implode('\',\'', $statement['datatype']['values']) . '\')'
+                        . (null !== $statement['datatype']['charset'] ? ' CHARACTER SET ' . $statement['datatype']['charset'] : '')
+                        . (null !== $statement['datatype']['collate'] ? ' COLLATE ' . $statement['datatype']['collate'] : '');
                     break;
                 case 'json':
-                    $dataType = 'JSON';
+                    $datatype = 'JSON';
                     break;
             }
         }
@@ -193,7 +193,7 @@ class MySQL extends Compiler
 
         return $this->concatenateSql([
             $name,
-            $dataType,
+            $datatype,
             $null,
             $default,
             $useCurrent,
@@ -240,11 +240,15 @@ class MySQL extends Compiler
         foreach ($statement['alterations'] ?? [] as $alteration) {
             $sql .= ', ';
             switch ($alteration['type']) {
+                case 'renameTable':
+                    $sql .= 'RENAME TO ' . $this->sanitise($alteration['name']);
+                    break;
+
                 case 'addColumn':
                     $sql .= 'ADD ' . $this->compileStatementColumn($alteration, false);
                     break;
                 case 'dropColumn':
-                    $sql .= 'DROP COLUMN ' . $this->sanitise($alteration['column']);
+                    $sql .= 'DROP COLUMN ' . $this->sanitise($alteration['name']);
                     break;
                 case 'modifyColumn':
                     $sql .= 'MODIFY COLUMN ' . $this->compileStatementColumn($alteration, false);
@@ -267,7 +271,7 @@ class MySQL extends Compiler
                         . '(' . $referenceColumns . ')' . $onDelete . $onUpdate;
                     break;
                 case 'dropForeignKey':
-                    $sql .= 'DROP FOREIGN KEY ' . $this->sanitise($alteration['foreignKey']);
+                    $sql .= 'DROP FOREIGN KEY ' . $this->sanitise($alteration['name']);
                     break;
 
                 case 'addUnique':
@@ -277,7 +281,7 @@ class MySQL extends Compiler
                     $sql .= 'ADD ' . $name . 'UNIQUE (' . $columns . ')';
                     break;
                 case 'dropUnique':
-                    $sql .= 'DROP INDEX ' . $this->sanitise($alteration['unique']);
+                    $sql .= 'DROP INDEX ' . $this->sanitise($alteration['name']);
                     break;
             }
         }

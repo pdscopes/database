@@ -3,17 +3,37 @@
 namespace MadeSimple\Database\Tests\Unit\Statement;
 
 use MadeSimple\Database\Statement\DropTable;
-use MadeSimple\Database\Tests\CompilableMySqlTestCase;
+use MadeSimple\Database\Tests\CompilableTestCase;
 
-class DropTableTest extends CompilableMySqlTestCase
+class DropTableTest extends CompilableTestCase
 {
     /**
      * Test setting the index name.
      */
     public function testIndex()
     {
-        $sql       = 'DROP TABLE `name`';
-        $statement = (new DropTable($this->mockConnection))->table('name');
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new DropTable($this->mockConnection));
+        $return    = $statement->table('name');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(DropTable::class, $return);
+        $this->assertEquals([
+            'table' => 'name',
+        ], $array);
+    }
+
+
+    /**
+     * Test buildSql calls Compiler::compileQueryDelete.
+     */
+    public function testBuildSql()
+    {
+        $statement = [];
+        $this->mockCompiler->shouldReceive('compileStatementDropTable')->once()->with($statement)->andReturn(['SQL', []]);
+
+        $query = (new DropTable($this->mockConnection));
+        list($sql, $bindings) = $query->buildSql($statement);
+        $this->assertEquals('SQL', $sql);
+        $this->assertEquals([], $bindings);
     }
 }

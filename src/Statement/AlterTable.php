@@ -18,6 +18,20 @@ class AlterTable extends StatementBuilder
     }
 
     /**
+     * Alter the table be renaming.
+     *
+     * @param string $name
+     *
+     * @return AlterTable
+     */
+    public function renameTable($name)
+    {
+        $type = 'renameTable';
+        $this->statement['alterations'][] = compact('type', 'name');
+        return $this;
+    }
+
+    /**
      * Alter the table by adding a column.
      *
      * @param string        $name
@@ -121,14 +135,14 @@ class AlterTable extends StatementBuilder
     /**
      * Alter the table by dropping a column.
      *
-     * @param string $column
+     * @param string $name
      *
      * @return AlterTable
      */
-    public function dropColumn($column)
+    public function dropColumn($name)
     {
         $type = 'dropColumn';
-        $this->statement['alterations'][] = compact('type', 'column');
+        $this->statement['alterations'][] = compact('type', 'name');
         return $this;
     }
 
@@ -157,14 +171,14 @@ class AlterTable extends StatementBuilder
     /**
      * Alter the table by dropping a foreign key constraint.
      *
-     * @param string $foreignKey
+     * @param string $name
      *
      * @return AlterTable
      */
-    public function dropForeignKey($foreignKey)
+    public function dropForeignKey($name)
     {
         $type = 'dropForeignKey';
-        $this->statement['alterations'][] = compact('type', 'foreignKey');
+        $this->statement['alterations'][] = compact('type', 'name');
         return $this;
     }
 
@@ -188,14 +202,14 @@ class AlterTable extends StatementBuilder
     /**
      * Alter the table by dropping a unique constraint.
      *
-     * @param string $unique
+     * @param string $name
      *
      * @return AlterTable
      */
-    public function dropUnique($unique)
+    public function dropUnique($name)
     {
         $type = 'dropUnique';
-        $this->statement['alterations'][] = compact('type', 'unique');
+        $this->statement['alterations'][] = compact('type', 'name');
         return $this;
     }
 

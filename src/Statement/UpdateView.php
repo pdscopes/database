@@ -2,6 +2,8 @@
 
 namespace MadeSimple\Database\Statement;
 
+use MadeSimple\Database\Query\Select;
+
 class UpdateView extends StatementBuilder
 {
     /**
@@ -18,7 +20,7 @@ class UpdateView extends StatementBuilder
     }
 
     /**
-     * @param \Closure $select function(Select){...}
+     * @param callable|Select $select function(Select){...}
      *
      * @see \MadeSimple\Database\Query\Select
      *
@@ -26,7 +28,13 @@ class UpdateView extends StatementBuilder
      */
     public function asSelect($select)
     {
-        $this->statement['select'] = $select;
+        if (is_callable($select)) {
+            $callable = $select;
+            $select   = new Select($this->connection, $this->logger);
+            call_user_func($callable, $select);
+        }
+
+        $this->statement['select'] = $select->statement;
         return $this;
     }
 

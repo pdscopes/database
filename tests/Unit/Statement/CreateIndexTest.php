@@ -3,18 +3,38 @@
 namespace MadeSimple\Database\Tests\Unit\Statement;
 
 use MadeSimple\Database\Statement\CreateIndex;
-use MadeSimple\Database\Tests\CompilableMySqlTestCase;
+use MadeSimple\Database\Tests\CompilableTestCase;
 
-class CreateIndexTest extends CompilableMySqlTestCase
+class CreateIndexTest extends CompilableTestCase
 {
     /**
-     * Test creating an index.
+     * Test setting the name of the index.
      */
     public function testIndex()
     {
-        $sql       = 'CREATE INDEX `name` ON `table`';
-        $statement = (new CreateIndex($this->mockConnection))->index('name')->table('table');
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new CreateIndex($this->mockConnection));
+        $return    = $statement->index('name');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(CreateIndex::class, $return);
+        $this->assertEquals([
+            'index' => 'name',
+        ], $array);
+    }
+
+    /**
+     * Test setting the table to create the index on.
+     */
+    public function testTable()
+    {
+        $statement = (new CreateIndex($this->mockConnection));
+        $return    = $statement->table('name');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(CreateIndex::class, $return);
+        $this->assertEquals([
+            'table' => 'name',
+        ], $array);
     }
 
     /**
@@ -22,8 +42,28 @@ class CreateIndexTest extends CompilableMySqlTestCase
      */
     public function testUniqueIndex()
     {
-        $sql       = 'CREATE UNIQUE INDEX `name` ON `table`';
-        $statement = (new CreateIndex($this->mockConnection))->index('name')->table('table')->unique();
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new CreateIndex($this->mockConnection));
+        $return    = $statement->unique();
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(CreateIndex::class, $return);
+        $this->assertEquals([
+            'unique' => true,
+        ], $array);
+    }
+
+
+    /**
+     * Test buildSql calls Compiler::compileQueryDelete.
+     */
+    public function testBuildSql()
+    {
+        $statement = [];
+        $this->mockCompiler->shouldReceive('compileStatementCreateIndex')->once()->with($statement)->andReturn(['SQL', []]);
+
+        $query = (new CreateIndex($this->mockConnection));
+        list($sql, $bindings) = $query->buildSql($statement);
+        $this->assertEquals('SQL', $sql);
+        $this->assertEquals([], $bindings);
     }
 }

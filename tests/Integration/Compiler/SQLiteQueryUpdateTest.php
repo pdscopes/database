@@ -1,20 +1,20 @@
 <?php
 
-namespace MadeSimple\Database\Tests\Unit\Compiler;
+namespace MadeSimple\Database\Tests\Integration\Compiler;
 
 use MadeSimple\Database\Query\Select;
 use MadeSimple\Database\Query\Update;
 use MadeSimple\Database\Query\WhereBuilder;
-use MadeSimple\Database\Tests\CompilableMySqlTestCase;
+use MadeSimple\Database\Tests\CompilableSQLiteTestCase;
 
-class MySqlQueryUpdateTest extends CompilableMySqlTestCase
+class SQLiteQueryUpdateTest extends CompilableSQLiteTestCase
 {
     /**
      * Test update table.
      */
     public function testQueryUpdateTable()
     {
-        $sql    = 'UPDATE `table` SET `foo`=?';
+        $sql    = 'UPDATE "table" SET "foo"=?';
         $update = (new Update($this->mockConnection))->table('table')->set('foo', 5);
 
         $this->assertEquals($sql, $update->toSql());
@@ -25,7 +25,7 @@ class MySqlQueryUpdateTest extends CompilableMySqlTestCase
      */
     public function testQueryUpdateSet()
     {
-        $sql    = 'UPDATE `table` SET `foo`=?,`bar`=?';
+        $sql    = 'UPDATE "table" SET "foo"=?,"bar"=?';
         $update = (new Update($this->mockConnection))->table('table')->set('foo', 1)->set('bar', 2);
 
         $this->assertEquals($sql, $update->toSql());
@@ -36,7 +36,7 @@ class MySqlQueryUpdateTest extends CompilableMySqlTestCase
      */
     public function testQueryUpdateColumnsSingle()
     {
-        $sql    = 'UPDATE `table` SET `foo`=?';
+        $sql    = 'UPDATE "table" SET "foo"=?';
         $update = (new Update($this->mockConnection))->table('table')->columns(['foo' => 5]);
 
         $this->assertEquals($sql, $update->toSql());
@@ -47,7 +47,7 @@ class MySqlQueryUpdateTest extends CompilableMySqlTestCase
      */
     public function testQueryUpdateColumnsMultiple()
     {
-        $sql    = 'UPDATE `table` SET `foo`=?,`bar`=?';
+        $sql    = 'UPDATE "table" SET "foo"=?,"bar"=?';
         $update = (new Update($this->mockConnection))->table('table')->columns(['foo' => 5, 'bar' => 6]);
 
         $this->assertEquals($sql, $update->toSql());
@@ -60,7 +60,7 @@ class MySqlQueryUpdateTest extends CompilableMySqlTestCase
      */
     public function testQueryUpdateWhere()
     {
-        $sql    = 'UPDATE `table` SET `field`=? WHERE `foo` = ?';
+        $sql    = 'UPDATE "table" SET "field"=? WHERE "foo" = ?';
         $select = (new Update($this->mockConnection))->table('table')
             ->set('field', 5)
             ->where('foo', '=', 1);
@@ -72,7 +72,7 @@ class MySqlQueryUpdateTest extends CompilableMySqlTestCase
      */
     public function testQueryUpdateWhereComparisonOperators()
     {
-        $sql    = 'UPDATE `table` SET `field`=? WHERE `field1` = ? AND `field2` > ? AND `field3` < ? AND `field4` >= ? AND `field5` <= ? AND `field6` <> ?';
+        $sql    = 'UPDATE "table" SET "field"=? WHERE "field1" = ? AND "field2" > ? AND "field3" < ? AND "field4" >= ? AND "field5" <= ? AND "field6" <> ?';
         $select = (new Update($this->mockConnection))
             ->table('table')
             ->set('field', 5)
@@ -90,7 +90,7 @@ class MySqlQueryUpdateTest extends CompilableMySqlTestCase
      */
     public function testQueryUpdateWhereBetween()
     {
-        $sql    = 'UPDATE `table` SET `field`=? WHERE `field` BETWEEN ? AND ?';
+        $sql    = 'UPDATE "table" SET "field"=? WHERE "field" BETWEEN ? AND ?';
         $select = (new Update($this->mockConnection))->table('table')
             ->set('field', 5)
             ->where('field', 'between', [1, 9]);
@@ -102,7 +102,7 @@ class MySqlQueryUpdateTest extends CompilableMySqlTestCase
      */
     public function testQueryUpdateWhereIn()
     {
-        $sql    = 'UPDATE `table` SET `field`=? WHERE `field` IN (?,?,?,?,?)';
+        $sql    = 'UPDATE "table" SET "field"=? WHERE "field" IN (?,?,?,?,?)';
         $select = (new Update($this->mockConnection))->table('table')
             ->set('field', 5)
             ->where('field', 'in', [1, 2, 3, 4, 5]);
@@ -114,7 +114,7 @@ class MySqlQueryUpdateTest extends CompilableMySqlTestCase
      */
     public function testQueryUpdateWhereClosure()
     {
-        $sql    = 'UPDATE `table` SET `field`=? WHERE ((`foo` != ? OR `bar` IN (?,?,?)) AND `baz` = ?)';
+        $sql    = 'UPDATE "table" SET "field"=? WHERE (("foo" != ? OR "bar" IN (?,?,?)) AND "baz" = ?)';
         $select = (new Update($this->mockConnection))->table('table')
             ->set('field', 5)
             ->where(function (WhereBuilder $query) {
@@ -132,7 +132,7 @@ class MySqlQueryUpdateTest extends CompilableMySqlTestCase
      */
     public function testQueryUpdateAndWhere()
     {
-        $sql    = 'UPDATE `table` SET `field`=? WHERE `foo` = ? AND `bar` = ?';
+        $sql    = 'UPDATE "table" SET "field"=? WHERE "foo" = ? AND "bar" = ?';
         $select = (new Update($this->mockConnection))->table('table')
             ->set('field', 5)
             ->where('foo', '=', 1)
@@ -145,7 +145,7 @@ class MySqlQueryUpdateTest extends CompilableMySqlTestCase
      */
     public function testQueryUpdateOrWhere()
     {
-        $sql    = 'UPDATE `table` SET `field`=? WHERE `foo` = ? OR `bar` = ?';
+        $sql    = 'UPDATE "table" SET "field"=? WHERE "foo" = ? OR "bar" = ?';
         $select = (new Update($this->mockConnection))->table('table')
             ->set('field', 5)
             ->where('foo', '=', 1)
@@ -158,11 +158,11 @@ class MySqlQueryUpdateTest extends CompilableMySqlTestCase
      */
     public function testQueryUpdateWhereRaw()
     {
-        $sql    = 'UPDATE `table` SET `field`=? WHERE `foo` = ? AND `bar` = COUNT(`qux`)';
+        $sql    = 'UPDATE "table" SET "field"=? WHERE "foo" = ? AND "bar" = COUNT("qux")';
         $select = (new Update($this->mockConnection))->table('table')
             ->set('field', 5)
             ->where('foo', '=', 5)
-            ->whereRaw('bar', '=', 'COUNT(`qux`)');
+            ->whereRaw('bar', '=', 'COUNT("qux")');
         $this->assertEquals($sql, $select->toSql());
     }
 
@@ -171,11 +171,11 @@ class MySqlQueryUpdateTest extends CompilableMySqlTestCase
      */
     public function testQueryUpdateOrWhereRaw()
     {
-        $sql    = 'UPDATE `table` SET `field`=? WHERE `foo` = ? OR `bar` = COUNT(`qux`)';
+        $sql    = 'UPDATE "table" SET "field"=? WHERE "foo" = ? OR "bar" = COUNT("qux")';
         $select = (new Update($this->mockConnection))->table('table')
             ->set('field', 5)
             ->where('foo', '=', 5)
-            ->orWhereRaw('bar', '=', 'COUNT(`qux`)');
+            ->orWhereRaw('bar', '=', 'COUNT("qux")');
         $this->assertEquals($sql, $select->toSql());
     }
 
@@ -184,7 +184,7 @@ class MySqlQueryUpdateTest extends CompilableMySqlTestCase
      */
     public function testQueryUpdateWhereColumn()
     {
-        $sql    = 'UPDATE `table` SET `field`=? WHERE `foo` = ? AND `bar` = `qux`';
+        $sql    = 'UPDATE "table" SET "field"=? WHERE "foo" = ? AND "bar" = "qux"';
         $select = (new Update($this->mockConnection))->table('table')
             ->set('field', 5)
             ->where('foo', '=', 5)
@@ -197,7 +197,7 @@ class MySqlQueryUpdateTest extends CompilableMySqlTestCase
      */
     public function testQueryUpdateOrWhereColumn()
     {
-        $sql    = 'UPDATE `table` SET `field`=? WHERE `foo` = ? OR `bar` = `qux`';
+        $sql    = 'UPDATE "table" SET "field"=? WHERE "foo" = ? OR "bar" = "qux"';
         $select = (new Update($this->mockConnection))->table('table')
             ->set('field', 5)
             ->where('foo', '=', 5)
@@ -210,7 +210,7 @@ class MySqlQueryUpdateTest extends CompilableMySqlTestCase
      */
     public function testQueryUpdateWhereExists()
     {
-        $sql    = 'UPDATE `table1` SET `field`=? WHERE EXISTS (SELECT * FROM `table2` WHERE `table1`.`id` = `table2`.`table1_id`)';
+        $sql    = 'UPDATE "table1" SET "field"=? WHERE EXISTS (SELECT * FROM "table2" WHERE "table1"."id" = "table2"."table1_id")';
         $select = (new Update($this->mockConnection))->table('table1')
             ->set('field', 5)
             ->whereExists(function (Select $select) {
@@ -224,7 +224,7 @@ class MySqlQueryUpdateTest extends CompilableMySqlTestCase
      */
     public function testQueryUpdateWhereNotExists()
     {
-        $sql    = 'UPDATE `table1` SET `field`=? WHERE NOT EXISTS (SELECT * FROM `table2` WHERE `table1`.`id` = `table2`.`table1_id`)';
+        $sql    = 'UPDATE "table1" SET "field"=? WHERE NOT EXISTS (SELECT * FROM "table2" WHERE "table1"."id" = "table2"."table1_id")';
         $select = (new Update($this->mockConnection))->table('table1')
             ->set('field', 5)
             ->whereNotExists(function (Select $select) {

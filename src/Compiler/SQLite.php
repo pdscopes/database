@@ -75,29 +75,29 @@ class SQLite extends Compiler
         if (!isset($columnArray['columnBuilder'])) {
             return $this->sanitise($columnArray['name']);
         }
-        $columnArray  += ['dataType' => ['type' => '']];
+        $columnArray  += ['datatype' => ['type' => '']];
 
         /** @var ColumnBuilder $columnBuilder */
         $columnBuilder = $columnArray['columnBuilder'];
-        $statement     = $columnBuilder->getStatement();
+        $statement     = $columnBuilder->toArray();
 
         // Name
         $name = $this->sanitise($columnArray['name']);
         // Data Type
-        $dataType = '';
-        if (isset($statement['dataType'])) {
-            switch ($statement['dataType']['type']) {
+        $datatype = '';
+        if (isset($statement['datatype'])) {
+            switch ($statement['datatype']['type']) {
                 case 'tinyInteger':
                 case 'smallInteger':
                 case 'mediumInteger':
                 case 'integer':
                 case 'bigInteger':
-                    $dataType = 'INTEGER';
+                    $datatype = 'INTEGER';
                     break;
                 case 'double':
                 case 'float':
                 case 'decimal':
-                    $dataType = 'REAL';
+                    $datatype = 'REAL';
                     break;
                 case 'date':
                 case 'time':
@@ -116,7 +116,7 @@ class SQLite extends Compiler
                 case 'longText':
                 case 'enum':
                 case 'json':
-                    $dataType = 'TEXT';
+                    $datatype = 'TEXT';
                     break;
             }
         }
@@ -132,7 +132,7 @@ class SQLite extends Compiler
 
         return $this->concatenateSql([
             $name,
-            $dataType,
+            $datatype,
             $useCurrent,
             $null,
             $primaryKey,
@@ -172,11 +172,15 @@ class SQLite extends Compiler
         foreach ($statement['alterations'] ?? [] as $alteration) {
             $sql .= ', ';
             switch ($alteration['type']) {
+                case 'renameTable':
+                    $sql .= 'RENAME TO ' . $this->sanitise($alteration['name']);
+                    break;
+
                 case 'addColumn':
                     $sql .= 'ADD ' . $this->compileStatementColumn($alteration);
                     break;
                 case 'dropColumn':
-                    $sql .= 'DROP COLUMN ' . $alteration['column'];
+                    $sql .= 'DROP COLUMN ' . $this->sanitise($alteration['name']);
                     break;
                 case 'modifyColumn':
                     $sql .= 'MODIFY COLUMN ' . $this->compileStatementColumn($alteration);

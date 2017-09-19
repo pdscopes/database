@@ -116,19 +116,24 @@ trait WhereTrait
     /**
      * Add a WHERE EXISTS clause with $closure defining a select sub query.
      *
-     * @param \Closure $closure function (Select) {...}
-     * @param string   $boolean
-     * @param bool     $not
+     * @param callable|Select $select  function (Select) {...}
+     * @param string          $boolean
+     * @param bool            $not
      *
      * @return static
      */
-    public function whereExists(\Closure $closure, $boolean = 'and', $not = false)
+    public function whereExists($select, $boolean = 'and', $not = false)
     {
-        $type    = 'exists';
-        $builder = new Select($this->connection);
-        call_user_func($closure, $builder);
+        if (is_callable($select)) {
+            $callable = $select;
+            $select   = new Select($this->connection, $this->logger);
+            call_user_func($callable, $select);
+        }
 
-        $this->statement['where'][] = compact('type', 'builder', 'boolean', 'not');
+        $type   = 'exists';
+        $select = $select->statement;
+
+        $this->statement['where'][] = compact('type', 'select', 'boolean', 'not');
 
         return $this;
     }
@@ -136,13 +141,13 @@ trait WhereTrait
     /**
      * Add a WHERE NOT EXISTS clause with $closure defining a select sub query.
      *
-     * @param \Closure $closure function (Select) {...}
-     * @param string   $boolean
+     * @param callable|Select $select  function (Select) {...}
+     * @param string          $boolean
      *
      * @return static
      */
-    public function whereNotExists(\Closure $closure, $boolean = 'and')
+    public function whereNotExists($select, $boolean = 'and')
     {
-        return $this->whereExists($closure, $boolean, true);
+        return $this->whereExists($select, $boolean, true);
     }
 }

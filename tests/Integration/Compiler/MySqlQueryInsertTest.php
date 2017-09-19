@@ -1,18 +1,18 @@
 <?php
 
-namespace MadeSimple\Database\Tests\Unit\Compiler;
+namespace MadeSimple\Database\Tests\Integration\Compiler;
 
 use MadeSimple\Database\Query\Insert;
-use MadeSimple\Database\Tests\CompilableSQLiteTestCase;
+use MadeSimple\Database\Tests\CompilableMySqlTestCase;
 
-class SQLiteQueryInsertTest extends CompilableSQLiteTestCase
+class MySqlQueryInsertTest extends CompilableMySqlTestCase
 {
     /**
      * Test insert into.
      */
     public function testQueryInsertInto()
     {
-        $sql    = 'INSERT INTO "table"';
+        $sql    = 'INSERT INTO `table`';
         $insert = (new Insert($this->mockConnection))->into('table');
 
         $this->assertEquals($sql, $insert->toSql());
@@ -23,7 +23,7 @@ class SQLiteQueryInsertTest extends CompilableSQLiteTestCase
      */
     public function testQueryInsertColumnsSingle()
     {
-        $sql    = 'INSERT INTO "table" ("foo")';
+        $sql    = 'INSERT INTO `table` (`foo`)';
         $insert = (new Insert($this->mockConnection))->into('table')->columns('foo');
 
         $this->assertEquals($sql, $insert->toSql());
@@ -34,7 +34,7 @@ class SQLiteQueryInsertTest extends CompilableSQLiteTestCase
      */
     public function testQueryInsertColumnsMultiple()
     {
-        $sql    = 'INSERT INTO "table" ("foo","bar")';
+        $sql    = 'INSERT INTO `table` (`foo`,`bar`)';
         $insert = (new Insert($this->mockConnection))->into('table')->columns('foo', 'bar');
 
         $this->assertEquals($sql, $insert->toSql());
@@ -45,7 +45,7 @@ class SQLiteQueryInsertTest extends CompilableSQLiteTestCase
      */
     public function testQueryInsertColumnsArray()
     {
-        $sql    = 'INSERT INTO "table" ("foo","bar")';
+        $sql    = 'INSERT INTO `table` (`foo`,`bar`)';
         $insert = (new Insert($this->mockConnection))->into('table')->columns(['foo', 'bar']);
 
         $this->assertEquals($sql, $insert->toSql());
@@ -56,7 +56,7 @@ class SQLiteQueryInsertTest extends CompilableSQLiteTestCase
      */
     public function testQueryInsertValuesSingleRowSingleValue()
     {
-        $sql = 'INSERT INTO "table" ("foo") VALUES (?)';
+        $sql = 'INSERT INTO `table` (`foo`) VALUES (?)';
 
         $this->mockPdo->shouldReceive('prepare')->once()->with($sql)->andReturn($this->mockPdoStatement);
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(1, 2, \PDO::PARAM_INT)->andReturn(true);
@@ -76,7 +76,7 @@ class SQLiteQueryInsertTest extends CompilableSQLiteTestCase
      */
     public function testQueryInsertValuesSingleRowMultipleValues()
     {
-        $sql = 'INSERT INTO "table" ("foo","bar") VALUES (?,?)';
+        $sql = 'INSERT INTO `table` (`foo`,`bar`) VALUES (?,?)';
 
         $this->mockPdo->shouldReceive('prepare')->once()->with($sql)->andReturn($this->mockPdoStatement);
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(1, 2, \PDO::PARAM_INT)->andReturn(true);
@@ -97,7 +97,7 @@ class SQLiteQueryInsertTest extends CompilableSQLiteTestCase
      */
     public function testQueryInsertValuesSingleRowArrayValues()
     {
-        $sql = 'INSERT INTO "table" ("foo","bar") VALUES (?,?)';
+        $sql = 'INSERT INTO `table` (`foo`,`bar`) VALUES (?,?)';
 
         $this->mockPdo->shouldReceive('prepare')->once()->with($sql)->andReturn($this->mockPdoStatement);
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(1, 2, \PDO::PARAM_INT)->andReturn(true);
@@ -118,7 +118,7 @@ class SQLiteQueryInsertTest extends CompilableSQLiteTestCase
      */
     public function testQueryInsertValuesMultipleRowSingleValue()
     {
-        $sql = 'INSERT INTO "table" ("foo") VALUES (?),(?)';
+        $sql = 'INSERT INTO `table` (`foo`) VALUES (?),(?)';
 
         $this->mockPdo->shouldReceive('prepare')->once()->with($sql)->andReturn($this->mockPdoStatement);
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(1, 2, \PDO::PARAM_INT)->andReturn(true);
@@ -139,7 +139,7 @@ class SQLiteQueryInsertTest extends CompilableSQLiteTestCase
      */
     public function testQueryInsertValuesMultipleRowMultipleValues()
     {
-        $sql = 'INSERT INTO "table" ("foo","bar") VALUES (?,?),(?,?)';
+        $sql = 'INSERT INTO `table` (`foo`,`bar`) VALUES (?,?),(?,?)';
 
         $this->mockPdo->shouldReceive('prepare')->once()->with($sql)->andReturn($this->mockPdoStatement);
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(1, 2, \PDO::PARAM_INT)->andReturn(true);
@@ -162,7 +162,7 @@ class SQLiteQueryInsertTest extends CompilableSQLiteTestCase
      */
     public function testQueryInsertValuesMultipleRowArrayValues()
     {
-        $sql = 'INSERT INTO "table" ("foo","bar") VALUES (?,?),(?,?)';
+        $sql = 'INSERT INTO `table` (`foo`,`bar`) VALUES (?,?),(?,?)';
 
         $this->mockPdo->shouldReceive('prepare')->once()->with($sql)->andReturn($this->mockPdoStatement);
         $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(1, 2, \PDO::PARAM_INT)->andReturn(true);

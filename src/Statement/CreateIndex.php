@@ -14,7 +14,7 @@ class CreateIndex extends StatementBuilder
      */
     public function index($name)
     {
-        $this->statement['name'] = $name;
+        $this->statement['index'] = $name;
         return $this;
     }
 

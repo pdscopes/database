@@ -1,6 +1,6 @@
 <?php
 
-namespace MadeSimple\Database\Tests\Unit\Compiler;
+namespace MadeSimple\Database\Tests\Integration\Compiler;
 
 use MadeSimple\Database\Statement\CreateIndex;
 use MadeSimple\Database\Tests\CompilableMySqlTestCase;

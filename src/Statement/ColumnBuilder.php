@@ -7,14 +7,6 @@ use MadeSimple\Database\Builder;
 class ColumnBuilder extends Builder
 {
     /**
-     * @return array
-     */
-    public function getStatement()
-    {
-        return $this->statement;
-    }
-
-    /**
      * Tiny integer equivalent for the database.
      *
      * @param int  $length
@@ -26,7 +18,7 @@ class ColumnBuilder extends Builder
     public function tinyInteger($length, $unsigned = false, $zerofill = false)
     {
         $type = 'tinyInteger';
-        $this->statement['dataType'] = compact('type', 'length', 'unsigned', 'zerofill');
+        $this->statement['datatype'] = compact('type', 'length', 'unsigned', 'zerofill');
 
         return $this;
     }
@@ -42,7 +34,7 @@ class ColumnBuilder extends Builder
     public function smallInteger($length, $unsigned = false, $zerofill = false)
     {
         $type = 'smallInteger';
-        $this->statement['dataType'] = compact('type', 'length', 'unsigned', 'zerofill');
+        $this->statement['datatype'] = compact('type', 'length', 'unsigned', 'zerofill');
 
         return $this;
     }
@@ -59,7 +51,7 @@ class ColumnBuilder extends Builder
     public function mediumInteger($length, $unsigned = false, $zerofill = false)
     {
         $type = 'mediumInteger';
-        $this->statement['dataType'] = compact('type', 'length','unsigned', 'zerofill');
+        $this->statement['datatype'] = compact('type', 'length','unsigned', 'zerofill');
 
         return $this;
     }
@@ -76,7 +68,7 @@ class ColumnBuilder extends Builder
     public function integer($length, $unsigned = false, $zerofill = false)
     {
         $type = 'integer';
-        $this->statement['dataType'] = compact('type', 'length', 'unsigned', 'zerofill');
+        $this->statement['datatype'] = compact('type', 'length', 'unsigned', 'zerofill');
 
         return $this;
     }
@@ -93,7 +85,7 @@ class ColumnBuilder extends Builder
     public function bigInteger($length, $unsigned = false, $zerofill = false)
     {
         $type = 'bigInteger';
-        $this->statement['dataType'] = compact('type', 'length', 'unsigned', 'zerofill');
+        $this->statement['datatype'] = compact('type', 'length', 'unsigned', 'zerofill');
 
         return $this;
     }
@@ -111,7 +103,7 @@ class ColumnBuilder extends Builder
     public function double($length, $decimals, $unsigned = false, $zerofill = false)
     {
         $type = 'double';
-        $this->statement['dataType'] = compact('type', 'length', 'decimals', 'unsigned', 'zerofill');
+        $this->statement['datatype'] = compact('type', 'length', 'decimals', 'unsigned', 'zerofill');
 
         return $this;
     }
@@ -129,7 +121,7 @@ class ColumnBuilder extends Builder
     public function float($length, $decimals, $unsigned = false, $zerofill = false)
     {
         $type = 'float';
-        $this->statement['dataType'] = compact('type', 'length', 'decimals', 'unsigned', 'zerofill');
+        $this->statement['datatype'] = compact('type', 'length', 'decimals', 'unsigned', 'zerofill');
 
         return $this;
     }
@@ -147,7 +139,7 @@ class ColumnBuilder extends Builder
     public function decimal($length, $decimals = null, $unsigned = false, $zerofill = false)
     {
         $type = 'decimal';
-        $this->statement['dataType'] = compact('type', 'length', 'decimals', 'unsigned', 'zerofill');
+        $this->statement['datatype'] = compact('type', 'length', 'decimals', 'unsigned', 'zerofill');
 
         return $this;
     }
@@ -160,7 +152,7 @@ class ColumnBuilder extends Builder
     public function date()
     {
         $type = 'date';
-        $this->statement['dataType'] = compact('type');
+        $this->statement['datatype'] = compact('type');
 
         return $this;
     }
@@ -175,7 +167,7 @@ class ColumnBuilder extends Builder
     public function time($fsp = null)
     {
         $type = 'time';
-        $this->statement['dataType'] = compact('type', 'fsp');
+        $this->statement['datatype'] = compact('type', 'fsp');
 
         return $this;
     }
@@ -190,7 +182,7 @@ class ColumnBuilder extends Builder
     public function timestamp($fsp = null)
     {
         $type = 'timestamp';
-        $this->statement['dataType'] = compact('type', 'fsp');
+        $this->statement['datatype'] = compact('type', 'fsp');
 
         return $this;
     }
@@ -205,7 +197,7 @@ class ColumnBuilder extends Builder
     public function dateTime($fsp = null)
     {
         $type = 'dateTime';
-        $this->statement['dataType'] = compact('type', 'fsp');
+        $this->statement['datatype'] = compact('type', 'fsp');
 
         return $this;
     }
@@ -223,7 +215,7 @@ class ColumnBuilder extends Builder
     public function char($length, $binary = false, $charset = null, $collate = null)
     {
         $type = 'char';
-        $this->statement['dataType'] = compact('type', 'length', 'binary', 'charset', 'collate');
+        $this->statement['datatype'] = compact('type', 'length', 'binary', 'charset', 'collate');
 
         return $this;
     }
@@ -241,7 +233,7 @@ class ColumnBuilder extends Builder
     public function varchar($length, $binary = false, $charset = null, $collate = null)
     {
         $type = 'varchar';
-        $this->statement['dataType'] = compact('type', 'length', 'binary', 'charset', 'collate');
+        $this->statement['datatype'] = compact('type', 'length', 'binary', 'charset', 'collate');
 
         return $this;
     }
@@ -256,7 +248,7 @@ class ColumnBuilder extends Builder
     public function binary($length)
     {
         $type = 'binary';
-        $this->statement['dataType'] = compact('type', 'length');
+        $this->statement['datatype'] = compact('type', 'length');
 
         return $this;
     }
@@ -269,7 +261,7 @@ class ColumnBuilder extends Builder
     public function tinyBlob()
     {
         $type = 'tinyBlob';
-        $this->statement['dataType'] = compact('type');
+        $this->statement['datatype'] = compact('type');
 
         return $this;
     }
@@ -282,7 +274,7 @@ class ColumnBuilder extends Builder
     public function blob()
     {
         $type = 'blob';
-        $this->statement['dataType'] = compact('type');
+        $this->statement['datatype'] = compact('type');
 
         return $this;
     }
@@ -295,7 +287,7 @@ class ColumnBuilder extends Builder
     public function mediumBlob()
     {
         $type = 'mediumBlob';
-        $this->statement['dataType'] = compact('type');
+        $this->statement['datatype'] = compact('type');
 
         return $this;
     }
@@ -308,7 +300,7 @@ class ColumnBuilder extends Builder
     public function longBlob()
     {
         $type = 'longBlob';
-        $this->statement['dataType'] = compact('type');
+        $this->statement['datatype'] = compact('type');
 
         return $this;
     }
@@ -325,7 +317,7 @@ class ColumnBuilder extends Builder
     public function tinyText($binary = false, $charset = null, $collate = null)
     {
         $type = 'tinyText';
-        $this->statement['dataType'] = compact('type', 'binary', 'charset', 'collate');
+        $this->statement['datatype'] = compact('type', 'binary', 'charset', 'collate');
 
         return $this;
     }
@@ -342,7 +334,7 @@ class ColumnBuilder extends Builder
     public function text($binary = false, $charset = null, $collate = null)
     {
         $type = 'text';
-        $this->statement['dataType'] = compact('type', 'length', 'binary', 'charset', 'collate');
+        $this->statement['datatype'] = compact('type', 'length', 'binary', 'charset', 'collate');
 
         return $this;
     }
@@ -359,7 +351,7 @@ class ColumnBuilder extends Builder
     public function mediumText($binary = false, $charset = null, $collate = null)
     {
         $type = 'mediumText';
-        $this->statement['dataType'] = compact('type', 'length', 'binary', 'charset', 'collate');
+        $this->statement['datatype'] = compact('type', 'length', 'binary', 'charset', 'collate');
 
         return $this;
     }
@@ -376,7 +368,7 @@ class ColumnBuilder extends Builder
     public function longText($binary = false, $charset = null, $collate = null)
     {
         $type = 'longText';
-        $this->statement['dataType'] = compact('type', 'length', 'binary', 'charset', 'collate');
+        $this->statement['datatype'] = compact('type', 'length', 'binary', 'charset', 'collate');
 
         return $this;
     }
@@ -393,7 +385,7 @@ class ColumnBuilder extends Builder
     public function enum(array $values, $charset = null, $collate = null)
     {
         $type = 'enum';
-        $this->statement['dataType'] = compact('type', 'length', 'values', 'charset', 'collate');
+        $this->statement['datatype'] = compact('type', 'values', 'charset', 'collate');
 
         return $this;
     }
@@ -406,7 +398,7 @@ class ColumnBuilder extends Builder
     public function json()
     {
         $type = 'json';
-        $this->statement['dataType'] = compact('type');
+        $this->statement['datatype'] = compact('type');
 
         return $this;
     }

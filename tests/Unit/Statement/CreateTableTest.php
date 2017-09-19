@@ -2,19 +2,25 @@
 
 namespace MadeSimple\Database\Tests\Unit\Statement;
 
+use MadeSimple\Database\Statement\ColumnBuilder;
 use MadeSimple\Database\Statement\CreateTable;
-use MadeSimple\Database\Tests\CompilableMySqlTestCase;
+use MadeSimple\Database\Tests\CompilableTestCase;
 
-class CreateTableTest extends CompilableMySqlTestCase
+class CreateTableTest extends CompilableTestCase
 {
     /**
      * Test setting the table name.
      */
     public function testTable()
     {
-        $sql       = 'CREATE TABLE `name` ( )';
-        $statement = (new CreateTable($this->mockConnection))->table('name');
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new CreateTable($this->mockConnection));
+        $return    = $statement->table('name');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(CreateTable::class, $return);
+        $this->assertEquals([
+            'table' => 'name',
+        ], $array);
     }
 
     /**
@@ -22,10 +28,14 @@ class CreateTableTest extends CompilableMySqlTestCase
      */
     public function testTemporary()
     {
-        $sql       = 'CREATE TEMPORARY TABLE `name` ( )';
-        $statement = (new CreateTable($this->mockConnection))->table('name')
-            ->temporary();
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new CreateTable($this->mockConnection));
+        $return    = $statement->temporary();
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(CreateTable::class, $return);
+        $this->assertEquals([
+            'temporary' => true,
+        ], $array);
     }
 
     /**
@@ -33,10 +43,14 @@ class CreateTableTest extends CompilableMySqlTestCase
      */
     public function testIfNotExists()
     {
-        $sql       = 'CREATE TABLE IF NOT EXISTS `name` ( )';
-        $statement = (new CreateTable($this->mockConnection))->table('name')
-            ->ifNotExists();
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new CreateTable($this->mockConnection));
+        $return    = $statement->ifNotExists();
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(CreateTable::class, $return);
+        $this->assertEquals([
+            'ifNotExists' => true,
+        ], $array);
     }
 
     /**
@@ -44,10 +58,19 @@ class CreateTableTest extends CompilableMySqlTestCase
      */
     public function testPrimaryKey()
     {
-        $sql       = 'CREATE TABLE `name` ( ,PRIMARY KEY (`id`) )';
-        $statement = (new CreateTable($this->mockConnection))->table('name')
-            ->primaryKey('id');
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new CreateTable($this->mockConnection));
+        $return    = $statement->primaryKey('id');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(CreateTable::class, $return);
+        $this->assertEquals([
+            'constraints' => [
+                [
+                    'type'    => 'primaryKey',
+                    'columns' => ['id']
+                ]
+            ],
+        ], $array);
     }
 
     /**
@@ -55,10 +78,19 @@ class CreateTableTest extends CompilableMySqlTestCase
      */
     public function testPrimaryKeyComposite()
     {
-        $sql       = 'CREATE TABLE `name` ( ,PRIMARY KEY (`id1`,`id2`) )';
-        $statement = (new CreateTable($this->mockConnection))->table('name')
-            ->primaryKey('id1', 'id2');
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new CreateTable($this->mockConnection));
+        $return    = $statement->primaryKey('id1', 'id2');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(CreateTable::class, $return);
+        $this->assertEquals([
+            'constraints' => [
+                [
+                    'type'    => 'primaryKey',
+                    'columns' => ['id1', 'id2']
+                ]
+            ],
+        ], $array);
     }
 
     /**
@@ -66,10 +98,20 @@ class CreateTableTest extends CompilableMySqlTestCase
      */
     public function testIndex()
     {
-        $sql       = 'CREATE TABLE `name` ( ,INDEX (`column`) )';
-        $statement = (new CreateTable($this->mockConnection))->table('name')
-            ->index('column');
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new CreateTable($this->mockConnection));
+        $return    = $statement->index('column');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(CreateTable::class, $return);
+        $this->assertEquals([
+            'constraints' => [
+                [
+                    'type'    => 'index',
+                    'name'    => null,
+                    'columns' => ['column']
+                ]
+            ],
+        ], $array);
     }
 
     /**
@@ -77,10 +119,20 @@ class CreateTableTest extends CompilableMySqlTestCase
      */
     public function testIndexNamed()
     {
-        $sql       = 'CREATE TABLE `name` ( ,INDEX `name`(`column`) )';
-        $statement = (new CreateTable($this->mockConnection))->table('name')
-            ->index('column', 'name');
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new CreateTable($this->mockConnection));
+        $return    = $statement->index('column', 'name');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(CreateTable::class, $return);
+        $this->assertEquals([
+            'constraints' => [
+                [
+                    'type'    => 'index',
+                    'name'    => 'name',
+                    'columns' => ['column']
+                ]
+            ],
+        ], $array);
     }
 
     /**
@@ -88,10 +140,20 @@ class CreateTableTest extends CompilableMySqlTestCase
      */
     public function testIndexComposite()
     {
-        $sql       = 'CREATE TABLE `name` ( ,INDEX (`column1`,`column2`) )';
-        $statement = (new CreateTable($this->mockConnection))->table('name')
-            ->index(['column1', 'column2']);
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new CreateTable($this->mockConnection));
+        $return    = $statement->index(['column1', 'column2']);
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(CreateTable::class, $return);
+        $this->assertEquals([
+            'constraints' => [
+                [
+                    'type'    => 'index',
+                    'name'    => null,
+                    'columns' => ['column1', 'column2']
+                ]
+            ],
+        ], $array);
     }
 
     /**
@@ -99,10 +161,20 @@ class CreateTableTest extends CompilableMySqlTestCase
      */
     public function testUnique()
     {
-        $sql       = 'CREATE TABLE `name` ( ,UNIQUE (`column`) )';
-        $statement = (new CreateTable($this->mockConnection))->table('name')
-            ->unique('column');
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new CreateTable($this->mockConnection));
+        $return    = $statement->unique('column');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(CreateTable::class, $return);
+        $this->assertEquals([
+            'constraints' => [
+                [
+                    'type'    => 'unique',
+                    'name'    => null,
+                    'columns' => ['column']
+                ]
+            ],
+        ], $array);
     }
 
     /**
@@ -110,10 +182,20 @@ class CreateTableTest extends CompilableMySqlTestCase
      */
     public function testUniqueNamed()
     {
-        $sql       = 'CREATE TABLE `name` ( ,UNIQUE `name`(`column`) )';
-        $statement = (new CreateTable($this->mockConnection))->table('name')
-            ->unique('column', 'name');
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new CreateTable($this->mockConnection));
+        $return    = $statement->unique('column', 'name');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(CreateTable::class, $return);
+        $this->assertEquals([
+            'constraints' => [
+                [
+                    'type'    => 'unique',
+                    'name'    => 'name',
+                    'columns' => ['column']
+                ]
+            ],
+        ], $array);
     }
 
     /**
@@ -121,10 +203,20 @@ class CreateTableTest extends CompilableMySqlTestCase
      */
     public function testUniqueComposite()
     {
-        $sql       = 'CREATE TABLE `name` ( ,UNIQUE (`column1`,`column2`) )';
-        $statement = (new CreateTable($this->mockConnection))->table('name')
-            ->unique(['column1', 'column2']);
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new CreateTable($this->mockConnection));
+        $return    = $statement->unique(['column1', 'column2']);
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(CreateTable::class, $return);
+        $this->assertEquals([
+            'constraints' => [
+                [
+                    'type'    => 'unique',
+                    'name'    => null,
+                    'columns' => ['column1', 'column2']
+                ]
+            ],
+        ], $array);
     }
 
     /**
@@ -132,10 +224,24 @@ class CreateTableTest extends CompilableMySqlTestCase
      */
     public function testForeignKey()
     {
-        $sql       = 'CREATE TABLE `name` ( ,FOREIGN KEY (`column`) REFERENCES `table`(`id`) )';
-        $statement = (new CreateTable($this->mockConnection))->table('name')
-            ->foreignKey('column', 'table', 'id');
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new CreateTable($this->mockConnection));
+        $return    = $statement->foreignKey('column', 'table', 'id');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(CreateTable::class, $return);
+        $this->assertEquals([
+            'constraints' => [
+                [
+                    'type'             => 'foreignKey',
+                    'name'             => null,
+                    'columns'          => ['column'],
+                    'referenceTable'   => 'table',
+                    'referenceColumns' => ['id'],
+                    'onDelete'         => null,
+                    'onUpdate'         => null,
+                ]
+            ],
+        ], $array);
     }
 
     /**
@@ -143,10 +249,24 @@ class CreateTableTest extends CompilableMySqlTestCase
      */
     public function testForeignKeyWithName()
     {
-        $sql       = 'CREATE TABLE `name` ( ,FOREIGN KEY `fk`(`column`) REFERENCES `table`(`id`) )';
-        $statement = (new CreateTable($this->mockConnection))->table('name')
-            ->foreignKey('column', 'table', 'id', null, null, 'fk');
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new CreateTable($this->mockConnection));
+        $return    = $statement->foreignKey('column', 'table', 'id', null, null, 'name');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(CreateTable::class, $return);
+        $this->assertEquals([
+            'constraints' => [
+                [
+                    'type'             => 'foreignKey',
+                    'name'             => 'name',
+                    'columns'          => ['column'],
+                    'referenceTable'   => 'table',
+                    'referenceColumns' => ['id'],
+                    'onDelete'         => null,
+                    'onUpdate'         => null,
+                ]
+            ],
+        ], $array);
     }
 
     /**
@@ -154,10 +274,24 @@ class CreateTableTest extends CompilableMySqlTestCase
      */
     public function testForeignKeyWithOnDelete()
     {
-        $sql       = 'CREATE TABLE `name` ( ,FOREIGN KEY (`column`) REFERENCES `table`(`id`) ON DELETE CASCADE )';
-        $statement = (new CreateTable($this->mockConnection))->table('name')
-            ->foreignKey('column', 'table', 'id', 'cascade');
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new CreateTable($this->mockConnection));
+        $return    = $statement->foreignKey('column', 'table', 'id', 'cascade');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(CreateTable::class, $return);
+        $this->assertEquals([
+            'constraints' => [
+                [
+                    'type'             => 'foreignKey',
+                    'name'             => null,
+                    'columns'          => ['column'],
+                    'referenceTable'   => 'table',
+                    'referenceColumns' => ['id'],
+                    'onDelete'         => 'cascade',
+                    'onUpdate'         => null,
+                ]
+            ],
+        ], $array);
     }
 
     /**
@@ -165,10 +299,24 @@ class CreateTableTest extends CompilableMySqlTestCase
      */
     public function testForeignKeyWithOnUpdate()
     {
-        $sql       = 'CREATE TABLE `name` ( ,FOREIGN KEY (`column`) REFERENCES `table`(`id`) ON UPDATE CASCADE )';
-        $statement = (new CreateTable($this->mockConnection))->table('name')
-            ->foreignKey('column', 'table', 'id', null, 'cascade');
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new CreateTable($this->mockConnection));
+        $return    = $statement->foreignKey('column', 'table', 'id', null, 'cascade');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(CreateTable::class, $return);
+        $this->assertEquals([
+            'constraints' => [
+                [
+                    'type'             => 'foreignKey',
+                    'name'             => null,
+                    'columns'          => ['column'],
+                    'referenceTable'   => 'table',
+                    'referenceColumns' => ['id'],
+                    'onDelete'         => null,
+                    'onUpdate'         => 'cascade',
+                ]
+            ],
+        ], $array);
     }
 
     /**
@@ -176,10 +324,14 @@ class CreateTableTest extends CompilableMySqlTestCase
      */
     public function testEngine()
     {
-        $sql       = 'CREATE TABLE `name` ( ) ENGINE=InnoDB';
-        $statement = (new CreateTable($this->mockConnection))->table('name')
-            ->engine('InnoDB');
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new CreateTable($this->mockConnection));
+        $return    = $statement->engine('InnoDB');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(CreateTable::class, $return);
+        $this->assertEquals([
+            'engine' => 'InnoDB',
+        ], $array);
     }
 
     /**
@@ -187,10 +339,15 @@ class CreateTableTest extends CompilableMySqlTestCase
      */
     public function testCharset()
     {
-        $sql       = 'CREATE TABLE `name` ( ) DEFAULT CHARACTER SET=utf8';
-        $statement = (new CreateTable($this->mockConnection))->table('name')
-            ->charset('utf8');
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new CreateTable($this->mockConnection));
+        $return    = $statement->charset('utf8');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(CreateTable::class, $return);
+        $this->assertEquals([
+            'charset' => 'utf8',
+            'collate' => null,
+        ], $array);
     }
 
     /**
@@ -198,10 +355,15 @@ class CreateTableTest extends CompilableMySqlTestCase
      */
     public function testCollation()
     {
-        $sql       = 'CREATE TABLE `name` ( ) COLLATE=utf8_ci';
-        $statement = (new CreateTable($this->mockConnection))->table('name')
-            ->charset(null, 'utf8_ci');
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new CreateTable($this->mockConnection));
+        $return    = $statement->charset(null, 'utf8_ci');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(CreateTable::class, $return);
+        $this->assertEquals([
+            'charset' => null,
+            'collate' => 'utf8_ci',
+        ], $array);
     }
 
     /**
@@ -209,21 +371,64 @@ class CreateTableTest extends CompilableMySqlTestCase
      */
     public function testComment()
     {
-        $sql       = 'CREATE TABLE `name` ( ) COMMENT=\'comment text\'';
-        $statement = (new CreateTable($this->mockConnection))->table('name')
-            ->comment('comment text');
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new CreateTable($this->mockConnection));
+        $return    = $statement->comment('comment text');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(CreateTable::class, $return);
+        $this->assertEquals([
+            'comment' => 'comment text',
+        ], $array);
+    }
+
+    /**
+     * Test adding a column to the table - without closure.
+     */
+    public function testColumnWithoutClosure()
+    {
+        $statement = (new CreateTable($this->mockConnection));
+        $return    = $statement->column('column');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(ColumnBuilder::class, $return);
+        $this->assertArrayHasKey('columns', $array);
+        $this->assertCount(1, $array['columns']);
+        $this->assertArrayHasKey('name', $array['columns'][0]);
+        $this->assertArrayHasKey('columnBuilder', $array['columns'][0]);
+        $this->assertEquals('column', $array['columns'][0]['name']);
+        $this->assertInstanceOf(ColumnBuilder::class, $array['columns'][0]['columnBuilder']);
+    }
+
+    /**
+     * Test adding a column to the table - with closure.
+     */
+    public function testColumnWithClosure()
+    {
+        $statement = (new CreateTable($this->mockConnection));
+        $return    = $statement->column('column', function ($create) {});
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(CreateTable::class, $return);
+        $this->assertArrayHasKey('columns', $array);
+        $this->assertCount(1, $array['columns']);
+        $this->assertArrayHasKey('name', $array['columns'][0]);
+        $this->assertArrayHasKey('columnBuilder', $array['columns'][0]);
+        $this->assertEquals('column', $array['columns'][0]['name']);
+        $this->assertInstanceOf(ColumnBuilder::class, $array['columns'][0]['columnBuilder']);
     }
 
 
     /**
-     * Test adding a column to the table.
+     * Test buildSql calls Compiler::compileQueryDelete.
      */
-    public function testColumn()
+    public function testBuildSql()
     {
-        $sql       = 'CREATE TABLE `name` ( `column` INT(10) )';
-        $statement = (new CreateTable($this->mockConnection))->table('name');
-        $statement->column('column')->integer(10);
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = [];
+        $this->mockCompiler->shouldReceive('compileStatementCreateTable')->once()->with($statement)->andReturn(['SQL', []]);
+
+        $query = (new CreateTable($this->mockConnection));
+        list($sql, $bindings) = $query->buildSql($statement);
+        $this->assertEquals('SQL', $sql);
+        $this->assertEquals([], $bindings);
     }
 }

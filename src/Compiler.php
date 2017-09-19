@@ -307,7 +307,7 @@ abstract class Compiler implements CompilerInterface
         // Unique
         $unique = isset($statement['unique']) ? 'UNIQUE' : '';
         // Index
-        $name   = $this->sanitise($statement['name']);
+        $name   = $this->sanitise($statement['index']);
         // Table
         $table  = $this->sanitise($statement['table']);
 
@@ -326,7 +326,9 @@ abstract class Compiler implements CompilerInterface
         // View
         $name = $this->sanitise($statement['view']);
         // Table
-        list($selectSql, $selectBindings) = $this->compileStatementSelect($statement);
+        list($selectSql, $selectBindings) = isset($statement['select'])
+            ? $this->compileQuerySelect($statement['select'])
+            : ['', []];
 
         return [$this->concatenateSql([
             'CREATE VIEW',
@@ -341,7 +343,9 @@ abstract class Compiler implements CompilerInterface
         // Index
         $name   = $this->sanitise($statement['view']);
         // Table
-        list($selectSql, $selectBindings) = $this->compileStatementSelect($statement);
+        list($selectSql, $selectBindings) = isset($statement['select'])
+            ? $this->compileQuerySelect($statement['select'])
+            : ['', []];
 
         return [$this->concatenateSql([
             'CREATE OR REPLACE VIEW',
@@ -354,7 +358,7 @@ abstract class Compiler implements CompilerInterface
     public function compileStatementDropView(array $statement)
     {
         // Name
-        $name = $this->compileSanitiseArray($statement['view']);
+        $name = $this->sanitise($statement['view']);
 
         return [$this->concatenateSql([
             'DROP VIEW',
@@ -585,7 +589,7 @@ abstract class Compiler implements CompilerInterface
     {
         $exists  = ($statement['not'] ? ' NOT ' : ' ') . 'EXISTS ';
         $boolean = strtoupper($statement['boolean']);
-        list($existsCriteria, $existsBindings) = $statement['builder']->buildSql();
+        list($existsCriteria, $existsBindings) = $this->compileQuerySelect($statement['select']);
 
         $criteria .= $boolean . $exists . '(' . $existsCriteria . ') ';
         $bindings  = array_merge($bindings, $existsBindings);
@@ -623,20 +627,5 @@ abstract class Compiler implements CompilerInterface
             $sql .= ',' . $this->querySanitise($orderBy['column']) . ' ' . strtoupper($orderBy['direction']);
         }
         return 'ORDER BY ' . substr($sql, 1);
-    }
-
-
-
-
-
-    public function compileStatementSelect(array $statement)
-    {
-        if (!isset($statement['select'])) {
-            return ['', []];
-        }
-        $select  = new Select($this->connection, $this->logger);
-        $closure = $statement['select'];
-        $closure($select);
-        return $select->buildSql();
     }
 }

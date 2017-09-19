@@ -204,24 +204,46 @@ class WhereTest extends CompilableTestCase
     }
 
     /**
-     * Test where exists.
+     * Test where exists - with closure.
      */
-    public function testWhereExists()
+    public function testWhereExistsWithClosure()
     {
         $query = (new WhereBuilder($this->mockConnection))->whereExists(function (Select $select) {});
         $array = $query->toArray();
 
         $this->assertInstanceOf(WhereBuilder::class, $query);
-        $this->assertArrayHasKey('where', $array);
-        $this->assertCount(1, $array['where']);
-        $this->assertArrayHasKey('type', $array['where'][0]);
-        $this->assertArrayHasKey('builder', $array['where'][0]);
-        $this->assertArrayHasKey('boolean', $array['where'][0]);
-        $this->assertArrayHasKey('not', $array['where'][0]);
-        $this->assertEquals('exists', $array['where'][0]['type']);
-        $this->assertInstanceOf(Select::class, $array['where'][0]['builder']);
-        $this->assertEquals('and', $array['where'][0]['boolean']);
-        $this->assertEquals(false, $array['where'][0]['not']);
+        $this->assertEquals([
+            'where' => [
+                [
+                    'type'    => 'exists',
+                    'select'  => [],
+                    'boolean' => 'and',
+                    'not'     => false,
+                ]
+            ]
+        ], $array);
+    }
+
+    /**
+     * Test where exists - with Select object.
+     */
+    public function testWhereExistsWithSelect()
+    {
+        $select = new Select($this->mockConnection);
+        $query  = (new WhereBuilder($this->mockConnection))->whereExists($select);
+        $array  = $query->toArray();
+
+        $this->assertInstanceOf(WhereBuilder::class, $query);
+        $this->assertEquals([
+            'where' => [
+                [
+                    'type'    => 'exists',
+                    'select'  => $select->toArray(),
+                    'boolean' => 'and',
+                    'not'     => false,
+                ]
+            ]
+        ], $array);
     }
 
     /**
@@ -233,16 +255,16 @@ class WhereTest extends CompilableTestCase
         $array = $query->toArray();
 
         $this->assertInstanceOf(WhereBuilder::class, $query);
-        $this->assertArrayHasKey('where', $array);
-        $this->assertCount(1, $array['where']);
-        $this->assertArrayHasKey('type', $array['where'][0]);
-        $this->assertArrayHasKey('builder', $array['where'][0]);
-        $this->assertArrayHasKey('boolean', $array['where'][0]);
-        $this->assertArrayHasKey('not', $array['where'][0]);
-        $this->assertEquals('exists', $array['where'][0]['type']);
-        $this->assertInstanceOf(Select::class, $array['where'][0]['builder']);
-        $this->assertEquals('and', $array['where'][0]['boolean']);
-        $this->assertEquals(true, $array['where'][0]['not']);
+        $this->assertEquals([
+            'where' => [
+                [
+                    'type'    => 'exists',
+                    'select'  => [],
+                    'boolean' => 'and',
+                    'not'     => true,
+                ]
+            ]
+        ], $array);
     }
 
 }

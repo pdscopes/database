@@ -3,51 +3,164 @@
 namespace MadeSimple\Database\Tests\Unit\Statement;
 
 use MadeSimple\Database\Statement\AlterTable;
-use MadeSimple\Database\Tests\CompilableMySqlTestCase;
+use MadeSimple\Database\Statement\ColumnBuilder;
+use MadeSimple\Database\Tests\CompilableTestCase;
 
-class AlterTableTest extends CompilableMySqlTestCase
+class AlterTableTest extends CompilableTestCase
 {
     /**
      * Test setting the table to be altered.
      */
     public function testTable()
     {
-        $sql       = 'ALTER TABLE `table`';
-        $statement = (new AlterTable($this->mockConnection))->table('table');
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new AlterTable($this->mockConnection));
+        $return    = $statement->table('table');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(AlterTable::class, $return);
+        $this->assertEquals([
+            'table' => 'table',
+        ], $array);
     }
 
     /**
-     * Test adding a column.
+     * Test renaming table.
      */
-    public function testAddColumn()
+    public function testRenameTable()
     {
-        $sql       = 'ALTER TABLE `table` ADD `column` INT(10)';
-        $statement = (new AlterTable($this->mockConnection))->table('table');
-        $statement->addColumn('column')->integer(10);
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new AlterTable($this->mockConnection));
+        $return    = $statement->renameTable('table1');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(AlterTable::class, $return);
+        $this->assertEquals([
+            'alterations' => [
+                [
+                    'type' => 'renameTable',
+                    'name' => 'table1',
+                ]
+            ],
+        ], $array);
     }
 
     /**
-     * Test modifying a column.
+     * Test adding a column - without closure.
      */
-    public function testModifyColumn()
+    public function testAddColumnWithoutClosure()
     {
-        $sql       = 'ALTER TABLE `table` MODIFY COLUMN `column` INT(10)';
-        $statement = (new AlterTable($this->mockConnection))->table('table');
-        $statement->modifyColumn('column')->integer(10);
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new AlterTable($this->mockConnection));
+        $return    = $statement->addColumn('column');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(ColumnBuilder::class, $return);
+        $this->assertArrayHasKey('alterations', $array);
+        $this->assertCount(1, $array['alterations']);
+        $this->assertArrayHasKey('type', $array['alterations'][0]);
+        $this->assertArrayHasKey('name', $array['alterations'][0]);
+        $this->assertArrayHasKey('columnBuilder', $array['alterations'][0]);
+        $this->assertEquals('addColumn', $array['alterations'][0]['type']);
+        $this->assertEquals('column', $array['alterations'][0]['name']);
+        $this->assertInstanceOf(ColumnBuilder::class, $array['alterations'][0]['columnBuilder']);
     }
 
     /**
-     * Test altering a column.
+     * Test adding a column - with closure.
      */
-    public function testAlterColumn()
+    public function testAddColumnWithClosure()
     {
-        $sql       = 'ALTER TABLE `table` MODIFY COLUMN `column` INT(10)';
-        $statement = (new AlterTable($this->mockConnection))->table('table');
-        $statement->alterColumn('column')->integer(10);
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new AlterTable($this->mockConnection));
+        $return    = $statement->addColumn('column', function ($columnBuilder) {});
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(AlterTable::class, $return);
+        $this->assertArrayHasKey('alterations', $array);
+        $this->assertCount(1, $array['alterations']);
+        $this->assertArrayHasKey('type', $array['alterations'][0]);
+        $this->assertArrayHasKey('name', $array['alterations'][0]);
+        $this->assertArrayHasKey('columnBuilder', $array['alterations'][0]);
+        $this->assertEquals('addColumn', $array['alterations'][0]['type']);
+        $this->assertEquals('column', $array['alterations'][0]['name']);
+        $this->assertInstanceOf(ColumnBuilder::class, $array['alterations'][0]['columnBuilder']);
+    }
+
+    /**
+     * Test modifying a column - without closure.
+     */
+    public function testModifyColumnWithoutClosure()
+    {
+        $statement = (new AlterTable($this->mockConnection));
+        $return    = $statement->modifyColumn('column');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(ColumnBuilder::class, $return);
+        $this->assertArrayHasKey('alterations', $array);
+        $this->assertCount(1, $array['alterations']);
+        $this->assertArrayHasKey('type', $array['alterations'][0]);
+        $this->assertArrayHasKey('name', $array['alterations'][0]);
+        $this->assertArrayHasKey('columnBuilder', $array['alterations'][0]);
+        $this->assertEquals('modifyColumn', $array['alterations'][0]['type']);
+        $this->assertEquals('column', $array['alterations'][0]['name']);
+        $this->assertInstanceOf(ColumnBuilder::class, $array['alterations'][0]['columnBuilder']);
+    }
+
+    /**
+     * Test modifying a column - with closure.
+     */
+    public function testModifyColumnWithClosure()
+    {
+        $statement = (new AlterTable($this->mockConnection));
+        $return    = $statement->modifyColumn('column', function ($columnBuilder) {});
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(AlterTable::class, $return);
+        $this->assertArrayHasKey('alterations', $array);
+        $this->assertCount(1, $array['alterations']);
+        $this->assertArrayHasKey('type', $array['alterations'][0]);
+        $this->assertArrayHasKey('name', $array['alterations'][0]);
+        $this->assertArrayHasKey('columnBuilder', $array['alterations'][0]);
+        $this->assertEquals('modifyColumn', $array['alterations'][0]['type']);
+        $this->assertEquals('column', $array['alterations'][0]['name']);
+        $this->assertInstanceOf(ColumnBuilder::class, $array['alterations'][0]['columnBuilder']);
+    }
+
+    /**
+     * Test altering a column - without closure.
+     */
+    public function testAlterColumnWithoutClosure()
+    {
+        $statement = (new AlterTable($this->mockConnection));
+        $return    = $statement->alterColumn('column');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(ColumnBuilder::class, $return);
+        $this->assertArrayHasKey('alterations', $array);
+        $this->assertCount(1, $array['alterations']);
+        $this->assertArrayHasKey('type', $array['alterations'][0]);
+        $this->assertArrayHasKey('name', $array['alterations'][0]);
+        $this->assertArrayHasKey('columnBuilder', $array['alterations'][0]);
+        $this->assertEquals('modifyColumn', $array['alterations'][0]['type']);
+        $this->assertEquals('column', $array['alterations'][0]['name']);
+        $this->assertInstanceOf(ColumnBuilder::class, $array['alterations'][0]['columnBuilder']);
+    }
+
+    /**
+     * Test altering a column - with closure.
+     */
+    public function testAlterColumnWithClosure()
+    {
+        $statement = (new AlterTable($this->mockConnection));
+        $return    = $statement->alterColumn('column', function ($columnBuilder) {});
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(AlterTable::class, $return);
+        $this->assertArrayHasKey('alterations', $array);
+        $this->assertCount(1, $array['alterations']);
+        $this->assertArrayHasKey('type', $array['alterations'][0]);
+        $this->assertArrayHasKey('name', $array['alterations'][0]);
+        $this->assertArrayHasKey('columnBuilder', $array['alterations'][0]);
+        $this->assertEquals('modifyColumn', $array['alterations'][0]['type']);
+        $this->assertEquals('column', $array['alterations'][0]['name']);
+        $this->assertInstanceOf(ColumnBuilder::class, $array['alterations'][0]['columnBuilder']);
     }
 
     /**
@@ -55,32 +168,64 @@ class AlterTableTest extends CompilableMySqlTestCase
      */
     public function testRenameColumn()
     {
-        $sql       = 'ALTER TABLE `table` CHANGE `column1` `column2`';
-        $statement = (new AlterTable($this->mockConnection))->table('table');
-        $statement->renameColumn('column1', 'column2');
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new AlterTable($this->mockConnection));
+        $return    = $statement->renameColumn('column1', 'column2');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(AlterTable::class, $return);
+        $this->assertEquals([
+            'alterations' => [
+                [
+                    'type'        => 'renameColumn',
+                    'currentName' => 'column1',
+                    'name'        => 'column2',
+                ]
+            ],
+        ], $array);
     }
 
     /**
-     * Test changing a column without datatype.
+     * Test changing a column - without closure.
      */
-    public function testChangeColumnWithoutDatatype()
+    public function testChangeColumnWithoutClosure()
     {
-        $sql       = 'ALTER TABLE `table` CHANGE `column1` `column2`';
-        $statement = (new AlterTable($this->mockConnection))->table('table');
-        $statement->changeColumn('column1', 'column2');
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new AlterTable($this->mockConnection));
+        $return    = $statement->changeColumn('column1', 'column2');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(ColumnBuilder::class, $return);
+        $this->assertArrayHasKey('alterations', $array);
+        $this->assertCount(1, $array['alterations']);
+        $this->assertArrayHasKey('type', $array['alterations'][0]);
+        $this->assertArrayHasKey('currentName', $array['alterations'][0]);
+        $this->assertArrayHasKey('name', $array['alterations'][0]);
+        $this->assertArrayHasKey('columnBuilder', $array['alterations'][0]);
+        $this->assertEquals('renameColumn', $array['alterations'][0]['type']);
+        $this->assertEquals('column1', $array['alterations'][0]['currentName']);
+        $this->assertEquals('column2', $array['alterations'][0]['name']);
+        $this->assertInstanceOf(ColumnBuilder::class, $array['alterations'][0]['columnBuilder']);
     }
 
     /**
-     * Test changing a column with datatype.
+     * Test changing a column - with closure.
      */
-    public function testChangeColumnWithDatatype()
+    public function testChangeColumnWithClosure()
     {
-        $sql       = 'ALTER TABLE `table` CHANGE `column1` `column2` INT(10)';
-        $statement = (new AlterTable($this->mockConnection))->table('table');
-        $statement->changeColumn('column1', 'column2')->integer(10);
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new AlterTable($this->mockConnection));
+        $return    = $statement->changeColumn('column1', 'column2', function ($columnBuilder) {});
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(AlterTable::class, $return);
+        $this->assertArrayHasKey('alterations', $array);
+        $this->assertCount(1, $array['alterations']);
+        $this->assertArrayHasKey('type', $array['alterations'][0]);
+        $this->assertArrayHasKey('currentName', $array['alterations'][0]);
+        $this->assertArrayHasKey('name', $array['alterations'][0]);
+        $this->assertArrayHasKey('columnBuilder', $array['alterations'][0]);
+        $this->assertEquals('renameColumn', $array['alterations'][0]['type']);
+        $this->assertEquals('column1', $array['alterations'][0]['currentName']);
+        $this->assertEquals('column2', $array['alterations'][0]['name']);
+        $this->assertInstanceOf(ColumnBuilder::class, $array['alterations'][0]['columnBuilder']);
     }
 
     /**
@@ -88,10 +233,19 @@ class AlterTableTest extends CompilableMySqlTestCase
      */
     public function testDropColumn()
     {
-        $sql       = 'ALTER TABLE `table` DROP COLUMN `column`';
-        $statement = (new AlterTable($this->mockConnection))->table('table');
-        $statement->dropColumn('column');
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new AlterTable($this->mockConnection));
+        $return    = $statement->dropColumn('column');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(AlterTable::class, $return);
+        $this->assertEquals([
+            'alterations' => [
+                [
+                    'type' => 'dropColumn',
+                    'name' => 'column',
+                ]
+            ],
+        ], $array);
     }
 
 
@@ -100,10 +254,24 @@ class AlterTableTest extends CompilableMySqlTestCase
      */
     public function testAddForeignKeyWithoutName()
     {
-        $sql       = 'ALTER TABLE `table` ADD FOREIGN KEY (`column`) REFERENCES `table2`(`column2`)';
-        $statement = (new AlterTable($this->mockConnection))->table('table');
-        $statement->addForeignKey('column', 'table2', 'column2');
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new AlterTable($this->mockConnection));
+        $return    = $statement->addForeignKey('column', 'table2', 'column2');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(AlterTable::class, $return);
+        $this->assertEquals([
+            'alterations' => [
+                [
+                    'type'             => 'addForeignKey',
+                    'name'             => null,
+                    'columns'          => ['column'],
+                    'referenceTable'   => 'table2',
+                    'referenceColumns' => ['column2'],
+                    'onDelete'         => null,
+                    'onUpdate'         => null,
+                ]
+            ],
+        ], $array);
     }
 
     /**
@@ -111,10 +279,24 @@ class AlterTableTest extends CompilableMySqlTestCase
      */
     public function testAddForeignKeyWithName()
     {
-        $sql       = 'ALTER TABLE `table` ADD CONSTRAINT `name` FOREIGN KEY (`column`) REFERENCES `table2`(`column2`)';
-        $statement = (new AlterTable($this->mockConnection))->table('table');
-        $statement->addForeignKey('column', 'table2', 'column2', null, null, 'name');
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new AlterTable($this->mockConnection));
+        $return    = $statement->addForeignKey('column', 'table2', 'column2', null, null, 'fk_name');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(AlterTable::class, $return);
+        $this->assertEquals([
+            'alterations' => [
+                [
+                    'type'             => 'addForeignKey',
+                    'name'             => 'fk_name',
+                    'columns'          => ['column'],
+                    'referenceTable'   => 'table2',
+                    'referenceColumns' => ['column2'],
+                    'onDelete'         => null,
+                    'onUpdate'         => null,
+                ]
+            ],
+        ], $array);
     }
 
     /**
@@ -122,10 +304,19 @@ class AlterTableTest extends CompilableMySqlTestCase
      */
     public function testDropForeignKey()
     {
-        $sql       = 'ALTER TABLE `table` DROP FOREIGN KEY `name`';
-        $statement = (new AlterTable($this->mockConnection))->table('table');
-        $statement->dropForeignKey('name');
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new AlterTable($this->mockConnection));
+        $return    = $statement->dropForeignKey('fk_name');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(AlterTable::class, $return);
+        $this->assertEquals([
+            'alterations' => [
+                [
+                    'type' => 'dropForeignKey',
+                    'name' => 'fk_name',
+                ]
+            ],
+        ], $array);
     }
 
 
@@ -134,10 +325,20 @@ class AlterTableTest extends CompilableMySqlTestCase
      */
     public function testAddUniqueWithoutName()
     {
-        $sql       = 'ALTER TABLE `table` ADD UNIQUE (`column`)';
-        $statement = (new AlterTable($this->mockConnection))->table('table');
-        $statement->addUnique('column');
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new AlterTable($this->mockConnection));
+        $return    = $statement->addUnique('column');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(AlterTable::class, $return);
+        $this->assertEquals([
+            'alterations' => [
+                [
+                    'type'    => 'addUnique',
+                    'columns' => ['column'],
+                    'name'    => null,
+                ]
+            ],
+        ], $array);
     }
 
     /**
@@ -145,10 +346,20 @@ class AlterTableTest extends CompilableMySqlTestCase
      */
     public function testAddUniqueWithName()
     {
-        $sql       = 'ALTER TABLE `table` ADD CONSTRAINT `name` UNIQUE (`column`)';
-        $statement = (new AlterTable($this->mockConnection))->table('table');
-        $statement->addUnique('column', 'name');
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new AlterTable($this->mockConnection));
+        $return    = $statement->addUnique('column', 'name');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(AlterTable::class, $return);
+        $this->assertEquals([
+            'alterations' => [
+                [
+                    'type'    => 'addUnique',
+                    'columns' => ['column'],
+                    'name'    => 'name',
+                ]
+            ],
+        ], $array);
     }
 
     /**
@@ -156,9 +367,33 @@ class AlterTableTest extends CompilableMySqlTestCase
      */
     public function testDropUnique()
     {
-        $sql       = 'ALTER TABLE `table` DROP INDEX `name`';
-        $statement = (new AlterTable($this->mockConnection))->table('table');
-        $statement->dropUnique('name');
-        $this->assertEquals($sql, $statement->toSql());
+        $statement = (new AlterTable($this->mockConnection));
+        $return    = $statement->dropUnique('name');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(AlterTable::class, $return);
+        $this->assertEquals([
+            'alterations' => [
+                [
+                    'type'    => 'dropUnique',
+                    'name'    => 'name',
+                ]
+            ],
+        ], $array);
+    }
+
+
+    /**
+     * Test buildSql calls Compiler::compileQueryDelete.
+     */
+    public function testBuildSql()
+    {
+        $statement = [];
+        $this->mockCompiler->shouldReceive('compileStatementAlterTable')->once()->with($statement)->andReturn(['SQL', []]);
+
+        $query = (new AlterTable($this->mockConnection));
+        list($sql, $bindings) = $query->buildSql($statement);
+        $this->assertEquals('SQL', $sql);
+        $this->assertEquals([], $bindings);
     }
 }

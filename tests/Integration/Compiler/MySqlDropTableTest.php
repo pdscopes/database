@@ -1,6 +1,6 @@
 <?php
 
-namespace MadeSimple\Database\Tests\Unit\Compiler;
+namespace MadeSimple\Database\Tests\Integration\Compiler;
 
 use MadeSimple\Database\Statement\DropTable;
 use MadeSimple\Database\Tests\CompilableMySqlTestCase;

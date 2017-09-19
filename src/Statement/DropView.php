@@ -13,9 +13,8 @@ class DropView extends StatementBuilder
      */
     public function view($name)
     {
-        unset($this->statement['view']);
-
-        return $this->addToStatement('view', $name);
+        $this->statement['view'] = $name;
+        return $this;
     }
 
 
