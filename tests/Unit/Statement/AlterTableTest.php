@@ -64,6 +64,50 @@ class AlterTableTest extends CompilableTestCase
     }
 
     /**
+     * Test changing charset - without collation.
+     */
+    public function testCharsetWithoutCollation()
+    {
+        $statement = (new AlterTable($this->mockConnection));
+        $return    = $statement->charset('utf8');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(AlterTable::class, $return);
+        $this->assertEquals([
+            'alterations' => [
+                [
+                    'type'    => 'charset',
+                    'charset' => 'utf8',
+                ]
+            ],
+        ], $array);
+    }
+
+    /**
+     * Test changing charset - with collation.
+     */
+    public function testCharsetWithCollation()
+    {
+        $statement = (new AlterTable($this->mockConnection));
+        $return    = $statement->charset('utf8', 'utf8_general_ci');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(AlterTable::class, $return);
+        $this->assertEquals([
+            'alterations' => [
+                [
+                    'type'    => 'charset',
+                    'charset' => 'utf8',
+                ],
+                [
+                    'type'      => 'collate',
+                    'collation' => 'utf8_general_ci',
+                ]
+            ],
+        ], $array);
+    }
+
+    /**
      * Test adding a column - without closure.
      */
     public function testAddColumnWithoutClosure()
@@ -263,6 +307,69 @@ class AlterTableTest extends CompilableTestCase
                 [
                     'type' => 'dropColumn',
                     'name' => 'column',
+                ]
+            ],
+        ], $array);
+    }
+
+
+    /**
+     * Test adding a primary key - without name.
+     */
+    public function testAddPrimaryKeyWithoutName()
+    {
+        $statement = (new AlterTable($this->mockConnection));
+        $return    = $statement->addPrimaryKey('column');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(AlterTable::class, $return);
+        $this->assertEquals([
+            'alterations' => [
+                [
+                    'type'    => 'addPrimaryKey',
+                    'name'    => null,
+                    'columns' => ['column'],
+                ]
+            ],
+        ], $array);
+    }
+
+    /**
+     * Test adding a primary key - with name.
+     */
+    public function testAddPrimaryKeyWithName()
+    {
+        $statement = (new AlterTable($this->mockConnection));
+        $return    = $statement->addPrimaryKey('column', 'pk_name');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(AlterTable::class, $return);
+        $this->assertEquals([
+            'alterations' => [
+                [
+                    'type'    => 'addPrimaryKey',
+                    'name'    => 'pk_name',
+                    'columns' => ['column'],
+                ]
+            ],
+        ], $array);
+    }
+
+    /**
+     * Test dropping a primary key.
+     */
+    public function testDropPrimaryKey()
+    {
+        $statement = (new AlterTable($this->mockConnection));
+        $return    = $statement->dropPrimaryKey('pk_name');
+        $array     = $statement->toArray();
+
+        $this->assertInstanceOf(AlterTable::class, $return);
+        $this->assertEquals([
+            'alterations' => [
+                [
+                    'type' => 'dropPrimaryKey',
+                    'name' => 'pk_name',
                 ]
             ],
         ], $array);

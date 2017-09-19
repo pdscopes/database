@@ -246,6 +246,12 @@ class MySQL extends Compiler
                 case 'engine':
                     $sql .= 'ENGINE = ' . $alteration['engine'];
                     break;
+                case 'charset':
+                    $sql .= 'DEFAULT CHARACTER SET = ' . $alteration['charset'];
+                    break;
+                case 'collate':
+                    $sql .= 'COLLATE = ' . $alteration['collation'];
+                    break;
 
                 case 'addColumn':
                     $sql .= 'ADD ' . $this->compileStatementColumn($alteration, false);
@@ -258,6 +264,15 @@ class MySQL extends Compiler
                     break;
                 case 'renameColumn':
                     $sql .= 'CHANGE ' . $this->sanitise($alteration['currentName']) . ' ' . $this->compileStatementColumn($alteration);
+                    break;
+
+                case 'addPrimaryKey':
+                    $name = ($alteration['name'] ? $this->sanitise($alteration['name']) : '');
+                    $columns          = implode(',', array_map([$this, 'sanitise'], $alteration['columns']));
+                    $sql .= 'ADD CONSTRAINT ' . $name . ' PRIMARY KEY (' . $columns . ')';
+                    break;
+                case 'dropPrimaryKey':
+                    $sql .= 'DROP PRIMARY KEY';
                     break;
 
                 case 'addForeignKey':

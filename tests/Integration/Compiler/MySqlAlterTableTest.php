@@ -40,6 +40,28 @@ class MySqlAlterTableTest extends CompilableMySqlTestCase
     }
 
     /**
+     * Test changing a table charset.
+     */
+    public function testAlterTableCharset()
+    {
+        $sql       = 'ALTER TABLE `table` DEFAULT CHARACTER SET = utf8';
+        $statement = (new AlterTable($this->mockConnection))->table('table');
+        $statement->charset('utf8');
+        $this->assertEquals($sql, $statement->toSql());
+    }
+
+    /**
+     * Test changing a table charset and collation.
+     */
+    public function testAlterTableCharsetCollation()
+    {
+        $sql       = 'ALTER TABLE `table` DEFAULT CHARACTER SET = utf8, COLLATE = utf8_general_ci';
+        $statement = (new AlterTable($this->mockConnection))->table('table');
+        $statement->charset('utf8', 'utf8_general_ci');
+        $this->assertEquals($sql, $statement->toSql());
+    }
+
+    /**
      * Test adding a column.
      */
     public function testAlterTableAddColumn()
@@ -135,6 +157,40 @@ class MySqlAlterTableTest extends CompilableMySqlTestCase
         $sql       = 'ALTER TABLE `table` DROP COLUMN `column`';
         $statement = (new AlterTable($this->mockConnection))->table('table');
         $statement->dropColumn('column');
+        $this->assertEquals($sql, $statement->toSql());
+    }
+
+
+    /**
+     * Test adding a primary key without a name.
+     */
+    public function testAlterTableAddPrimaryKeyWithoutName()
+    {
+        $sql       = 'ALTER TABLE `table` ADD CONSTRAINT  PRIMARY KEY (`column`)';
+        $statement = (new AlterTable($this->mockConnection))->table('table');
+        $statement->addPrimaryKey('column');
+        $this->assertEquals($sql, $statement->toSql());
+    }
+
+    /**
+     * Test adding a primary key with a name.
+     */
+    public function testAlterTableAddPrimaryKeyWithName()
+    {
+        $sql       = 'ALTER TABLE `table` ADD CONSTRAINT `pk_name` PRIMARY KEY (`column`)';
+        $statement = (new AlterTable($this->mockConnection))->table('table');
+        $statement->addPrimaryKey('column', 'pk_name');
+        $this->assertEquals($sql, $statement->toSql());
+    }
+
+    /**
+     * Test dropping a primary key.
+     */
+    public function testAlterTableDropPrimaryKey()
+    {
+        $sql       = 'ALTER TABLE `table` DROP PRIMARY KEY';
+        $statement = (new AlterTable($this->mockConnection))->table('table');
+        $statement->dropPrimaryKey();
         $this->assertEquals($sql, $statement->toSql());
     }
 

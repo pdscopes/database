@@ -46,6 +46,25 @@ class AlterTable extends StatementBuilder
     }
 
     /**
+     * Set the engine for this statement.
+     *
+     * @param string $charset   e.g. utf8mb4
+     * @param string $collation e.g. utf8mb4_general_ci
+     *
+     * @return AlterTable
+     */
+    public function charset($charset, $collation = null)
+    {
+        $type = 'charset';
+        $this->statement['alterations'][] = compact('type', 'charset');
+        if ($collation !== null) {
+            $type = 'collate';
+            $this->statement['alterations'][] = compact('type', 'collation');
+        }
+        return $this;
+    }
+
+    /**
      * Alter the table by adding a column.
      *
      * @param string        $name
@@ -156,6 +175,37 @@ class AlterTable extends StatementBuilder
     public function dropColumn($name)
     {
         $type = 'dropColumn';
+        $this->statement['alterations'][] = compact('type', 'name');
+        return $this;
+    }
+
+
+    /**
+     * Alter the table by adding a primary key constraint.
+     *
+     * @param string|array $columns
+     * @param null|string  $name
+     *
+     * @return AlterTable
+     */
+    public function addPrimaryKey($columns, $name = null)
+    {
+        $type             = 'addPrimaryKey';
+        $columns          = (array) $columns;
+        $this->statement['alterations'][] = compact('type', 'name', 'columns');
+        return $this;
+    }
+
+    /**
+     * Alter the table by dropping a primary key constraint.
+     *
+     * @param string $name
+     *
+     * @return AlterTable
+     */
+    public function dropPrimaryKey($name = 'PRIMARY')
+    {
+        $type = 'dropPrimaryKey';
         $this->statement['alterations'][] = compact('type', 'name');
         return $this;
     }
