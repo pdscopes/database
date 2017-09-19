@@ -241,6 +241,7 @@ class Migrator
 
         $fileName   = basename($file);
         $className  = substr($fileName, strrpos($fileName, '-') + 1, -4);
+        $className  = str_replace('_', '', ucwords($className, '_'));
         $reflection = new \ReflectionClass($className);
 
         return $reflection->newInstance();
