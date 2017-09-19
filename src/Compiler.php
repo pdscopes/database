@@ -310,6 +310,8 @@ abstract class Compiler implements CompilerInterface
         $name   = $this->sanitise($statement['index']);
         // Table
         $table  = $this->sanitise($statement['table']);
+        // Columns
+        $columns = '(' . $this->compileQuerySanitiseArray($statement['columns'] ?? []) . ')';
 
         return [$this->concatenateSql([
             'CREATE',
@@ -318,6 +320,7 @@ abstract class Compiler implements CompilerInterface
             $name,
             'ON',
             $table,
+            $columns
         ]), []];
     }
 

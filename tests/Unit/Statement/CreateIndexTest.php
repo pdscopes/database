@@ -13,12 +13,13 @@ class CreateIndexTest extends CompilableTestCase
     public function testIndex()
     {
         $statement = (new CreateIndex($this->mockConnection));
-        $return    = $statement->index('name');
+        $return    = $statement->index('column', 'name');
         $array     = $statement->toArray();
 
         $this->assertInstanceOf(CreateIndex::class, $return);
         $this->assertEquals([
-            'index' => 'name',
+            'columns' => ['column'],
+            'index'   => 'name',
         ], $array);
     }
 

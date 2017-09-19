@@ -8,13 +8,15 @@ class CreateIndex extends StatementBuilder
     /**
      * Set the name of the index to be created.
      *
-     * @param string $name
+     * @param string|array $columns
+     * @param string       $name
      *
      * @return CreateIndex
      */
-    public function index($name)
+    public function index($columns, $name)
     {
-        $this->statement['index'] = $name;
+        $this->statement['columns'] = (array) $columns;
+        $this->statement['index']   = $name;
         return $this;
     }
 

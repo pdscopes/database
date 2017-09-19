@@ -12,8 +12,8 @@ class MySqlCreateIndexTest extends CompilableMySqlTestCase
      */
     public function testCreateIndexIndex()
     {
-        $sql       = 'CREATE INDEX `name` ON `table`';
-        $statement = (new CreateIndex($this->mockConnection))->index('name')->table('table');
+        $sql       = 'CREATE INDEX `name` ON `table` (`column`)';
+        $statement = (new CreateIndex($this->mockConnection))->index('column', 'name')->table('table');
         $this->assertEquals($sql, $statement->toSql());
     }
 
@@ -22,8 +22,8 @@ class MySqlCreateIndexTest extends CompilableMySqlTestCase
      */
     public function testCreateIndexUniqueIndex()
     {
-        $sql       = 'CREATE UNIQUE INDEX `name` ON `table`';
-        $statement = (new CreateIndex($this->mockConnection))->index('name')->table('table')->unique();
+        $sql       = 'CREATE UNIQUE INDEX `name` ON `table` (`column`)';
+        $statement = (new CreateIndex($this->mockConnection))->index('column', 'name')->table('table')->unique();
         $this->assertEquals($sql, $statement->toSql());
     }
 }
