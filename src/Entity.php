@@ -110,12 +110,12 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
 
         $map    = $this->getMap();
         $values = [];
-        foreach ($map->columnMap() as $property) {
+        foreach ($map->properties(false) as $property) {
             $values[] = $this->{$property};
         }
         $insert = $connection->insert()
             ->into($map->tableName())
-            ->columns($map->columns())
+            ->columns($map->columns(false))
             ->values($values)
             ->query();
 
@@ -139,7 +139,8 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
     {
         // Calculate the columns to be updated
         $map     = $this->getMap();
-        $columns = array_intersect($map->columnMap(), (array) ($properties ?? $map->columnMap()));
+        $columns = $map->columnMap(false);
+        $columns = array_intersect($columns, (array) ($properties ?? $columns));
         if (empty($columns)) {
             return true;
         }

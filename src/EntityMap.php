@@ -60,27 +60,36 @@ class EntityMap
     }
 
     /**
+     * @param bool $withPrimaryKeys
      * @return string[]
      */
-    public function columnMap()
+    public function columnMap($withPrimaryKeys = true)
     {
-        return $this->columnMap;
+        return $withPrimaryKeys
+            ? $this->columnMap
+            : array_diff_key($this->columnMap, $this->keyMap);
     }
 
     /**
+     * @param bool $withPrimaryKeys
      * @return string[] DB columns
      */
-    public function columns()
+    public function columns($withPrimaryKeys = true)
     {
-        return array_keys($this->columnMap);
+        return $withPrimaryKeys
+            ? array_keys($this->columnMap)
+            : array_keys(array_diff_key($this->columnMap, $this->keyMap));
     }
 
     /**
+     * @param bool $withPrimaryKeys
      * @return string[] Entity properties
      */
-    public function properties()
+    public function properties($withPrimaryKeys = true)
     {
-        return array_values($this->columnMap);
+        return $withPrimaryKeys
+            ? array_values($this->columnMap)
+            : array_values(array_diff_key($this->columnMap, $this->keyMap));
     }
 
     /**
