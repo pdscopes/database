@@ -2,9 +2,9 @@
 
 namespace MadeSimple\Database;
 
+use MadeSimple\Arrays\Arrayable;
 use MadeSimple\Database\Query\Column;
 use MadeSimple\Database\Query\Raw;
-use MadeSimple\Database\Query\Select;
 use MadeSimple\Database\Query\WhereBuilder;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
@@ -546,8 +546,9 @@ abstract class Compiler implements CompilerInterface
             list ($nestedCriteria, $nestedBindings) = $this->compileQueryNestedCriteria($column);
             $bindings  = array_merge($bindings, $nestedBindings);
             $criteria .= $boolean . ' (' . $nestedCriteria . ') ';
-        } elseif (is_array($value)) {
+        } elseif (is_array($value) || $value instanceof Arrayable) {
             // Array of values
+            $value     = $value instanceof Arrayable ? $value->toArray() : $value;
             $bindings  = array_merge($bindings, array_values($value));
             $criteria .= $boolean . ' ' . $column . ' ' . $operator;
 
