@@ -4,21 +4,6 @@ namespace MadeSimple\Database\Entity;
 
 trait PropertiesToArrayTrait
 {
-
-    /**
-     * List of properties to be visible by default.
-     *
-     * @var array
-     */
-    protected $visible = [];
-
-    /**
-     * List of properties to be hidden by default.
-     *
-     * @var array
-     */
-    protected $hidden = [];
-
     /**
      * @param array $propertiesList
      * @return array

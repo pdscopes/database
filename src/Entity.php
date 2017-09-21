@@ -29,6 +29,20 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
     public $createdRecently = false;
 
     /**
+     * List of properties to be visible by default.
+     *
+     * @var array
+     */
+    protected $visible = [];
+
+    /**
+     * List of properties to be hidden by default.
+     *
+     * @var array
+     */
+    protected $hidden = [];
+
+    /**
      * Entity constructor.
      *
      * @param Pool|null  $pool
