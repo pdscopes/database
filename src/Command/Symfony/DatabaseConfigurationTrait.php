@@ -8,6 +8,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
+use Symfony\Component\Filesystem\Filesystem;
 
 trait DatabaseConfigurationTrait
 {
@@ -23,10 +24,25 @@ trait DatabaseConfigurationTrait
     {
         $this->addArgument('dbDriver', InputArgument::OPTIONAL, 'Driver for the database to run migration');
         $this->addArgument('dbUser', InputArgument::OPTIONAL, 'Username for the database');
+        $this->addOption('dotenv', 'e', InputOption::VALUE_OPTIONAL, 'Load configuration from environment file', '.env');
+    }
 
-        $this->addOption('dotenv', 'e', InputOption::VALUE_NONE, 'Load configuration from [.env] file');
-        $this->addOption('dotenvFile', 'f', InputOption::VALUE_REQUIRED, 'Location of [.env] file', '.env');
-        $this->addOption('noInteract', 'i', InputOption::VALUE_NONE, 'No interact');
+    protected function initialize(InputInterface $input, OutputInterface $output)
+    {
+        // Ensure default value for options with optional value
+        $input->setOption('dotenv', $input->getOption('dotenv') ?? $this->getDefinition()->getOption('dotenv')->getDefault());
+
+        if ($input->getParameterOption(['--dotenv', '-e'], false, true) !== false) {
+            $fs = new Filesystem();
+            if (!$fs->exists($input->getOption('dotenv'))) {
+                $output->writeln('<error>Environment file must exist</error>');
+                exit(1);
+            }
+        }
+        else if($input->getOption('no-interaction')) {
+            $output->writeln("<error>Cannot use no interaction without --dotenv (-e) option</error>");
+            exit(1);
+        }
     }
 
     /**
@@ -38,7 +54,7 @@ trait DatabaseConfigurationTrait
     protected function interact(InputInterface $input, OutputInterface $output)
     {
         if ($input->getOption('dotenv')) {
-            $dotenv = new Dotenv(getcwd(), $input->getOption('dotenvFile'));
+            $dotenv = new Dotenv(getcwd(), $input->getOption('dotenv'));
             $dotenv->load();
             $dotenv->required('DATABASE_DRIVER')->allowedValues(['mysql', 'sqlite']);
             $this->config['driver'] = getenv('DATABASE_DRIVER');
@@ -57,10 +73,6 @@ trait DatabaseConfigurationTrait
                     break;
             }
             return ;
-        }
-
-        if ($input->getOption('noInteract')) {
-            throw new \RuntimeException('Cannot use no interact without -e option');
         }
 
         // Request missing data

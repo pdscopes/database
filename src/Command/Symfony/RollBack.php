@@ -13,7 +13,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class RollBack extends Command
 {
-    use DatabaseConfigurationTrait, LockableTrait;
+    use DatabaseConfigurationTrait, LockableTrait {
+        DatabaseConfigurationTrait::initialize as databaseInitialize;
+    }
 
     protected function configure()
     {
@@ -32,9 +34,12 @@ class RollBack extends Command
 
     protected function initialize(InputInterface $input, OutputInterface $output)
     {
+        $this->databaseInitialize($input, $output);
+
         // Validate input
         if ($input->getOption('batches') !== null && !is_numeric($input->getOption('batches'))) {
-            throw new \InvalidArgumentException('Batches must be an number');
+            $output->writeln('<error>Batches must be an number</error>');
+            exit(1);
         }
     }
 

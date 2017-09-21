@@ -15,7 +15,9 @@ use Symfony\Component\Finder\Finder;
 
 class Migrate extends Command
 {
-    use DatabaseConfigurationTrait, LockableTrait;
+    use DatabaseConfigurationTrait, LockableTrait {
+        DatabaseConfigurationTrait::initialize as databaseInitialize;
+    }
 
     protected function configure()
     {
@@ -32,6 +34,8 @@ class Migrate extends Command
 
     protected function initialize(InputInterface $input, OutputInterface $output)
     {
+        $this->databaseInitialize($input, $output);
+
         // Ensure default value for options with optional value
         $input->setOption('path', $input->getOption('path') ?? $this->getDefinition()->getOption('seed')->getDefault());
         $input->setOption('seed', $input->getOption('seed') ?? $this->getDefinition()->getOption('seed')->getDefault());
@@ -39,10 +43,12 @@ class Migrate extends Command
         // Ensure locations exist
         $fs = new Filesystem();
         if (!$fs->exists($input->getOption('path'))) {
-            throw new \InvalidArgumentException('Migrations path must be a directory that exists');
+            $output->writeln('<error>Migrations path must be a directory that exists</error>');
+            exit(1);
         }
         if ($input->getParameterOption(['--seed', '-s'], false, true) !== false && !$fs->exists($input->getOption('seed'))) {
-            throw new \InvalidArgumentException('Seed path must be a directory that exists');
+            $output->writeln('<error>Seed path must be a directory that exists</error>');
+            exit(1);
         }
     }
 

@@ -15,7 +15,9 @@ use Symfony\Component\Finder\Finder;
 
 class Seed extends Command
 {
-    use DatabaseConfigurationTrait, LockableTrait;
+    use DatabaseConfigurationTrait, LockableTrait {
+        DatabaseConfigurationTrait::initialize as databaseInitialize;
+    }
 
     protected function configure()
     {
@@ -33,14 +35,16 @@ class Seed extends Command
 
     protected function initialize(InputInterface $input, OutputInterface $output)
     {
+        $this->databaseInitialize($input, $output);
+
         // Ensure default value for options with optional value
         $input->setOption('seed', $input->getOption('seed') ?? $this->getDefinition()->getOption('seed')->getDefault());
 
         // Ensure locations exist
-        // Validate input
         $fs = new Filesystem();
-        if (!$fs->exists($input->getOption('seed'))) {
-            throw new \InvalidArgumentException('Path must be a directory that exists');
+        if ($input->getParameterOption(['--seed', '-s'], false, true) !== false && !$fs->exists($input->getOption('seed'))) {
+            $output->writeln('<error>Seed path must be a directory that exists</error>');
+            exit(1);
         }
     }
 
