@@ -232,4 +232,47 @@ class MySqlQueryUpdateTest extends CompilableMySqlTestCase
             });
         $this->assertEquals($sql, $select->toSql());
     }
+
+    /**
+     * Test where with value as a sub query.
+     */
+    public function testQuerySelectWhereValueSubQuery()
+    {
+        $sql    = 'UPDATE `table1` SET `field`=? WHERE `field` = (SELECT * FROM `table2` WHERE `table1`.`id` = `table2`.`table1_id`)';
+        $select = (new Update($this->mockConnection))->table('table1')
+            ->set('field', 5)
+            ->where('field', '=', function (Select $select) {
+                $select->from('table2')->whereColumn('table1.id', '=', 'table2.table1_id');
+            });
+        $this->assertEquals($sql, $select->toSql());
+    }
+
+    /**
+     * Test where sub query.
+     */
+    public function testQuerySelectWhereSubQuery()
+    {
+        $sql    = 'UPDATE `table1` SET `field`=? WHERE (SELECT * FROM `table2` WHERE `table1`.`id` = `table2`.`table1_id`)';
+        $select = (new Update($this->mockConnection))->table('table1')
+            ->set('field', 5)
+            ->whereSubQuery(function (Select $select) {
+                $select->from('table2')->whereColumn('table1.id', '=', 'table2.table1_id');
+            });
+        $this->assertEquals($sql, $select->toSql());
+    }
+
+    /**
+     * Test or where sub query.
+     */
+    public function testQuerySelectOrWhereSubQuery()
+    {
+        $sql    = 'UPDATE `table1` SET `field`=? WHERE `field` = ? OR (SELECT * FROM `table2` WHERE `table1`.`id` = `table2`.`table1_id`)';
+        $select = (new Update($this->mockConnection))->table('table1')
+            ->set('field', 5)
+            ->where('field', '=', 'value')
+            ->orWhereSubQuery(function (Select $select) {
+                $select->from('table2')->whereColumn('table1.id', '=', 'table2.table1_id');
+            });
+        $this->assertEquals($sql, $select->toSql());
+    }
 }

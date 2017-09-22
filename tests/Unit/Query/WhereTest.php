@@ -267,4 +267,90 @@ class WhereTest extends CompilableTestCase
         ], $array);
     }
 
+    /**
+     * Test where clause with a sub query closure as the value.
+     */
+    public function testWhereWithSubQueryValueClosure()
+    {
+        $subQuery = null;
+        $query = (new WhereBuilder($this->mockConnection))
+            ->where('field', '=', function ($select) use (&$subQuery) {
+                $subQuery = $select;
+            });
+        $array = $query->toArray();
+
+        $this->assertInstanceOf(WhereBuilder::class, $query);
+        $this->assertEquals([
+            'where' => [
+                [
+                    'column'   => 'field',
+                    'operator' => '=',
+                    'value'    => $subQuery,
+                    'boolean'  => 'and',
+                ]
+            ]
+        ], $array);
+    }
+
+    /**
+     * Test where clause with a sub query Select as the value.
+     */
+    public function testWhereWithSubQueryValueSelect()
+    {
+        $select = new Select($this->mockConnection);
+        $query = (new WhereBuilder($this->mockConnection))->where('field', '=', $select);
+        $array = $query->toArray();
+
+        $this->assertInstanceOf(WhereBuilder::class, $query);
+        $this->assertEquals([
+            'where' => [
+                [
+                    'column'   => 'field',
+                    'operator' => '=',
+                    'value'    => $select,
+                    'boolean'  => 'and',
+                ]
+            ]
+        ], $array);
+    }
+
+    /**
+     * Test where sub query.
+     */
+    public function testWhereSubQuery()
+    {
+        $query = (new WhereBuilder($this->mockConnection))->whereSubQuery(function (Select $select) {});
+        $array = $query->toArray();
+
+        $this->assertInstanceOf(WhereBuilder::class, $query);
+        $this->assertEquals([
+            'where' => [
+                [
+                    'type'    => 'subQuery',
+                    'select'  => [],
+                    'boolean' => 'and',
+                ]
+            ]
+        ], $array);
+    }
+
+    /**
+     * Test or where sub query.
+     */
+    public function testOrWhereSubQuery()
+    {
+        $query = (new WhereBuilder($this->mockConnection))->orWhereSubQuery(function (Select $select) {});
+        $array = $query->toArray();
+
+        $this->assertInstanceOf(WhereBuilder::class, $query);
+        $this->assertEquals([
+            'where' => [
+                [
+                    'type'    => 'subQuery',
+                    'select'  => [],
+                    'boolean' => 'or',
+                ]
+            ]
+        ], $array);
+    }
 }

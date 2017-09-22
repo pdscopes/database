@@ -5,6 +5,7 @@ namespace MadeSimple\Database;
 use MadeSimple\Arrays\Arrayable;
 use MadeSimple\Database\Query\Column;
 use MadeSimple\Database\Query\Raw;
+use MadeSimple\Database\Query\Select;
 use MadeSimple\Database\Query\WhereBuilder;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
@@ -516,6 +517,10 @@ abstract class Compiler implements CompilerInterface
                     $this->compileQueryExistsStatement($statement, $criteria, $bindings);
                     break;
 
+                case 'subQuery':
+                    $this->compileQuerySubQueryStatement($statement, $criteria, $bindings);
+                    break;
+
                 default:
                     $this->compileQueryBasicStatement($statement, $criteria, $bindings);
                     break;
@@ -546,6 +551,11 @@ abstract class Compiler implements CompilerInterface
             list ($nestedCriteria, $nestedBindings) = $this->compileQueryNestedCriteria($column);
             $bindings  = array_merge($bindings, $nestedBindings);
             $criteria .= $boolean . ' (' . $nestedCriteria . ') ';
+        } elseif ($value instanceof Select) {
+            // Sub query
+            list($subSql, $subBindings) = $this->compileQuerySelect($value->toArray());
+            $bindings  = array_merge($bindings, $subBindings);
+            $criteria .= $boolean . ' ' . $column . ' ' . $operator . ' (' . $subSql . ')';
         } elseif (is_array($value) || $value instanceof Arrayable) {
             // Array of values
             $value     = $value instanceof Arrayable ? $value->toArray() : $value;
@@ -596,6 +606,23 @@ abstract class Compiler implements CompilerInterface
         list($existsCriteria, $existsBindings) = $this->compileQuerySelect($statement['select']);
 
         $criteria .= $boolean . $exists . '(' . $existsCriteria . ') ';
+        $bindings  = array_merge($bindings, $existsBindings);
+    }
+
+    /**
+     * Compiles the WHERE (<sub query>) type statement into SQL appending it to $criteria and
+     * adds the bindings to $bindings.
+     *
+     * @param array  $statement
+     * @param string $criteria
+     * @param array  $bindings
+     */
+    protected function compileQuerySubQueryStatement(array $statement, &$criteria, &$bindings)
+    {
+        $boolean = strtoupper($statement['boolean']);
+        list($existsCriteria, $existsBindings) = $this->compileQuerySelect($statement['select']);
+
+        $criteria .= $boolean . ' (' . $existsCriteria . ') ';
         $bindings  = array_merge($bindings, $existsBindings);
     }
 

@@ -21,6 +21,13 @@ trait WhereTrait
      */
     protected function addWhere($column, $operator = null, $value = null, $boolean = 'and')
     {
+        // If the value is a sub query
+        if (is_callable($value)) {
+            $callable = $value;
+            $value    = new Select($this->connection, $this->logger);
+            call_user_func($callable, $value);
+        }
+
         $this->statement['where'][] = compact('column', 'operator', 'value', 'boolean');
 
         return $this;
@@ -149,5 +156,41 @@ trait WhereTrait
     public function whereNotExists($select, $boolean = 'and')
     {
         return $this->whereExists($select, $boolean, true);
+    }
+
+    /**
+     * Add a WHERE (<sub query>) clause with $select defining a select sub query.
+     *
+     * @param callable|Select $select function (Select) {...}
+     * @param string          $boolean
+     *
+     * @return static
+     */
+    public function whereSubQuery($select, $boolean = 'and')
+    {
+        if (is_callable($select)) {
+            $callable = $select;
+            $select   = new Select($this->connection, $this->logger);
+            call_user_func($callable, $select);
+        }
+
+        $type = 'subQuery';
+        $select = $select->statement;
+
+        $this->statement['where'][] = compact('type','select', 'boolean');
+
+        return $this;
+    }
+
+    /**
+     * Add an OR WHERE (<sub query>) clause with $select defining a select sub query.
+     *
+     * @param callable|Select $select function (Select) {...}
+     *
+     * @return static
+     */
+    public function orWhereSubQuery($select)
+    {
+        return $this->whereSubQuery($select, 'or');
     }
 }

@@ -281,6 +281,46 @@ class MySqlQuerySelectTest extends CompilableMySqlTestCase
     }
 
     /**
+     * Test where with value as a sub query.
+     */
+    public function testQuerySelectWhereValueSubQuery()
+    {
+        $sql    = 'SELECT * FROM `table1` WHERE `field` = (SELECT * FROM `table2` WHERE `table1`.`id` = `table2`.`table1_id`)';
+        $select = (new Select($this->mockConnection))->from('table1')
+            ->where('field', '=', function (Select $select) {
+                $select->from('table2')->whereColumn('table1.id', '=', 'table2.table1_id');
+            });
+        $this->assertEquals($sql, $select->toSql());
+    }
+
+    /**
+     * Test where sub query.
+     */
+    public function testQuerySelectWhereSubQuery()
+    {
+        $sql    = 'SELECT * FROM `table1` WHERE (SELECT * FROM `table2` WHERE `table1`.`id` = `table2`.`table1_id`)';
+        $select = (new Select($this->mockConnection))->from('table1')
+            ->whereSubQuery(function (Select $select) {
+                $select->from('table2')->whereColumn('table1.id', '=', 'table2.table1_id');
+            });
+        $this->assertEquals($sql, $select->toSql());
+    }
+
+    /**
+     * Test or where sub query.
+     */
+    public function testQuerySelectOrWhereSubQuery()
+    {
+        $sql    = 'SELECT * FROM `table1` WHERE `field` = ? OR (SELECT * FROM `table2` WHERE `table1`.`id` = `table2`.`table1_id`)';
+        $select = (new Select($this->mockConnection))->from('table1')
+            ->where('field', '=', 'value')
+            ->orWhereSubQuery(function (Select $select) {
+                $select->from('table2')->whereColumn('table1.id', '=', 'table2.table1_id');
+            });
+        $this->assertEquals($sql, $select->toSql());
+    }
+
+    /**
      * Test set group by.
      *
      * @param mixed $clauses
