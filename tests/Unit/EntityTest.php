@@ -328,16 +328,15 @@ class EntityTest extends TestCase
 
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
         $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($mockSelect);
-        $mockSelect->shouldReceive('columns')->once()->with('*')->andReturnSelf();
-        $mockSelect->shouldReceive('from')->once()->with('dummy', 't')->andReturnSelf();
+        $mockSelect->shouldReceive('from')->once()->with('dummy')->andReturnSelf();
         $mockSelect->shouldReceive('limit')->once()->with(1)->andReturnSelf();
-        $mockSelect->shouldReceive('where')->once()->with('t.ID', '=', 5);
+        $mockSelect->shouldReceive('where')->once()->with('ID', '=', 5);
         $mockSelect->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
         $mockSelect->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC, \PDO::FETCH_ORI_FIRST)->andReturn($row);
 
         $entity = new SingleKeyEntity($this->mockPool);
 
-        $this->assertTrue($entity->read(5));
+        $this->assertInstanceOf(SingleKeyEntity::class, $entity->read(5));
         $this->assertEquals(5, $entity->id);
         $this->assertEquals('Test', $entity->firstName);
         $this->assertEquals('Person', $entity->lastName);
@@ -359,17 +358,16 @@ class EntityTest extends TestCase
 
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
         $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($mockSelect);
-        $mockSelect->shouldReceive('columns')->once()->with('*')->andReturnSelf();
-        $mockSelect->shouldReceive('from')->once()->with('dummy_link', 't')->andReturnSelf();
+        $mockSelect->shouldReceive('from')->once()->with('dummy_link')->andReturnSelf();
         $mockSelect->shouldReceive('limit')->once()->with(1)->andReturnSelf();
-        $mockSelect->shouldReceive('where')->once()->with('t.user_id', '=', 5);
-        $mockSelect->shouldReceive('where')->once()->with('t.company_id', '=', 7);
+        $mockSelect->shouldReceive('where')->once()->with('user_id', '=', 5);
+        $mockSelect->shouldReceive('where')->once()->with('company_id', '=', 7);
         $mockSelect->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
         $mockSelect->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC, \PDO::FETCH_ORI_FIRST)->andReturn($row);
 
         $entity = new CompositeKeyEntity($this->mockPool);
 
-        $this->assertTrue($entity->read(['user_id' => 5, 'company_id' => 7]));
+        $this->assertInstanceOf(CompositeKeyEntity::class, $entity->read(['user_id' => 5, 'company_id' => 7]));
         $this->assertEquals(5, $entity->userId);
         $this->assertEquals(7, $entity->companyId);
         $this->assertEquals('value', $entity->value);

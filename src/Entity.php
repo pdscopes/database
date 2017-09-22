@@ -3,6 +3,7 @@
 namespace MadeSimple\Database;
 
 use JsonSerializable;
+use MadeSimple\Arrays\Arr;
 use MadeSimple\Arrays\Arrayable;
 use MadeSimple\Database\Entity\PropertiesToArrayTrait;
 use MadeSimple\Database\Entity\CastPropertyTrait;
@@ -176,22 +177,30 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
     }
 
     /**
-     * @param null|mixed $primaryKey Null to use the set primary key, other the given primary key
+     * @param null|mixed $keys Null to use the set primary key, an associative array to read other unique columns, or
+     *                         a normal array to pass in primary key value(s)
      *
-     * @return bool True if the entity was successfully read (populated)
+     * @return static
      */
-    public function read($primaryKey = null)
+    public function read($keys = null)
     {
-        $connection = $this->pool->get(static::$connection);
-
         $map    = $this->getMap();
-        $select = $connection->select()->columns('*')->from($map->tableName(), 't')->limit(1);
+        $select = $this->pool->get(static::$connection)->select()->from($map->tableName())->limit(1);
 
-        if (null !== $primaryKey && !is_array($primaryKey)) {
-            $primaryKey = array_combine(array_keys($map->primaryKeys()), [$primaryKey]);
+
+        $keys = (array) $keys;
+        // Entity::read()
+        if (empty($keys)) {
+            $keys = array_combine(array_keys($map->primaryKeys()), $this->propertiesToArray($map->primaryKeys()));
         }
-        foreach ($map->primaryKeys() as $idx => $key) {
-            $select->where('t.' . $idx, '=', null !== $primaryKey ? $primaryKey[$idx] : $this->{$key});
+        // Entity::read(15) or Entity::read([15,7])
+        elseif (!Arr::isAssoc($keys)) {
+            $keys = array_combine(array_keys($map->primaryKeys()), $keys);
+        }
+        // Entity::read(['uuid' => '123'])
+
+        foreach ($keys as $column => $value) {
+            $select->where($column, '=', $value);
         }
 
         $row = $select->query()->fetch(PDO::FETCH_ASSOC, PDO::FETCH_ORI_FIRST);
@@ -199,9 +208,7 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
             throw new \InvalidArgumentException('Invalid table name or primary key name/value');
         }
 
-        $this->populate($row);
-
-        return true;
+        return $this->populate($row);;
     }
 
     /**

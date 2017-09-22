@@ -63,9 +63,9 @@ class MySQLTest extends TestCase
 
         // Read users
         $user = new MySQLTestUserEntity($pool);
-        $this->assertTrue($user->read('456'));
+        $this->assertInstanceOf(MySQLTestUserEntity::class, $user->read('456'));
         $this->assertEquals('user2', $user->username);
-        $this->assertTrue($user->read('123'));
+        $this->assertInstanceOf(MySQLTestUserEntity::class, $user->read('123'));
         $this->assertEquals('user1', $user->username);
 
         // Find users
