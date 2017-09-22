@@ -118,17 +118,18 @@ class Repository
     }
 
     /**
-     * @param array $columns
-     * @param array $order
+     * @param array  $columns
+     * @param array  $order
+     * @param string $alias
      *
      * @return Query\Select
      */
-    protected function buildFindByQuery(array $columns = [], array $order = [])
+    protected function buildFindByQuery(array $columns = [], array $order = [], $alias = 't')
     {
-        $select = $this->connection->select()->columns('*')->from($this->entityMap->tableName(), 't');
+        $select = $this->connection->select()->columns($alias . '.*')->from($this->entityMap->tableName(), $alias);
 
         foreach ($columns as $column => $value) {
-            $select->where('t.'.$column, '=', $value);
+            $select->where($alias.'.'.$column, '=', $value);
         }
         foreach ($order as $column => $direction) {
             if (is_int($column)) {

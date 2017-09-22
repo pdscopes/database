@@ -47,7 +47,7 @@ class RepositoryTest extends TestCase
 
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
         $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($this->mockSelect);
-        $this->mockSelect->shouldReceive('columns')->once()->with('*')->andReturnSelf();
+        $this->mockSelect->shouldReceive('columns')->once()->with('t.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('repo', 't')->andReturnSelf();
         $this->mockSelect->shouldNotReceive('where');
         $this->mockSelect->shouldNotReceive('orderBy');
@@ -71,7 +71,7 @@ class RepositoryTest extends TestCase
 
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
         $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($this->mockSelect);
-        $this->mockSelect->shouldReceive('columns')->once()->with('*')->andReturnSelf();
+        $this->mockSelect->shouldReceive('columns')->once()->with('t.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('repo', 't')->andReturnSelf();
         $this->mockSelect->shouldReceive('where')->once()->with('t.column', '=', 'value')->andReturnSelf();
         $this->mockSelect->shouldNotReceive('orderBy');
@@ -95,7 +95,7 @@ class RepositoryTest extends TestCase
 
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
         $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($this->mockSelect);
-        $this->mockSelect->shouldReceive('columns')->once()->with('*')->andReturnSelf();
+        $this->mockSelect->shouldReceive('columns')->once()->with('t.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('repo', 't')->andReturnSelf();
         $this->mockSelect->shouldReceive('where')->once()->with('t.c1', '=', 'v1')->andReturnSelf();
         $this->mockSelect->shouldReceive('where')->once()->with('t.c2', '=', 'v2')->andReturnSelf();
@@ -120,7 +120,7 @@ class RepositoryTest extends TestCase
 
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
         $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($this->mockSelect);
-        $this->mockSelect->shouldReceive('columns')->once()->with('*')->andReturnSelf();
+        $this->mockSelect->shouldReceive('columns')->once()->with('t.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('repo', 't')->andReturnSelf();
         $this->mockSelect->shouldReceive('orderBy')->once()->with('o1', 'asc')->andReturnSelf();
         $this->mockSelect->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
@@ -145,7 +145,7 @@ class RepositoryTest extends TestCase
 
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
         $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($this->mockSelect);
-        $this->mockSelect->shouldReceive('columns')->once()->with('*')->andReturnSelf();
+        $this->mockSelect->shouldReceive('columns')->once()->with('t.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('repo', 't')->andReturnSelf();
         $this->mockSelect->shouldReceive('limit')->once()->with(1)->andReturnSelf();
         $this->mockSelect->shouldNotReceive('where');
@@ -168,7 +168,7 @@ class RepositoryTest extends TestCase
 
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
         $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($this->mockSelect);
-        $this->mockSelect->shouldReceive('columns')->once()->with('*')->andReturnSelf();
+        $this->mockSelect->shouldReceive('columns')->once()->with('t.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('repo', 't')->andReturnSelf();
         $this->mockSelect->shouldReceive('limit')->once()->with(1)->andReturnSelf();
         $this->mockSelect->shouldReceive('where')->once()->with('t.column', '=', 'value')->andReturnSelf();
@@ -191,7 +191,7 @@ class RepositoryTest extends TestCase
 
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
         $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($this->mockSelect);
-        $this->mockSelect->shouldReceive('columns')->once()->with('*')->andReturnSelf();
+        $this->mockSelect->shouldReceive('columns')->once()->with('t.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('repo', 't')->andReturnSelf();
         $this->mockSelect->shouldReceive('limit')->once()->with(1)->andReturnSelf();
         $this->mockSelect->shouldReceive('where')->once()->with('t.c1', '=', 'v1')->andReturnSelf();
@@ -215,7 +215,7 @@ class RepositoryTest extends TestCase
 
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
         $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($this->mockSelect);
-        $this->mockSelect->shouldReceive('columns')->once()->with('*')->andReturnSelf();
+        $this->mockSelect->shouldReceive('columns')->once()->with('t.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('repo', 't')->andReturnSelf();
         $this->mockSelect->shouldReceive('limit')->once()->with(1)->andReturnSelf();
         $this->mockSelect->shouldNotReceive('where');
