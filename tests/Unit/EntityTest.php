@@ -192,8 +192,8 @@ class EntityTest extends TestCase
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
         $this->mockConnection->shouldReceive('insert')->once()->withNoArgs()->andReturn($mockInsert);
         $mockInsert->shouldReceive('into')->once()->with('dummy_link')->andReturnSelf();
-        $mockInsert->shouldReceive('columns')->once()->with(['value'])->andReturnSelf();
-        $mockInsert->shouldReceive('values')->once()->with(['value'])->andReturnSelf();
+        $mockInsert->shouldReceive('columns')->once()->with(['user_id', 'company_id', 'value'])->andReturnSelf();
+        $mockInsert->shouldReceive('values')->once()->with([5, 7, 'value'])->andReturnSelf();
         $mockInsert->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
         $mockInsert->shouldReceive('lastInsertId')->never();
 
