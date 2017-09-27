@@ -125,13 +125,15 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
 
         $map    = $this->getMap();
         $values = [];
-        foreach ($map->properties(false) as $property) {
-            $values[] = $this->{$property};
+        foreach ($map->columnMap() as $column => $property) {
+            $values[$column] = $this->{$property};
         }
+        // Filter null values - being created so pointless
+        $values = array_filter($values, function ($item) { return $item !== null; });
         $insert = $connection->insert()
             ->into($map->tableName())
-            ->columns($map->columns(false))
-            ->values($values)
+            ->columns(array_keys($values))
+            ->values(array_values($values))
             ->query();
 
         if (false === $insert) {
