@@ -111,7 +111,7 @@ class ToManyEntity extends Entity
     public $id;
     public $foreignKey;
 
-    public static  function getMap()
+    protected static function getMap()
     {
         return new EntityMap('entity', ['ID' => 'id'], ['foreign_key' => 'foreignKey']);
     }
@@ -121,7 +121,7 @@ class ToManyRelatedEntity extends Entity
     public $key;
     public $value;
 
-    public static function getMap()
+    protected static function getMap()
     {
         return new EntityMap('related', ['KEY' => 'key'], ['db_value' => 'value']);
     }

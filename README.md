@@ -139,7 +139,7 @@ class User extends \MadeSimple\Database\Entity
 {
     use \MadeSimple\Database\Relationship\Relational;
 
-    public function getMap()
+    protected static function getMap()
     {
         return new \MadeSimple\Database\EntityMap(
             'user', // Table name
@@ -166,7 +166,7 @@ class Post extends \MadeSimple\Database\Entity
 {
     use \MadeSimple\Database\Relationship\Relational;
 
-    public function getMap()
+    protected static function getMap()
     {
         return new \MadeSimple\Database\EntityMap(
             'post', // Table name

@@ -166,7 +166,7 @@ class MySQLTestUserEntity extends Entity
     public $id;
     public $username;
 
-    public static function getMap()
+    protected static function getMap()
     {
         return new EntityMap('user', ['UUID' => 'id'], ['user_name' => 'username']);
     }
@@ -192,7 +192,7 @@ class MySQLTestPostEntity extends Entity
     public $submitterId;
     public $title;
 
-    public static function getMap()
+    protected static function getMap()
     {
         return new EntityMap('post', ['uuid' => 'id'], ['submitter_id' => 'submitterId', 'title' => 'title']);
     }
@@ -213,7 +213,7 @@ class MySQLTestCommentEntity extends Entity
     public $postId;
     public $text;
 
-    public static function getMap()
+    protected static function getMap()
     {
         return new EntityMap('comment', ['id' => 'uuid'], ['post_uuid' => 'postId', 'data' => 'text']);
     }

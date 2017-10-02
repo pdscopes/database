@@ -19,7 +19,7 @@ trait Relational
     /**
      * @return EntityMap
      */
-    public abstract function getMap();
+    public static abstract function map();
 
     /**
      * @param string $relationship
@@ -71,7 +71,7 @@ trait Relational
      */
     public function toArray()
     {
-        $properties = $this->propertiesToArray($this->getMap()->columnMap());
+        $properties = $this->propertiesToArray(static::map()->columnMap());
 
         foreach ($this->relationships as $property => $value) {
             if (in_array($property, $this->hidden)) {

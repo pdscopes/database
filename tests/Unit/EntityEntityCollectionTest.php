@@ -138,7 +138,7 @@ class EntityCollectionTestEntity extends Entity
     public $value;
     public $VALUE;
 
-    public static function getMap()
+    protected static function getMap()
     {
         return new EntityMap('table', ['id'], ['value', 'VALUE']);
     }
@@ -162,7 +162,7 @@ class EntityCollectionTestRelationalEntity extends Entity
         }
     }
 
-    public static function getMap()
+    protected static function getMap()
     {
         return new EntityMap('table', ['id'], ['value']);
     }

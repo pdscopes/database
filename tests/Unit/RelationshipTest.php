@@ -356,7 +356,7 @@ class RelationshipTestEntity extends Entity
     public $id;
     public $value;
 
-    public static function getMap()
+    protected static function getMap()
     {
         return new EntityMap('entity', ['ID' => 'id'], ['db_value' => 'value']);
     }
@@ -366,7 +366,7 @@ class RelationshipTestRelated extends Entity
     public $id;
     public $foreign;
 
-    public static function getMap()
+    protected static function getMap()
     {
         return new EntityMap('related', ['ID' => 'id'], ['foreign_key' => 'foreign']);
     }

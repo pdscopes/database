@@ -538,7 +538,7 @@ class SingleKeyEntity extends Entity
     public $firstName;
     public $lastName;
 
-    public static function getMap()
+    protected static function getMap()
     {
         return new EntityMap(
             'dummy',
@@ -553,7 +553,7 @@ class CompositeKeyEntity extends Entity
     public $companyId;
     public $value;
 
-    public static function getMap()
+    protected static function getMap()
     {
         return new EntityMap(
             'dummy_link',
@@ -588,7 +588,7 @@ class CastedEntity extends Entity
         'json'    => 'json',
     ];
 
-    public static function getMap()
+    protected static function getMap()
     {
         return new EntityMap(
             'casted',
