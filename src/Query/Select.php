@@ -220,6 +220,7 @@ class Select extends QueryBuilder
         $statement['columns'] = [new Raw('COUNT(*)')];
 
         list($sql, $bindings) = $this->buildSql($statement);
+        /** @var \PDOStatement $pdoStatement */
         list($pdoStatement) = $this->statement($sql, $bindings);
 
         return $pdoStatement->fetch(\PDO::FETCH_COLUMN) ?? 0;
@@ -235,8 +236,12 @@ class Select extends QueryBuilder
      */
     public function fetch($parameters = null)
     {
-        $parameters = null === $parameters ? $this->fetchParameters : func_get_args();
-        return call_user_func_array([$this->pdoStatement, 'fetch'], $parameters);
+        if ($this->pdoStatement === null) {
+            $this->query();
+        }
+        $parameters = null === $parameters ? $this->fetchMode : func_get_args();
+        call_user_func_array([$this->pdoStatement, 'setFetchMode'], $parameters);
+        return $this->pdoStatement->fetch();
     }
 
     /**
@@ -249,8 +254,12 @@ class Select extends QueryBuilder
      */
     public function fetchAll($parameters = null)
     {
-        $parameters = null === $parameters ? $this->fetchParameters : func_get_args();
-        return call_user_func_array([$this->pdoStatement, 'fetchAll'], $parameters);
+        if ($this->pdoStatement === null) {
+            $this->query();
+        }
+        $parameters = null === $parameters ? $this->fetchMode : func_get_args();
+        call_user_func_array([$this->pdoStatement, 'setFetchMode'], $parameters);
+        return $this->pdoStatement->fetchAll();
     }
 
 

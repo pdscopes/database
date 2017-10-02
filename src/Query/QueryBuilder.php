@@ -15,7 +15,7 @@ abstract class QueryBuilder extends Builder
      *
      * @var array
      */
-    protected $fetchParameters = [PDO::FETCH_ASSOC];
+    protected $fetchMode = [PDO::FETCH_ASSOC];
 
     /**
      * Set the fetch mode.
@@ -26,7 +26,7 @@ abstract class QueryBuilder extends Builder
      */
     public function setFetchMode(...$mode)
     {
-        $this->fetchParameters = $mode;
+        $this->fetchMode = $mode;
 
         return $this;
     }
