@@ -21,7 +21,7 @@ class Post extends Entity
     /**
      * @return EntityMap
      */
-    public function getMap()
+    public static function getMap()
     {
         return new EntityMap(
             'post',

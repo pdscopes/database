@@ -43,7 +43,7 @@ class RepositoryTest extends TestCase
      */
     public function testFindBy()
     {
-        $row = ['ID' => 1, 'db_value' => 'value'];
+        $fetched = (new RepositoryEntity)->populate(['ID' => 1, 'db_value' => 'value']);
 
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
         $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($this->mockSelect);
@@ -51,8 +51,8 @@ class RepositoryTest extends TestCase
         $this->mockSelect->shouldReceive('from')->once()->with('repo', 't')->andReturnSelf();
         $this->mockSelect->shouldNotReceive('where');
         $this->mockSelect->shouldNotReceive('orderBy');
-        $this->mockSelect->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
-        $this->mockSelect->shouldReceive('fetch')->times(2)->with(\PDO::FETCH_ASSOC)->andReturnValues([$row, null]);
+        $this->mockSelect->shouldReceive('fetchAll')->once()
+            ->with(\PDO::FETCH_CLASS, RepositoryEntity::class, [$this->mockPool, true])->andReturn([$fetched]);
 
         $repository = new Repository($this->mockPool, RepositoryEntity::class);
         $items      = $repository->findBy();
@@ -67,7 +67,7 @@ class RepositoryTest extends TestCase
      */
     public function testFindByWithColumn()
     {
-        $row    = ['ID' => 1, 'db_value' => 'value'];
+        $fetched = (new RepositoryEntity)->populate(['ID' => 1, 'db_value' => 'value']);
 
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
         $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($this->mockSelect);
@@ -75,8 +75,8 @@ class RepositoryTest extends TestCase
         $this->mockSelect->shouldReceive('from')->once()->with('repo', 't')->andReturnSelf();
         $this->mockSelect->shouldReceive('where')->once()->with('t.column', '=', 'value')->andReturnSelf();
         $this->mockSelect->shouldNotReceive('orderBy');
-        $this->mockSelect->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
-        $this->mockSelect->shouldReceive('fetch')->times(2)->with(\PDO::FETCH_ASSOC)->andReturnValues([$row, null]);
+        $this->mockSelect->shouldReceive('fetchAll')->once()
+            ->with(\PDO::FETCH_CLASS, RepositoryEntity::class, [$this->mockPool, true])->andReturn([$fetched]);
 
         $repository = new Repository($this->mockPool, RepositoryEntity::class);
         $items      = $repository->findBy(['column' => 'value']);
@@ -91,7 +91,7 @@ class RepositoryTest extends TestCase
      */
     public function testFindByWithColumns()
     {
-        $row    = ['ID' => 1, 'db_value' => 'value'];
+        $fetched = (new RepositoryEntity)->populate(['ID' => 1, 'db_value' => 'value']);
 
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
         $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($this->mockSelect);
@@ -100,8 +100,8 @@ class RepositoryTest extends TestCase
         $this->mockSelect->shouldReceive('where')->once()->with('t.c1', '=', 'v1')->andReturnSelf();
         $this->mockSelect->shouldReceive('where')->once()->with('t.c2', '=', 'v2')->andReturnSelf();
         $this->mockSelect->shouldNotReceive('orderBy');
-        $this->mockSelect->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
-        $this->mockSelect->shouldReceive('fetch')->times(2)->with(\PDO::FETCH_ASSOC)->andReturnValues([$row, null]);
+        $this->mockSelect->shouldReceive('fetchAll')->once()
+            ->with(\PDO::FETCH_CLASS, RepositoryEntity::class, [$this->mockPool, true])->andReturn([$fetched]);
 
         $repository = new Repository($this->mockPool, RepositoryEntity::class);
         $items      = $repository->findBy(['c1' => 'v1', 'c2' => 'v2']);
@@ -116,15 +116,15 @@ class RepositoryTest extends TestCase
      */
     public function testFindByWithOrder()
     {
-        $row    = ['ID' => 1, 'db_value' => 'value'];
+        $fetched = (new RepositoryEntity)->populate(['ID' => 1, 'db_value' => 'value']);
 
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
         $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($this->mockSelect);
         $this->mockSelect->shouldReceive('columns')->once()->with('t.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('repo', 't')->andReturnSelf();
         $this->mockSelect->shouldReceive('orderBy')->once()->with('o1', 'asc')->andReturnSelf();
-        $this->mockSelect->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
-        $this->mockSelect->shouldReceive('fetch')->times(2)->with(\PDO::FETCH_ASSOC)->andReturnValues([$row, null]);
+        $this->mockSelect->shouldReceive('fetchAll')->once()
+            ->with(\PDO::FETCH_CLASS, RepositoryEntity::class, [$this->mockPool, true])->andReturn([$fetched]);
 
         $repository = new Repository($this->mockPool, RepositoryEntity::class);
         $items      = $repository->findBy([], ['o1']);
@@ -141,7 +141,7 @@ class RepositoryTest extends TestCase
      */
     public function testFindOneBy()
     {
-        $row = ['ID' => 1, 'db_value' => 'value'];
+        $fetched = (new RepositoryEntity)->populate(['ID' => 1, 'db_value' => 'value']);
 
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
         $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($this->mockSelect);
@@ -150,8 +150,9 @@ class RepositoryTest extends TestCase
         $this->mockSelect->shouldReceive('limit')->once()->with(1)->andReturnSelf();
         $this->mockSelect->shouldNotReceive('where');
         $this->mockSelect->shouldNotReceive('orderBy');
-        $this->mockSelect->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
-        $this->mockSelect->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC)->andReturn($row);
+        $this->mockSelect->shouldReceive('setFetchMode')->once()
+            ->with(\PDO::FETCH_CLASS, RepositoryEntity::class, [$this->mockPool, true])->andReturnSelf();
+        $this->mockSelect->shouldReceive('fetch')->once()->withNoArgs()->andReturn($fetched);
 
         $repository = new Repository($this->mockPool, RepositoryEntity::class);
         $item       = $repository->findOneBy();
@@ -164,7 +165,7 @@ class RepositoryTest extends TestCase
      */
     public function testFindOneByWithColumn()
     {
-        $row    = ['ID' => 1, 'db_value' => 'value'];
+        $fetched = (new RepositoryEntity)->populate(['ID' => 1, 'db_value' => 'value']);
 
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
         $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($this->mockSelect);
@@ -173,8 +174,9 @@ class RepositoryTest extends TestCase
         $this->mockSelect->shouldReceive('limit')->once()->with(1)->andReturnSelf();
         $this->mockSelect->shouldReceive('where')->once()->with('t.column', '=', 'value')->andReturnSelf();
         $this->mockSelect->shouldNotReceive('orderBy');
-        $this->mockSelect->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
-        $this->mockSelect->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC)->andReturn($row);
+        $this->mockSelect->shouldReceive('setFetchMode')->once()
+            ->with(\PDO::FETCH_CLASS, RepositoryEntity::class, [$this->mockPool, true])->andReturnSelf();
+        $this->mockSelect->shouldReceive('fetch')->once()->withNoArgs()->andReturn($fetched);
 
         $repository = new Repository($this->mockPool, RepositoryEntity::class);
         $item       = $repository->findOneBy(['column' => 'value']);
@@ -187,7 +189,7 @@ class RepositoryTest extends TestCase
      */
     public function testFindOneByWithColumns()
     {
-        $row    = ['ID' => 1, 'db_value' => 'value'];
+        $fetched = (new RepositoryEntity)->populate(['ID' => 1, 'db_value' => 'value']);
 
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
         $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($this->mockSelect);
@@ -197,8 +199,9 @@ class RepositoryTest extends TestCase
         $this->mockSelect->shouldReceive('where')->once()->with('t.c1', '=', 'v1')->andReturnSelf();
         $this->mockSelect->shouldReceive('where')->once()->with('t.c2', '=', 'v2')->andReturnSelf();
         $this->mockSelect->shouldNotReceive('orderBy');
-        $this->mockSelect->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
-        $this->mockSelect->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC)->andReturn($row);
+        $this->mockSelect->shouldReceive('setFetchMode')->once()
+            ->with(\PDO::FETCH_CLASS, RepositoryEntity::class, [$this->mockPool, true])->andReturnSelf();
+        $this->mockSelect->shouldReceive('fetch')->once()->withNoArgs()->andReturn($fetched);
 
         $repository = new Repository($this->mockPool, RepositoryEntity::class);
         $item       = $repository->findOneBy(['c1' => 'v1', 'c2' => 'v2']);
@@ -211,7 +214,7 @@ class RepositoryTest extends TestCase
      */
     public function testFindOneByWithOrder()
     {
-        $row    = ['ID' => 1, 'db_value' => 'value'];
+        $fetched = (new RepositoryEntity)->populate(['ID' => 1, 'db_value' => 'value']);
 
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
         $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($this->mockSelect);
@@ -220,8 +223,9 @@ class RepositoryTest extends TestCase
         $this->mockSelect->shouldReceive('limit')->once()->with(1)->andReturnSelf();
         $this->mockSelect->shouldNotReceive('where');
         $this->mockSelect->shouldReceive('orderBy')->once()->with('o1', 'asc')->andReturnSelf();
-        $this->mockSelect->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
-        $this->mockSelect->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC)->andReturn($row);
+        $this->mockSelect->shouldReceive('setFetchMode')->once()
+            ->with(\PDO::FETCH_CLASS, RepositoryEntity::class, [$this->mockPool, true])->andReturnSelf();
+        $this->mockSelect->shouldReceive('fetch')->once()->withNoArgs()->andReturn($fetched);
 
         $repository = new Repository($this->mockPool, RepositoryEntity::class);
         $item       = $repository->findOneBy([], ['o1']);
@@ -233,7 +237,7 @@ class RepositoryEntity extends Entity
 {
     public $id;
     public $value;
-    public  function getMap()
+    public static function getMap()
     {
         return new EntityMap('repo', ['ID' => 'id'], ['db_value' => 'value']);
     }

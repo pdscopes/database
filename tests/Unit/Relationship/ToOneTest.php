@@ -52,7 +52,7 @@ class ToOneTest extends TestCase
      */
     public function testHasFetch()
     {
-        $data = ['ID' => 3, 'foreign_key' => '5'];
+        $fetched = (new ToOneEntity)->populate(['ID' => 3, 'foreign_key' => '5']);
 
         $this->mockSelect->shouldReceive('columns')->once()->with('e.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('entity', 'e')->andReturnSelf();
@@ -60,7 +60,9 @@ class ToOneTest extends TestCase
         $this->mockSelect->shouldReceive('limit')->once()->with(1)->andReturnSelf();
         $this->mockSelect->shouldReceive('statement')->once()->withNoArgs()->andReturn([$this->mockPdoStatement, 0]);
 
-        $this->mockPdoStatement->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC, \PDO::FETCH_ORI_FIRST)->andReturn($data);
+        $this->mockPdoStatement->shouldReceive('setFetchMode')
+            ->once()->with(\PDO::FETCH_CLASS, ToOneEntity::class, [$this->mockPool, true])->andReturnSelf();
+        $this->mockPdoStatement->shouldReceive('fetch')->once()->withNoArgs()->andReturn($fetched);
 
 
 
@@ -80,7 +82,7 @@ class ToOneTest extends TestCase
      */
     public function testBelongsToFetch()
     {
-        $data = ['KEY' => 5, 'db_value' => 'VALUE'];
+        $fetched = (new ToOneRelatedEntity)->populate(['KEY' => 5, 'db_value' => 'VALUE']);
 
         $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
@@ -88,7 +90,9 @@ class ToOneTest extends TestCase
         $this->mockSelect->shouldReceive('limit')->once()->with(1)->andReturnSelf();
         $this->mockSelect->shouldReceive('statement')->once()->withNoArgs()->andReturn([$this->mockPdoStatement, 0]);
 
-        $this->mockPdoStatement->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC, \PDO::FETCH_ORI_FIRST)->andReturn($data);
+        $this->mockPdoStatement->shouldReceive('setFetchMode')
+            ->once()->with(\PDO::FETCH_CLASS, ToOneRelatedEntity::class, [$this->mockPool, true])->andReturnSelf();
+        $this->mockPdoStatement->shouldReceive('fetch')->once()->withNoArgs()->andReturn($fetched);
 
 
 
@@ -108,7 +112,7 @@ class ToOneEntity extends Entity
     public $id;
     public $foreignKey;
 
-    public  function getMap()
+    public static function getMap()
     {
         return new EntityMap('entity', ['ID' => 'id'], ['foreign_key' => 'foreignKey']);
     }
@@ -118,7 +122,7 @@ class ToOneRelatedEntity extends Entity
     public $key;
     public $value;
 
-    public  function getMap()
+    public static function getMap()
     {
         return new EntityMap('related', ['KEY' => 'key'], ['db_value' => 'value']);
     }

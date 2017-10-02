@@ -394,7 +394,8 @@ class SelectTest extends CompilableTestCase
     public function testFetch()
     {
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs();
-        $this->mockPdoStatement->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC)->andReturn('fetched');
+        $this->mockPdoStatement->shouldReceive('setFetchMode')->once()->with(\PDO::FETCH_ASSOC)->andReturnSelf();
+        $this->mockPdoStatement->shouldReceive('fetch')->once()->withNoArgs()->andReturn('fetched');
         $this->mockPdo->shouldReceive('prepare')->once()->with('SQL')->andReturn($this->mockPdoStatement);
 
 
@@ -409,7 +410,8 @@ class SelectTest extends CompilableTestCase
     public function testFetchWithParameters()
     {
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs();
-        $this->mockPdoStatement->shouldReceive('fetch')->once()->with('parameters', 'value')->andReturn('fetched');
+        $this->mockPdoStatement->shouldReceive('setFetchMode')->once()->with('parameters', 'value')->andReturnSelf();
+        $this->mockPdoStatement->shouldReceive('fetch')->once()->withNoArgs()->andReturn('fetched');
         $this->mockPdo->shouldReceive('prepare')->once()->with('SQL')->andReturn($this->mockPdoStatement);
 
 
@@ -424,7 +426,8 @@ class SelectTest extends CompilableTestCase
     public function testFetchAll()
     {
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs();
-        $this->mockPdoStatement->shouldReceive('fetchAll')->once()->with(\PDO::FETCH_ASSOC)->andReturn('fetched');
+        $this->mockPdoStatement->shouldReceive('setFetchMode')->once()->with(\PDO::FETCH_ASSOC)->andReturnSelf();
+        $this->mockPdoStatement->shouldReceive('fetchAll')->once()->withNoArgs()->andReturn('fetched');
         $this->mockPdo->shouldReceive('prepare')->once()->with('SQL')->andReturn($this->mockPdoStatement);
 
 
@@ -439,7 +442,8 @@ class SelectTest extends CompilableTestCase
     public function testFetchAllWithParameters()
     {
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs();
-        $this->mockPdoStatement->shouldReceive('fetchAll')->once()->with('parameters', 'value')->andReturn('fetched');
+        $this->mockPdoStatement->shouldReceive('setFetchMode')->once()->with('parameters', 'value')->andReturnSelf();
+        $this->mockPdoStatement->shouldReceive('fetchAll')->once()->withNoArgs()->andReturn('fetched');
         $this->mockPdo->shouldReceive('prepare')->once()->with('SQL')->andReturn($this->mockPdoStatement);
 
 

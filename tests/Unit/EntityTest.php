@@ -31,9 +31,9 @@ class EntityTest extends TestCase
 
 
     /**
-     * Test construction with no data.
+     * Test construction with no remap.
      */
-    public function testConstructNoData()
+    public function testConstructNoRemap()
     {
         $entity = new SingleKeyEntity($this->mockPool);
 
@@ -43,14 +43,18 @@ class EntityTest extends TestCase
     }
 
     /**
-     * Test construction with data.
+     * Test construction with remap.
      *
      * @param array $data
      * @dataProvider populateDataProvider
      */
-    public function testConstructWithData($data)
+    public function testConstructWithRemap($data)
     {
-        $entity = new SingleKeyEntity($this->mockPool, $data);
+        $entity = new SingleKeyEntity();
+        foreach ($data as $k => $v) {
+            $entity->{$k} = $v;
+        }
+        $entity->__construct($this->mockPool, true);
 
         $this->assertEquals($data['ID'], $entity->id);
         $this->assertEquals($data['first_name'], $entity->firstName);
@@ -67,22 +71,6 @@ class EntityTest extends TestCase
     {
         $entity = new SingleKeyEntity($this->mockPool);
         $entity->populate($data);
-
-        $this->assertEquals($data['ID'], $entity->id);
-        $this->assertEquals($data['first_name'], $entity->firstName);
-        $this->assertEquals($data['last_name'], $entity->lastName);
-    }
-
-    /**
-     * Test populate with data with entity map.
-     *
-     * @param array $data
-     * @dataProvider populateDataProvider
-     */
-    public function testPopulateWithMap($data)
-    {
-        $entity = new SingleKeyEntity($this->mockPool);
-        $entity->populate($data, $entity->getMap());
 
         $this->assertEquals($data['ID'], $entity->id);
         $this->assertEquals($data['first_name'], $entity->firstName);
@@ -332,7 +320,7 @@ class EntityTest extends TestCase
         $mockSelect->shouldReceive('limit')->once()->with(1)->andReturnSelf();
         $mockSelect->shouldReceive('where')->once()->with('ID', '=', 5);
         $mockSelect->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
-        $mockSelect->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC, \PDO::FETCH_ORI_FIRST)->andReturn($row);
+        $mockSelect->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC)->andReturn($row);
 
         $entity = new SingleKeyEntity($this->mockPool);
 
@@ -363,7 +351,7 @@ class EntityTest extends TestCase
         $mockSelect->shouldReceive('where')->once()->with('user_id', '=', 5);
         $mockSelect->shouldReceive('where')->once()->with('company_id', '=', 7);
         $mockSelect->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
-        $mockSelect->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC, \PDO::FETCH_ORI_FIRST)->andReturn($row);
+        $mockSelect->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC)->andReturn($row);
 
         $entity = new CompositeKeyEntity($this->mockPool);
 
@@ -434,11 +422,11 @@ class EntityTest extends TestCase
         $mockSelect->shouldReceive('limit')->once()->with(1)->andReturnSelf();
         $mockSelect->shouldReceive('where')->once()->with('t.UUID', '=', '123');
         $mockSelect->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
-        $mockSelect->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC, \PDO::FETCH_ORI_FIRST)->andReturn($row);
+        $mockSelect->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC)->andReturn($row);
 
         $entity = new SingleKeyEntity($this->mockPool);
 
-        $this->assertTrue($entity->find(['UUID' => '123']));
+        $this->assertInstanceOf(SingleKeyEntity::class, $entity->find(['UUID' => '123']));
         $this->assertEquals(5, $entity->id);
         $this->assertEquals('Test', $entity->firstName);
         $this->assertEquals('Person', $entity->lastName);
@@ -454,7 +442,7 @@ class EntityTest extends TestCase
      */
     public function testJsonSerialize($row, $array)
     {
-        $entity = new SingleKeyEntity($this->mockPool, $row);
+        $entity = (new SingleKeyEntity)->populate($row);
         $this->assertEquals($array, $entity->jsonSerialize());
     }
 
@@ -467,7 +455,7 @@ class EntityTest extends TestCase
      */
     public function testToArray($row, $array)
     {
-        $entity = new SingleKeyEntity($this->mockPool, $row);
+        $entity = (new SingleKeyEntity)->populate($row);
         $this->assertEquals($array, $entity->toArray());
     }
 
@@ -476,7 +464,7 @@ class EntityTest extends TestCase
      */
     public function testToArrayCastProperty()
     {
-        $entity = new CastedEntity($this->mockPool, [
+        $entity = (new CastedEntity)->populate([
             'int'     => '5',
             'integer' => '7',
             'bool'    => '1',
@@ -508,7 +496,7 @@ class EntityTest extends TestCase
      */
     public function testCast()
     {
-        $entity = new CastedEntity($this->mockPool, [
+        $entity = (new CastedEntity)->populate([
             'int'     => '5',
             'integer' => '7',
             'bool'    => '1',
@@ -550,7 +538,7 @@ class SingleKeyEntity extends Entity
     public $firstName;
     public $lastName;
 
-    public  function getMap()
+    public static function getMap()
     {
         return new EntityMap(
             'dummy',
@@ -565,7 +553,7 @@ class CompositeKeyEntity extends Entity
     public $companyId;
     public $value;
 
-    public function getMap()
+    public static function getMap()
     {
         return new EntityMap(
             'dummy_link',
@@ -600,7 +588,7 @@ class CastedEntity extends Entity
         'json'    => 'json',
     ];
 
-    public function getMap()
+    public static function getMap()
     {
         return new EntityMap(
             'casted',

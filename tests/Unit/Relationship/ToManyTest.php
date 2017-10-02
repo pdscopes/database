@@ -53,14 +53,15 @@ class ToManyTest extends TestCase
      */
     public function testHasFetch()
     {
-        $data = ['ID' => 3, 'foreign_key' => '5'];
+        $fetched = (new ToManyEntity)->populate(['ID' => 3, 'foreign_key' => '5']);
 
         $this->mockSelect->shouldReceive('columns')->once()->with('e.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('entity', 'e')->andReturnSelf();
         $this->mockSelect->shouldReceive('where')->once()->with('e.foreign_key', '=', 5)->andReturnSelf();
         $this->mockSelect->shouldReceive('statement')->once()->withNoArgs()->andReturn([$this->mockPdoStatement, 0]);
 
-        $this->mockPdoStatement->shouldReceive('fetch')->times(2)->with(\PDO::FETCH_ASSOC)->andReturnValues([$data, null]);
+        $this->mockPdoStatement->shouldReceive('fetchAll')->once()
+            ->with(\PDO::FETCH_CLASS, ToManyEntity::class, [$this->mockPool, true])->andReturn([$fetched]);
 
 
 
@@ -81,14 +82,15 @@ class ToManyTest extends TestCase
      */
     public function testBelongsToFetch()
     {
-        $data = ['KEY' => 5, 'db_value' => 'VALUE'];
+        $fetched = (new ToManyRelatedEntity)->populate(['KEY' => 5, 'db_value' => 'VALUE']);
 
         $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
         $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
         $this->mockSelect->shouldReceive('where')->once()->with('r.KEY', '=', 5)->andReturnSelf();
         $this->mockSelect->shouldReceive('statement')->once()->withNoArgs()->andReturn([$this->mockPdoStatement, 0]);
 
-        $this->mockPdoStatement->shouldReceive('fetch')->times(2)->with(\PDO::FETCH_ASSOC)->andReturnValues([$data, null]);
+        $this->mockPdoStatement->shouldReceive('fetchAll')->once()
+            ->with(\PDO::FETCH_CLASS, ToManyRelatedEntity::class, [$this->mockPool, true])->andReturn([$fetched]);
 
 
 
@@ -109,7 +111,7 @@ class ToManyEntity extends Entity
     public $id;
     public $foreignKey;
 
-    public  function getMap()
+    public static  function getMap()
     {
         return new EntityMap('entity', ['ID' => 'id'], ['foreign_key' => 'foreignKey']);
     }
@@ -119,7 +121,7 @@ class ToManyRelatedEntity extends Entity
     public $key;
     public $value;
 
-    public  function getMap()
+    public static function getMap()
     {
         return new EntityMap('related', ['KEY' => 'key'], ['db_value' => 'value']);
     }

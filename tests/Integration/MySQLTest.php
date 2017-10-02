@@ -69,9 +69,9 @@ class MySQLTest extends TestCase
         $this->assertEquals('user1', $user->username);
 
         // Find users
-        $this->assertTrue($user->find(['UUID' => '456']));
+        $this->assertInstanceOf(MySQLTestUserEntity::class, $user->find(['UUID' => '456']));
         $this->assertEquals('user2', $user->username);
-        $this->assertTrue($user->find(['UUID' => '123']));
+        $this->assertInstanceOf(MySQLTestUserEntity::class, $user->find(['UUID' => '123']));
         $this->assertEquals('user1', $user->username);
 
 
@@ -166,7 +166,7 @@ class MySQLTestUserEntity extends Entity
     public $id;
     public $username;
 
-    public  function getMap()
+    public static function getMap()
     {
         return new EntityMap('user', ['UUID' => 'id'], ['user_name' => 'username']);
     }
@@ -192,7 +192,7 @@ class MySQLTestPostEntity extends Entity
     public $submitterId;
     public $title;
 
-    public  function getMap()
+    public static function getMap()
     {
         return new EntityMap('post', ['uuid' => 'id'], ['submitter_id' => 'submitterId', 'title' => 'title']);
     }
@@ -213,7 +213,7 @@ class MySQLTestCommentEntity extends Entity
     public $postId;
     public $text;
 
-    public  function getMap()
+    public static function getMap()
     {
         return new EntityMap('comment', ['id' => 'uuid'], ['post_uuid' => 'postId', 'data' => 'text']);
     }

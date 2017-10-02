@@ -58,7 +58,7 @@ class RelationTestEntity extends Entity
     public $id;
     public $foreignKey;
 
-    public  function getMap()
+    public static function getMap()
     {
         return new EntityMap('entity', ['ID' => 'id'], ['foreign_key' => 'foreignKey']);
     }
