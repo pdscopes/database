@@ -19,6 +19,11 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
     public static $connection = null;
 
     /**
+     * @var EntityMap[]
+     */
+    protected static $maps = [];
+
+    /**
      * @var Pool
      */
     public $pool;
@@ -47,14 +52,14 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
      * Entity constructor.
      *
      * @param Pool|null  $pool
-     * @param array|null $row
+     * @param bool       $remap
      */
-    public function __construct(Pool $pool = null, array $row = null)
+    public function __construct(Pool $pool = null, $remap = false)
     {
         $this->pool = $pool;
 
-        if (null !== $row) {
-            $this->populate($row);
+        if ($remap === true) {
+            $this->remap();
         }
     }
 
@@ -71,15 +76,28 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
     }
 
     /**
-     * @param array     $row
-     * @param EntityMap $map
+     * Remap the entity from a PDO::FETCH_CLASS object to the one defined by
+     * the EntityMap.
+     */
+    protected function remap()
+    {
+        foreach (static::map()->columnRemap() as $column => $property) {
+            if (!property_exists($this, $column)) {
+                continue;
+            }
+            $this->{$property} = $this->{$column};
+            unset($this->{$column});
+        }
+    }
+
+    /**
+     * @param array $row
      *
      * @return Entity
      */
-    public function populate(array &$row, EntityMap $map = null)
+    public function populate(array $row)
     {
-        $map = $map ?? $this->getMap();
-        foreach ($map->columnMap() as $dbName => $propName) {
+        foreach (static::map()->columnMap() as $dbName => $propName) {
             if (!isset($row[$dbName])) {
                 continue;
             }
@@ -92,7 +110,18 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
     /**
      * @return EntityMap
      */
-    public abstract function getMap();
+    public static function map()
+    {
+        if (!isset(static::$maps[static::class])) {
+            static::$maps[static::class] = static::getMap();
+        }
+        return static::$maps[static::class];
+    }
+
+    /**
+     * @return EntityMap
+     */
+    protected static abstract function getMap();
 
     /**
      * Creates the entity if the primary key(s) are null, otherwise updates the entity.
@@ -101,7 +130,7 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
      */
     public function persist()
     {
-        $map = $this->getMap();
+        $map = static::map();
         if (count($map->primaryKeys()) != 1) {
             throw new \InvalidArgumentException('Cannot persist');
         }
@@ -123,7 +152,7 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
     {
         $connection = $this->pool->get(static::$connection);
 
-        $map    = $this->getMap();
+        $map    = static::map();
         $values = [];
         foreach ($map->columnMap() as $column => $property) {
             $values[$column] = $this->{$property};
@@ -155,7 +184,7 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
     public function update($properties = null)
     {
         // Calculate the columns to be updated
-        $map     = $this->getMap();
+        $map     = static::map();
         $columns = $map->columnMap(false);
         $columns = array_intersect($columns, (array) ($properties ?? $columns));
         if (empty($columns)) {
@@ -181,12 +210,12 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
     /**
      * @param null|mixed $keys Null to use the set primary key, an associative array to read other unique columns, or
      *                         a normal array to pass in primary key value(s)
-     *
+     * @see Entity::find
      * @return static
      */
     public function read($keys = null)
     {
-        $map    = $this->getMap();
+        $map    = static::map();
         $select = $this->pool->get(static::$connection)->select()->from($map->tableName())->limit(1);
 
 
@@ -205,12 +234,12 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
             $select->where($column, '=', $value);
         }
 
-        $row = $select->query()->fetch(PDO::FETCH_ASSOC, PDO::FETCH_ORI_FIRST);
+        $row = $select->query()->fetch(PDO::FETCH_ASSOC);
         if (false === $row) {
             throw new \InvalidArgumentException('Invalid table name or primary key name/value');
         }
 
-        return $this->populate($row);;
+        return $this->populate($row);
     }
 
     /**
@@ -222,7 +251,7 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
     {
         $connection = $this->pool->get(static::$connection);
 
-        $map    = $this->getMap();
+        $map    = static::map();
         $delete = $connection->delete()->from($map->tableName());
 
         if (null !== $primaryKey && !is_array($primaryKey)) {
@@ -237,23 +266,26 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
 
     /**
      * @param array $columns Mapping from column name to value
-     *
-     * @return bool True if the entity was successfully found (populated)
+     * @see Entity::read
+     * @return static True if the entity was successfully found (populated)
      */
     public function find(array $columns)
     {
         $connection = $this->pool->get(static::$connection);
 
-        $map    = $this->getMap();
+        $map    = static::map();
         $select = $connection->select()->columns('*')->from($map->tableName(), 't')->limit(1);
 
         foreach ($columns as $column => $value) {
             $select->where('t.' . $column, '=', $value);
         }
 
-        $row = $select->query()->fetch(PDO::FETCH_ASSOC, PDO::FETCH_ORI_FIRST);
+        $row = $select->query()->fetch(PDO::FETCH_ASSOC);
+        if (false === $row) {
+            throw new \InvalidArgumentException('Invalid table name or primary key name/value');
+        }
 
-        return $row && $this->populate($row);
+        return $this->populate($row);
     }
 
     /**
@@ -277,6 +309,6 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
      */
     public function toArray()
     {
-        return $this->propertiesToArray($this->getMap()->columnMap());
+        return $this->propertiesToArray(static::map()->columnMap());
     }
 }

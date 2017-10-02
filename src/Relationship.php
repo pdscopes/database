@@ -22,11 +22,6 @@ abstract class  Relationship
     protected $intermediateTable;
 
     /**
-     * @var string[]
-     */
-    protected $intermediateColumns;
-
-    /**
      * @var string
      */
     protected $intermediateAlias;
@@ -54,26 +49,37 @@ abstract class  Relationship
     public abstract function fetch();
 
     /**
-     * @param string       $related
-     * @param string       $relatedAlias
-     * @param string|array $entityColumns
-     * @param string|array $relatedColumns
+     * @param string       $related         Related Entity class name or table name
+     * @param string       $relatedAlias    Alias for related in query
+     * @param string|array $entityColumns   Properties/columns of this entity
+     * @param string|array $relatedColumns  Properties/columns of the related entity
      *
      * @return static
      */
     public function belongsTo($related, $relatedAlias, $entityColumns, $relatedColumns = null)
     {
-        /** @var Entity $relatedEntity */
-        $relatedEntity  = new $related();
-        $relatedMap     = $relatedEntity->getMap();
-        $entityMap      = $this->entity->getMap();
-        $relatedTable   = $relatedMap->tableName();
-        $relatedAlias   = $relatedAlias ?? $relatedTable;
-        $entityColumns  = (array) $entityColumns;
-        $relatedColumns = $relatedColumns ? (array) $relatedColumns :  $relatedMap->columns();
+        if (class_exists($related)) {
+            /** @var EntityMap $relatedMap */
+            $relatedMap     = $related::map();
+            $entityMap      = $this->entity::map();
+            $relatedTable   = $relatedMap->tableName();
+            $relatedAlias   = $relatedAlias ?? $relatedTable;
+            $entityColumns  = (array) $entityColumns;
+            $relatedColumns = $relatedColumns ? (array) $relatedColumns :  $relatedMap->columns();
+
+            $connectionName = $related::$connection;
+        } else {
+            $relatedTable   = $related;
+            $related        = new \stdClass();
+            $entityColumns  = (array) $entityColumns;
+            $relatedColumns = (array) $relatedColumns;
+
+            $connectionName = $this->entity::$connection;
+        }
 
         if (null === $this->query) {
-            $this->query = $this->entity->pool->get($relatedEntity::$connection)->select();
+            $entityMap   = $entityMap ?? $this->entity::map();
+            $this->query = $this->entity->pool->get($connectionName)->select();
             $this->query->columns($relatedAlias . '.*')->from($relatedTable, $relatedAlias);
 
             // Construct the where clause(s)
@@ -88,10 +94,9 @@ abstract class  Relationship
             $this->query
                 ->columns($relatedAlias . '.*')
                 ->from($relatedTable, $relatedAlias)
-                ->join($this->intermediateTable, function ($join) use ($intermediateAlias, $entityColumns, $relatedAlias, $relatedColumns) {
+                ->join($this->intermediateTable, function (Query\JoinBuilder $join) use ($intermediateAlias, $entityColumns, $relatedAlias, $relatedColumns) {
                     foreach ($entityColumns as $idx => $column) {
-                        /** @var Query\JoinBuilder $join */
-                        $join->where($intermediateAlias . '.' . $column, ' = ', $relatedAlias . '.' . $relatedColumns[$idx]);
+                        $join->whereColumn($intermediateAlias . '.' . $column, '=', $relatedAlias . '.' . $relatedColumns[$idx]);
                     }
                 }, null, null, $this->intermediateAlias);
         }
@@ -99,7 +104,6 @@ abstract class  Relationship
         // Store information about the relation as it may become an intermediate table
         $this->relation            = $related;
         $this->intermediateTable   = $relatedTable;
-        $this->intermediateColumns = $relatedMap->columns();
         $this->intermediateAlias   = $relatedAlias;
 
         return $this;
@@ -115,23 +119,34 @@ abstract class  Relationship
      */
     public function has($related, $relatedAlias, $relatedColumns, $entityColumns = null)
     {
-        /** @var Entity $relatedEntity */
-        $relatedEntity  = new $related();
-        $relatedMap     = $relatedEntity->getMap();
-        $entityMap      = $this->entity->getMap();
-        $relatedTable   = $relatedMap->tableName();
-        $relatedAlias   = $relatedAlias ?? $relatedTable;
-        $entityColumns  = $entityColumns ? (array) $entityColumns : $entityMap->columns();
-        $relatedColumns = (array) $relatedColumns;
+        if (class_exists($related)) {
+            /** @var EntityMap $relatedMap */
+            $relatedMap     = $related::map();
+            $entityMap      = $this->entity::map();
+            $relatedTable   = $relatedMap->tableName();
+            $relatedAlias   = $relatedAlias ?? $relatedTable;
+            $entityColumns  = $entityColumns ? (array) $entityColumns : $entityMap->columns();
+            $relatedColumns = (array) $relatedColumns;
+
+            $connectionName = $related::$connection;
+        } else {
+            $relatedTable   = $related;
+            $related        = new \stdClass();
+            $entityColumns  = (array) $entityColumns;
+            $relatedColumns = (array) $relatedColumns;
+
+            $connectionName = $this->entity::$connection;
+        }
 
         if (null === $this->query) {
-            $this->query = $this->entity->pool->get($relatedEntity::$connection)->select();
+            $entityMap   = $entityMap ?? $this->entity::map();
+            $this->query = $this->entity->pool->get($connectionName)->select();
             $this->query->columns($relatedAlias . '.*')->from($relatedTable, $relatedAlias);
 
             // Construct the where clause(s)
             foreach ($relatedColumns as $idx => $column) {
                 $entityValue = $this->entity->{$entityMap->property($entityColumns[$idx])};
-                $this->query->where($relatedAlias . '.' . $column, '=',$entityValue);
+                $this->query->where($relatedAlias . '.' . $column, '=', $entityValue);
             }
         } else {
             $intermediateAlias = $this->intermediateAlias;
@@ -142,16 +157,15 @@ abstract class  Relationship
                 ->join($this->intermediateTable, function ($join) use ($intermediateAlias, $entityColumns, $relatedAlias, $relatedColumns) {
                     foreach ($relatedColumns as $idx => $column) {
                         /** @var Query\JoinBuilder $join */
-                        $join->where($intermediateAlias . '.' . $entityColumns[$idx], '=', $relatedAlias . '.' . $column);
+                        $join->whereColumn($intermediateAlias . '.' . $entityColumns[$idx], '=', $relatedAlias . '.' . $column);
                     }
                 }, null, null, $this->intermediateAlias);
         }
 
         // Store information about the relation as it may become an intermediate table
-        $this->relation            = $related;
-        $this->intermediateTable   = $relatedTable;
-        $this->intermediateColumns = $relatedMap->columns();
-        $this->intermediateAlias   = $relatedAlias;
+        $this->relation          = $related;
+        $this->intermediateTable = $relatedTable;
+        $this->intermediateAlias = $relatedAlias;
 
         return $this;
     }

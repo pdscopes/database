@@ -8,7 +8,7 @@ use MadeSimple\Database\Relationship;
 class ToOne extends Relationship
 {
     /**
-     * @return Entity
+     * @return Entity|\stdClass
      */
     public function fetch()
     {
@@ -19,11 +19,13 @@ class ToOne extends Relationship
             return null;
         }
 
-        if (($row = $statement->fetch(\PDO::FETCH_ASSOC, \PDO::FETCH_ORI_FIRST))) {
-            return new $this->relation($this->entity->pool, $row);
+        if (class_exists($this->relation, false)) {
+            $statement->setFetchMode(\PDO::FETCH_CLASS, $this->relation, [$this->entity->pool, true]);
+            $entity = $statement->fetch();
+        } else {
+            $entity = $statement->fetch(\PDO::FETCH_OBJ);
         }
 
-        return null;
+        return $entity ? $entity : null;
     }
-
 }

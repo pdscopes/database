@@ -2,14 +2,14 @@
 
 namespace MadeSimple\Database\Relationship;
 
+use MadeSimple\Arrays\Collection;
 use MadeSimple\Database\EntityCollection;
-use MadeSimple\Database\Entity;
 use MadeSimple\Database\Relationship;
 
 class ToMany extends Relationship
 {
     /**
-     * @return EntityCollection
+     * @return EntityCollection|Collection
      */
     public function fetch()
     {
@@ -20,16 +20,10 @@ class ToMany extends Relationship
             return null;
         }
 
-        $map   = null;
-        $items = [];
-        while (($row = $statement->fetch(\PDO::FETCH_ASSOC))) {
-            /** @var Entity $entity */
-            $entity  = new $this->relation($this->entity->pool);
-            $map     = $map ?? $entity->getMap();
-            $items[] = $entity->populate($row, $map);
+        if (class_exists($this->relation, false)) {
+            return new EntityCollection($statement->fetchAll(\PDO::FETCH_CLASS, $this->relation, [$this->entity->pool, true]));
+        } else {
+            return new Collection($statement->fetchAll(\PDO::FETCH_OBJ));
         }
-
-        return new EntityCollection($items);
     }
-
 }

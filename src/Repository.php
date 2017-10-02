@@ -5,7 +5,6 @@ namespace MadeSimple\Database;
 use PDO;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\NullLogger;
-use ReflectionClass;
 
 class Repository
 {
@@ -27,11 +26,6 @@ class Repository
     protected $className;
 
     /**
-     * @var ReflectionClass
-     */
-    protected $reflection;
-
-    /**
      * @var EntityMap
      */
     protected $entityMap;
@@ -46,13 +40,10 @@ class Repository
     {
         $this->pool       = $pool;
         $this->className  = $className;
-        $this->reflection = new ReflectionClass($className);
-        $this->connection = $pool->get($this->reflection->getStaticPropertyValue('connection'));
+        $this->connection = $pool->get($className::$connection);
         $this->setLogger(new NullLogger);
 
-        /** @var Entity $prototype */
-        $prototype       = $this->reflection->newInstance();
-        $this->entityMap = $prototype->getMap();
+        $this->entityMap = $className::map();
     }
 
     /**
@@ -65,14 +56,7 @@ class Repository
     {
         $select = $this->buildFindByQuery($columns, $order);
 
-        $select->query();
-        $items = [];
-        while (($row = $select->fetch(PDO::FETCH_ASSOC))) {
-            $entity  = $this->reflection->newInstanceArgs([$this->pool]);
-            $items[] = $entity->populate($row, $this->entityMap);
-        }
-
-        return new EntityCollection($items);
+        return new EntityCollection($select->fetchAll(PDO::FETCH_CLASS, $this->className, [$this->pool, true]));
     }
 
     /**
@@ -89,12 +73,7 @@ class Repository
             ->limit(max(1, $limit))
             ->offset((max(1, $page)-1) * $limit);
 
-        $select->query();
-        $items = [];
-        while (($row = $select->fetch(PDO::FETCH_ASSOC))) {
-            $entity  = $this->reflection->newInstanceArgs([$this->pool]);
-            $items[] = $entity->populate($row, $this->entityMap);
-        }
+        $items = $select->fetchAll(PDO::FETCH_CLASS, $this->className, [$this->pool, true]);
 
         return new PaginatedCollection($items, $page, $select->count());
     }
@@ -109,12 +88,9 @@ class Repository
     {
         $select = $this->buildFindByQuery($columns, $order)->limit(1);
 
-        if (($row = $select->query()->fetch(PDO::FETCH_ASSOC))) {
-            $entity  = $this->reflection->newInstanceArgs([$this->pool]);
-            return $entity->populate($row, $this->entityMap);
-        }
+        $entity = $select->setFetchMode(PDO::FETCH_CLASS, $this->className, [$this->pool, true])->fetch();
 
-        return null;
+        return $entity ? $entity : null;
     }
 
     /**

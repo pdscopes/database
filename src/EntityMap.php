@@ -20,6 +20,11 @@ class EntityMap
     protected $columnMap;
 
     /**
+     * @var string[]
+     */
+    protected $columnRemap = [];
+
+    /**
      * DatabaseMap constructor.
      *
      * @param string   $tableName DB table name
@@ -28,9 +33,10 @@ class EntityMap
      */
     public function __construct($tableName, array $keyMap, array $columnMap)
     {
-        $this->tableName = $tableName;
-        $this->keyMap    = $this->keyCheck($keyMap);
-        $this->columnMap = array_replace($this->keyMap, $this->keyCheck($columnMap), $this->keyMap);
+        $this->tableName   = $tableName;
+        $this->keyMap      = $this->keyCheck($keyMap);
+        $this->columnMap   = array_replace($this->keyMap, $this->keyCheck($columnMap), $this->keyMap);
+        $this->columnRemap = $this->remapCheck($keyMap, $columnMap);
     }
 
     /**
@@ -68,6 +74,14 @@ class EntityMap
         return $withPrimaryKeys
             ? $this->columnMap
             : array_diff_key($this->columnMap, $this->keyMap);
+    }
+
+    /**
+     * @return string[]
+     */
+    public function columnRemap()
+    {
+        return $this->columnRemap;
     }
 
     /**
@@ -121,10 +135,26 @@ class EntityMap
      */
     protected function keyCheck(array $columns)
     {
-        $array = [];
+        $map = [];
         foreach ($columns as $k => $v) {
-            $array[is_int($k) ? $v : $k] = $v;
+            $map[is_int($k) ? $v : $k] = $v;
         }
-        return $array;
+        return $map;
+    }
+
+    /**
+     * @param array $keyMap
+     * @param array $columnMap
+     * @return array
+     */
+    protected function remapCheck(array $keyMap, array $columnMap)
+    {
+        $remap = [];
+        foreach (array_merge($keyMap, $columnMap) as $k => $v) {
+            if (!is_int($k)) {
+                $remap[$k] = $v;
+            }
+        }
+        return $remap;
     }
 }
