@@ -223,7 +223,7 @@ class Select extends QueryBuilder
         /** @var \PDOStatement $pdoStatement */
         list($pdoStatement) = $this->statement($sql, $bindings);
 
-        return $pdoStatement->fetch(\PDO::FETCH_COLUMN) ?? 0;
+        return $pdoStatement->fetch(\PDO::FETCH_COLUMN, 0) ?? 0;
     }
 
     /**

@@ -372,7 +372,7 @@ class SelectTest extends CompilableTestCase
         ];
         $this->mockCompiler->shouldReceive('compileQuerySelect')->once()->with($statement)->andReturn(['SQL', []]);
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs();
-        $this->mockPdoStatement->shouldReceive('fetch')->once()->with(\PDO::FETCH_COLUMN)->andReturn(4);
+        $this->mockPdoStatement->shouldReceive('fetch')->once()->with(\PDO::FETCH_COLUMN, 0)->andReturn(4);
         $this->mockPdo->shouldReceive('prepare')->once()->with('SQL')->andReturn($this->mockPdoStatement);
 
         $query = (new Select($this->mockConnection))

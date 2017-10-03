@@ -227,7 +227,7 @@ class Migrator
         return (int) $this->connection->select()
             ->columns(new Raw('MAX(batch)'))
             ->from('migrations')
-            ->query()->fetch(\PDO::FETCH_COLUMN);
+            ->query()->fetch(\PDO::FETCH_COLUMN, 0);
     }
 
     /**
