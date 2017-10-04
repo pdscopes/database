@@ -222,7 +222,7 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
         $keys = (array) $keys;
         // Entity::read()
         if (empty($keys)) {
-            $keys = array_combine(array_keys($map->primaryKeys()), $this->propertiesToArray($map->primaryKeys()));
+            $keys = $map->primaryKeys($this);
         }
         // Entity::read(15) or Entity::read([15,7])
         elseif (!Arr::isAssoc($keys)) {

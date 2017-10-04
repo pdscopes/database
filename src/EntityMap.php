@@ -48,11 +48,14 @@ class EntityMap
     }
 
     /**
+     * @param Entity $entity
      * @return string[]
      */
-    public function primaryKeys()
+    public function primaryKeys(Entity $entity = null)
     {
-        return $this->keyMap;
+        return $entity === null
+            ? $this->keyMap
+            : array_map(function ($p) use ($entity) { return $entity->{$p}; }, $this->keyMap);
     }
 
     /**
