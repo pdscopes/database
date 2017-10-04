@@ -64,6 +64,16 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
     }
 
     /**
+     * When an entity sleeps we only needs it's primary keys.
+     *
+     * @return string[]
+     */
+    public function __sleep()
+    {
+        return static::map()->primaryKeys();
+    }
+
+    /**
      * @param Pool $pool
      *
      * @return Entity
