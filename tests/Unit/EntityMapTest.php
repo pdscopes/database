@@ -2,6 +2,7 @@
 
 namespace MadeSimple\Database\Tests\Unit;
 
+use MadeSimple\Database\Entity;
 use MadeSimple\Database\EntityMap;
 use MadeSimple\Database\Tests\TestCase;
 
@@ -27,6 +28,19 @@ class EntityMapTest extends TestCase
     {
         $entityMap = new EntityMap('', $keyMap, []);
         $this->assertEquals($keyMap, $entityMap->primaryKeys());
+    }
+
+    /**
+     * Test primaryKeys with an Entity returns a populated array of
+     * that entity's primary keys.
+     */
+    public function testPrimaryKeysWithEntity()
+    {
+        $entityMap = EntityMapEntity::map();
+        $entity    = new EntityMapEntity;
+        $entity->id = 15;
+
+        $this->assertEquals(['id' => 15], $entityMap->primaryKeys($entity));
     }
 
     /**
@@ -97,5 +111,18 @@ class EntityMapTest extends TestCase
         return [
             [['id' => 'id', 'user_id' => 'userId', 'foo' => 'bar']],
         ];
+    }
+}
+class EntityMapEntity extends Entity
+{
+    public $id;
+
+    protected static function getMap()
+    {
+        return new EntityMap(
+            '',
+            ['id'],
+            []
+        );
     }
 }

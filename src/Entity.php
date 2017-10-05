@@ -74,6 +74,18 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
     }
 
     /**
+     * After an entity has woken up this shortcut will restore it's state from the given Pool.
+     *
+     * @param Pool $pool
+     *
+     * @return Entity
+     */
+    public function wakeup(Pool $pool)
+    {
+        return $this->setPool($pool)->read();
+    }
+
+    /**
      * @param Pool $pool
      *
      * @return Entity

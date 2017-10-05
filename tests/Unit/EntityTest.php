@@ -62,6 +62,54 @@ class EntityTest extends TestCase
     }
 
     /**
+     * Test magic method __sleep only returns the primary keys.
+     */
+    public function testSleep()
+    {
+        $entity = (new SingleKeyEntity)->populate(['ID' => 4, 'first_name' => 'firstName', 'last_name' => 'lastName']);
+
+        $this->assertEquals(['ID' => 'id'], $entity->__sleep());
+    }
+
+    /**
+     * Test that faux magic method wakeup calls Entity::setPool and then Entity::read();
+     */
+    public function testWakeup()
+    {
+        /** @var \Mockery\Mock $mockSelect */
+        $mockSelect = \Mockery::mock(Query\Insert::class);
+
+        $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
+        $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($mockSelect);
+        $mockSelect->shouldReceive('from')->once()->with('dummy')->andReturnSelf();
+        $mockSelect->shouldReceive('limit')->once()->with(1)->andReturnSelf();
+        $mockSelect->shouldReceive('where')->once()->with('ID', '=', 5);
+        $mockSelect->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
+        $mockSelect->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC)->andReturn([]);
+
+        $entity = new SingleKeyEntity;
+        $entity->id = 5;
+
+        $this->assertNull($entity->pool);
+
+        $this->assertInstanceOf(SingleKeyEntity::class, $entity->wakeup($this->mockPool));
+        $this->assertEquals($this->mockPool, $entity->pool);
+    }
+
+    /**
+     * Test that setPool sets the pool and returns the Entity.
+     */
+    public function testSetPool()
+    {
+        $entity = new SingleKeyEntity;
+
+        $this->assertNull($entity->pool);
+
+        $this->assertInstanceOf(SingleKeyEntity::class, $entity->setPool($this->mockPool));
+        $this->assertEquals($this->mockPool, $entity->pool);
+    }
+
+    /**
      * Test populate with data.
      *
      * @param array $data
