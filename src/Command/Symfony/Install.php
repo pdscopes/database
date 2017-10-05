@@ -18,7 +18,7 @@ class Install extends Command
     {
         $this->addDatabaseConfigure();
         $this
-            ->setName('migrate:install')
+            ->setName('database:install')
             ->setDescription('Install the database migrations table')
             ->setHelp('This command allows you to install the database migrations table')
             ->addUsage('sqlite')

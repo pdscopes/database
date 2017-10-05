@@ -18,8 +18,8 @@ class Uninstall extends Command
     {
         $this->addDatabaseConfigure();
         $this
-            ->setName('migrate:uninstall')
-            ->setAliases(['migrate:remove'])
+            ->setName('database:uninstall')
+            ->setAliases(['database:remove'])
             ->setDescription('Uninstall the database migrations table')
             ->setHelp('This command allows you to uninstall the database migrations table')
             ->addUsage('sqlite')

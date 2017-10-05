@@ -21,7 +21,7 @@ class RollBack extends Command
     {
         $this->addDatabaseConfigure();
         $this
-            ->setName('migrate:rollback')
+            ->setName('database:rollback')
             ->setDescription('Rollback to your previous database migration')
             ->setHelp('This command allows you to rollback your database to the previous migration')
             ->addOption('batches', 'b', InputOption::VALUE_REQUIRED, 'Number of batches to rollback', 1)

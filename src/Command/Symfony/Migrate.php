@@ -23,7 +23,7 @@ class Migrate extends Command
     {
         $this->addDatabaseConfigure();
         $this
-            ->setName('migrate')
+            ->setName('database:migrate')
             ->setDescription('Install and upgrade your database migrations')
             ->setHelp('This command allows you to install the database migrations table and upgrade your database to the next migration')
             ->addOption('path', 'p', InputOption::VALUE_REQUIRED, 'Path to your database migration files', 'database/migrations')

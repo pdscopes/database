@@ -23,7 +23,7 @@ class Seed extends Command
     {
         $this->addDatabaseConfigure();
         $this
-            ->setName('migrate:seed')
+            ->setName('database:seed')
             ->setDescription('Seed your database with dummy data')
             ->setHelp('This command allows you to populate your database with dummy data')
             ->addOption('seed', 's', InputOption::VALUE_REQUIRED, 'Path to your database seed files', 'database/seeds')

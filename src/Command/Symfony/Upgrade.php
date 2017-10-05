@@ -27,7 +27,7 @@ class Upgrade extends Command
     {
         $this->addDatabaseConfigure();
         $this
-            ->setName('migrate:upgrade')
+            ->setName('database:upgrade')
             ->setDescription('Upgrade to your next database migration')
             ->setHelp('This command allows you to upgrade your database to the next migration')
             ->addOption('path', 'p', InputOption::VALUE_REQUIRED, 'Path to your database migration files', 'database/migrations')

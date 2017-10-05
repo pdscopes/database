@@ -18,9 +18,9 @@ For example, on first clone of a package using database:
 ```bash
 > composer install
 ...
-> vendor/bin/database migrate:install -e -v
+> vendor/bin/database database:install -e -v
 [notice] Migration table created
-> vendor/bin/database migrate:upgrade -ep examples/migrations -v
+> vendor/bin/database database:upgrade -ep examples/migrations -v
 [notice] Migrated file: "/path/to/database/examples/migrations/v1.0.0-ExampleInitial.php"
 [notice] Migrated file: "/path/to/database/examples/migrations/v1.0.1-ExampleComment.php"
 ```
@@ -28,7 +28,7 @@ or you can use the shortcut:
 ```bash
 > composer install
 ...
-> vendor/bin/database migrate -e -p examples/migrations -v
+> vendor/bin/database database:migrate -e -p examples/migrations -v
 [notice] Migration table created
 [notice] Migrated file: "/path/to/database/examples/migrations/v1.0.0-ExampleInitial.php"
 [notice] Migrated file: "/path/to/database/examples/migrations/v1.0.1-ExampleComment.php"
@@ -37,7 +37,7 @@ or you can use the shortcut:
 
 For example, on rollback a migration:
 ```bash
-> vendor/bin/database migrate:rollback -e -v
+> vendor/bin/database database:rollback -e -v
 Rolling back batch: 1
 [notice] Rolled back file: "/path/to/database/examples/migrations/v1.0.1-ExampleComment.php"
 [notice] Rolled back file: "/path/to/database/examples/migrations/v1.0.0-ExampleInitial.php"
@@ -45,13 +45,13 @@ Rolling back batch: 1
 
 For example, on uninstalling:
 ```bash
-> vendor/bin/database migrate:uninstall -e -v
+> vendor/bin/database database:uninstall -e -v
 [notice] Migration table removed
 ```
 
 For example, on refreshing:
 ```bash
-> vendor/bin/database migrate:refresh -e -p examples/migrations/ -s examples/seeds/ -v
+> vendor/bin/database database:refresh -e -p examples/migrations/ -s examples/seeds/ -v
 [notice] Migration table already installed
 [notice] Rolled back file: "/path/to/database/examples/migrations/v1.0.1-ExampleComment.php"
 [notice] Rolled back file: "/path/to/database/examples/migrations/v1.0.0-ExampleInitial.php"
@@ -66,7 +66,7 @@ database with dummy data. This can be called through `bin/database`.
 
 For example, on seeding that database:
 ```bash
-> vendor/bin/database migrate:seed -e -v -s examples/seeds
+> vendor/bin/database database:seed -e -v -s examples/seeds
 [notice] Seeded file: "/path/to/database/examples/seeds/v1.0.0-ExampleTableSeeder.php"
 ```
 

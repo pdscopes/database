@@ -23,7 +23,7 @@ class Refresh extends Command
     {
         $this->addDatabaseConfigure();
         $this
-            ->setName('migrate:refresh')
+            ->setName('database:refresh')
             ->setDescription('Refresh the database migrations')
             ->setHelp('This command allows you to refresh your database migrations')
             ->addOption('path', 'p', InputOption::VALUE_REQUIRED, 'Path to your database migration files', 'database/migrations')
