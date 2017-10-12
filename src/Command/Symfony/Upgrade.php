@@ -32,6 +32,7 @@ class Upgrade extends Command
             ->setHelp('This command allows you to upgrade your database to the next migration')
             ->addOption('path', 'p', InputOption::VALUE_REQUIRED, 'Path to your database migration files', 'database/migrations')
             ->addOption('seed', 's', InputOption::VALUE_OPTIONAL, 'Path to your database seed files', 'database/seeds')
+            ->addOption('step', 't', InputOption::VALUE_OPTIONAL, 'Limit the number of migration files to migrate', 1)
             ->addUsage('sqlite')
             ->addUsage('-p path/to/migration/files sqlite')
             ->addUsage('-e')
@@ -41,8 +42,9 @@ class Upgrade extends Command
     protected function initialize(InputInterface $input, OutputInterface $output)
     {
         // Ensure default value for options with optional value
-        $input->setOption('path', $input->getOption('path') ?? $this->getDefinition()->getOption('seed')->getDefault());
+        $input->setOption('path', $input->getOption('path') ?? $this->getDefinition()->getOption('path')->getDefault());
         $input->setOption('seed', $input->getOption('seed') ?? $this->getDefinition()->getOption('seed')->getDefault());
+        $input->setOption('step', $input->getOption('step') ?? $this->getDefinition()->getOption('step')->getDefault());
 
         // Ensure locations exist
         $fs = new Filesystem();
@@ -70,16 +72,23 @@ class Upgrade extends Command
         $migrator   = new Migrator($connection, $logger);
 
 
-        // Find the necessary files and upgrade
-        $finder = new Finder();
-        $finder->files()->sortByName()->in($input->getOption('path'))->name('*.php');
-        $migrator->upgrade(iterator_to_array($finder->getIterator()));
+        // Find the necessary files
+        $finder = Finder::create()->files()->sortByName()->name('*.php');
+        $files  = array_map('realpath', iterator_to_array($finder->in($input->getOption('path'))));
+
+        // Limit the files to be upgraded
+        $files = array_diff($files, $migrator->list());
+        if ($input->getOption('step')) {
+            $files = array_slice($files, 0, (int) $input->getOption('step'));
+        }
+
+        // Upgrade
+        $migrator->upgrade($files);
 
         // Optionally seed the database
         if ($input->getParameterOption(['--seed', '-s'], false, true) !== false) {
-            $finder = new Finder();
-            $finder->files()->sortByName()->in($input->getOption('seed'))->name('*.php');
-            $migrator->seed(iterator_to_array($finder->getIterator()));
+            $finder = Finder::create()->files()->sortByName()->name('*.php');
+            $migrator->seed(iterator_to_array($finder->in($input->getOption('seed'))));
         }
 
         $this->release();

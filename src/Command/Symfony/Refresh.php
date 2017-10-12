@@ -37,7 +37,7 @@ class Refresh extends Command
         $this->databaseInitialize($input, $output);
 
         // Ensure default value for options with optional value
-        $input->setOption('path', $input->getOption('path') ?? $this->getDefinition()->getOption('seed')->getDefault());
+        $input->setOption('path', $input->getOption('path') ?? $this->getDefinition()->getOption('path')->getDefault());
         $input->setOption('seed', $input->getOption('seed') ?? $this->getDefinition()->getOption('seed')->getDefault());
 
         // Ensure locations exist
@@ -74,16 +74,17 @@ class Refresh extends Command
         // Rollback
         $migrator->rollback();
 
-        // Find the necessary files and upgrade
-        $finder = new Finder();
-        $finder->files()->sortByName()->in($input->getOption('path'))->name('*.php');
-        $migrator->upgrade(iterator_to_array($finder->getIterator()));
+        // Find the necessary files
+        $finder = Finder::create()->files()->sortByName()->name('*.php');
+        $files  = array_map('realpath', iterator_to_array($finder->in($input->getOption('path'))));
+
+        // Upgrade
+        $migrator->upgrade($files);
 
         // Optionally seed the database
         if ($input->getParameterOption(['--seed', '-s'], false, true) !== false) {
-            $finder = new Finder();
-            $finder->files()->sortByName()->in($input->getOption('seed'))->name('*.php');
-            $migrator->seed(iterator_to_array($finder->getIterator()));
+            $finder = Finder::create()->files()->sortByName()->name('*.php');
+            $migrator->seed(iterator_to_array($finder->in($input->getOption('seed'))));
         }
 
         $this->release();

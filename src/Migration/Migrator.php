@@ -44,12 +44,31 @@ class Migrator
             $table->column('id')->integer(11, true)->null(false)->autoIncrement();
             $table->column('file')->char(255)->null(false);
             $table->column('batch')->integer(11, true)->null(false);
-            $table->column('migratedAt')->datetime()->null(false);
+            $table->column('migrated_at')->datetime()->null(false);
 
             $table->primaryKey('id');
             $table->engine('InnoDB');
         });
         $this->logger->notice('Migration table created');
+    }
+
+    /**
+     * List migrated files.
+     *
+     * @return string[]
+     */
+    public function list()
+    {
+        if (!$this->alreadyInstalled()) {
+            return [];
+        }
+
+        return $this->connection->select()
+            ->columns('file')
+            ->from('migrations')
+            ->orderBy('migrated_at')
+            ->orderBy('file', 'desc')
+            ->fetchAll(\PDO::FETCH_COLUMN, 0);
     }
 
     /**
@@ -88,7 +107,7 @@ class Migrator
                 $migration->up($this->connection);
                 $this->connection->insert()
                     ->into('migrations')
-                    ->columns('file', 'batch', 'migratedAt')
+                    ->columns('file', 'batch', 'migrated_at')
                     ->values(realpath($file), $batch, date('Y-m-d H:i:s'))
                     ->query();
                 $this->logger->notice('Migrated file: "' . $file . '"');
@@ -150,7 +169,7 @@ class Migrator
             $rows = $this->connection->select()
                 ->from('migrations')
                 ->where('batch', '=', $batch)
-                ->orderBy('migratedAt','desc')
+                ->orderBy('migrated_at','desc')
                 ->orderBy('file', 'desc')
                 ->query()->fetchAll();
             foreach ($rows as $row) {

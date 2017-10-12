@@ -64,9 +64,8 @@ class Seed extends Command
 
 
         // Find the necessary files and seed
-        $finder = new Finder();
-        $finder->files()->sortByName()->in($input->getOption('seed'))->name('*.php');
-        $migrator->seed(iterator_to_array($finder->getIterator()));
+        $finder = Finder::create()->files()->sortByName()->name('*.php');
+        $migrator->seed(iterator_to_array($finder->in($input->getOption('seed'))));
 
         $this->release();
         return 0;
