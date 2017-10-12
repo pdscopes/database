@@ -28,7 +28,7 @@ class Migrate extends Command
             ->setHelp('This command allows you to install the database migrations table and upgrade your database to the next migration')
             ->addOption('path', 'p', InputOption::VALUE_REQUIRED, 'Path to your database migration files', 'database/migrations')
             ->addOption('seed', 's', InputOption::VALUE_OPTIONAL, 'Path to your database seed files', 'database/seeds')
-            ->addOption('step', 't', InputOption::VALUE_OPTIONAL, 'Limit the number of migration files to migrate', 1)
+            ->addOption('step', 't', InputOption::VALUE_OPTIONAL, 'Limit the number of migration files to migrate', false)
             ->addUsage('sqlite')
             ->addUsage('-e');
     }
@@ -40,7 +40,7 @@ class Migrate extends Command
         // Ensure default value for options with optional value
         $input->setOption('path', $input->getOption('path') ?? $this->getDefinition()->getOption('path')->getDefault());
         $input->setOption('seed', $input->getOption('seed') ?? $this->getDefinition()->getOption('seed')->getDefault());
-        $input->setOption('step', $input->getOption('step') ?? $this->getDefinition()->getOption('step')->getDefault());
+        $input->setOption('step', $input->getOption('step') === null ? 1 : $input->getOption('step'));
 
         // Ensure locations exist
         $fs = new Filesystem();
