@@ -32,6 +32,63 @@ class WhereTest extends CompilableTestCase
     }
 
     /**
+     * Test where: "field = $var" becomes "field IS NULL" when $var = null
+     */
+    public function testWhereEqualsNull()
+    {
+        $query = (new WhereBuilder($this->mockConnection))->where('field', '=', null);
+        $array = $query->toArray();
+
+        $this->assertInstanceOf(WhereBuilder::class, $query);
+        $this->assertEquals([
+            'where' => [
+                [
+                    'column'   => 'field',
+                    'operator' => 'is',
+                    'value'    => 'NULL',
+                    'boolean'  => 'and',
+                ]
+            ]
+        ], $array);
+    }
+
+    /**
+     * Test where: "field != $var" and "field <> $var" becomes "field IS NOT NULL" when $var = null
+     */
+    public function testWhereNotEqualsNull()
+    {
+        $query = (new WhereBuilder($this->mockConnection))->where('field', '!=', null);
+        $array = $query->toArray();
+
+        $this->assertInstanceOf(WhereBuilder::class, $query);
+        $this->assertEquals([
+            'where' => [
+                [
+                    'column'   => 'field',
+                    'operator' => 'is not',
+                    'value'    => 'NULL',
+                    'boolean'  => 'and',
+                ]
+            ]
+        ], $array);
+
+        $query = (new WhereBuilder($this->mockConnection))->where('field', '<>', null);
+        $array = $query->toArray();
+
+        $this->assertInstanceOf(WhereBuilder::class, $query);
+        $this->assertEquals([
+            'where' => [
+                [
+                    'column'   => 'field',
+                    'operator' => 'is not',
+                    'value'    => 'NULL',
+                    'boolean'  => 'and',
+                ]
+            ]
+        ], $array);
+    }
+
+    /**
      * Test where between.
      */
     public function testWhereBetween()

@@ -28,6 +28,19 @@ trait WhereTrait
             call_user_func($callable, $value);
         }
 
+        // If the value is null and the operator is '=', '!=', or '<>'
+        if ($value === null && in_array($operator, ['=', '!=', '<>'])) {
+            $value = new Raw('NULL');
+            switch ($operator) {
+                case '=':
+                    $operator = 'is';
+                    break;
+                default:
+                    $operator = 'is not';
+                    break;
+            }
+        }
+
         $this->statement['where'][] = compact('column', 'operator', 'value', 'boolean');
 
         return $this;
