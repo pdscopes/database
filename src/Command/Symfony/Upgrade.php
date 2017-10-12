@@ -21,7 +21,9 @@ use Symfony\Component\Finder\Finder;
  */
 class Upgrade extends Command
 {
-    use DatabaseConfigurationTrait, LockableTrait;
+    use DatabaseConfigurationTrait, LockableTrait {
+        DatabaseConfigurationTrait::initialize as databaseInitialize;
+    }
 
     protected function configure()
     {
@@ -41,6 +43,8 @@ class Upgrade extends Command
 
     protected function initialize(InputInterface $input, OutputInterface $output)
     {
+        $this->databaseInitialize($input, $output);
+
         // Ensure default value for options with optional value
         $input->setOption('path', $input->getOption('path') ?? $this->getDefinition()->getOption('path')->getDefault());
         $input->setOption('seed', $input->getOption('seed') ?? $this->getDefinition()->getOption('seed')->getDefault());
