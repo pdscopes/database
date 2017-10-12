@@ -18,7 +18,7 @@ class DropView extends StatementBuilder
     }
 
 
-    public  function buildSql(array $statement)
+    public  function buildSql(array $statement = null)
     {
         if (null === $statement) {
             $statement = $this->statement;

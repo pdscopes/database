@@ -29,40 +29,34 @@ class UpdateTest extends CompilableTestCase
         $array = $query->toArray();
 
         $this->assertInstanceOf(Update::class, $query);
-        $this->assertArrayHasKey('columns', $array);
-        $this->assertArrayHasKey('values', $array);
-        $this->assertEquals(['field'], $array['columns']);
-        $this->assertEquals(['val'], $array['values']);
+        $this->assertArrayHasKey('set', $array);
+        $this->assertEquals(['field' => 'val'], $array['set']);
     }
 
     /**
-     * Test update single column.
+     * Test update set array single column.
      */
-    public function testColumnsSingle()
+    public function testSetArraySingle()
     {
-        $query = (new Update($this->mockConnection))->columns(['field' => 'val']);
+        $query = (new Update($this->mockConnection))->set(['field' => 'val']);
         $array = $query->toArray();
 
         $this->assertInstanceOf(Update::class, $query);
-        $this->assertArrayHasKey('columns', $array);
-        $this->assertArrayHasKey('values', $array);
-        $this->assertEquals(['field'], $array['columns']);
-        $this->assertEquals(['val'], $array['values']);
+        $this->assertArrayHasKey('set', $array);
+        $this->assertEquals(['field' => 'val'], $array['set']);
     }
 
     /**
-     * Test update multiple columns.
+     * Test update set array multiple columns.
      */
-    public function testColumnsMultiple()
+    public function testSetArrayMultiple()
     {
-        $query = (new Update($this->mockConnection))->columns(['field1' => 'val1', 'field2' => 'val2']);
+        $query = (new Update($this->mockConnection))->set(['field1' => 'val1', 'field2' => 'val2']);
         $array = $query->toArray();
 
         $this->assertInstanceOf(Update::class, $query);
-        $this->assertArrayHasKey('columns', $array);
-        $this->assertArrayHasKey('values', $array);
-        $this->assertEquals(['field1', 'field2'], $array['columns']);
-        $this->assertEquals(['val1', 'val2'], $array['values']);
+        $this->assertArrayHasKey('set', $array);
+        $this->assertEquals(['field1' => 'val1', 'field2' => 'val2'], $array['set']);
     }
 
 
@@ -104,18 +98,16 @@ class UpdateTest extends CompilableTestCase
         $this->mockPdo->shouldReceive('prepare')->once()->with('SQL')->andReturn($this->mockPdoStatement);
         $this->mockPdoStatement->shouldReceive('execute')->once()->withNoArgs();
 
-        $query = (new Update($this->mockConnection))->table('table')->columns(['field' => 'val']);
+        $query = (new Update($this->mockConnection))->table('table')->set(['field' => 'val']);
         $array  = $query->toArray();
 
         $this->assertArrayHasKey('table', $array);
-        $this->assertArrayHasKey('columns', $array);
-        $this->assertArrayHasKey('values', $array);
+        $this->assertArrayHasKey('set', $array);
 
         $query->statement();
 
         $array  = $query->toArray();
         $this->assertArrayHasKey('table', $array);
-        $this->assertArrayNotHasKey('columns', $array);
-        $this->assertArrayNotHasKey('values', $array);
+        $this->assertArrayNotHasKey('set', $array);
     }
 }

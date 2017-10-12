@@ -71,6 +71,25 @@ abstract class Compiler implements CompilerInterface
     }
 
     /**
+     * @param mixed $value
+     * @return mixed|string
+     */
+    protected function value($value)
+    {
+        if ($value instanceof \DateTime) {
+            return $value->format('Y-m-d H:i:s');
+        }
+        if (is_object($value)) {
+            return (string) $value;
+        }
+        if (is_callable($value)) {
+            return call_user_func($value);
+        }
+
+        return $value;
+    }
+
+    /**
      * Concatenate query pieces into a proper string.
      *
      * @param array  $pieces
@@ -453,21 +472,24 @@ abstract class Compiler implements CompilerInterface
      */
     protected function compileQuerySetPairs($statement)
     {
-        if (!array_key_exists('columns', $statement) || !array_key_exists('values', $statement)) {
-            throw new \RuntimeException('Update queries must have both columns and values set');
-        }
-        if (count($statement['columns']) !== count($statement['values'])) {
-            throw new \RuntimeException('Update queries must have a matching number of columns and values');
+        if (!array_key_exists('set', $statement)) {
+            throw new \RuntimeException('Update queries must have make a change');
         }
 
-        $sql      = '';
-        $bindings = $statement['values'];
-        foreach ($statement['columns'] as $column) {
-            $sql .= ',' . $this->querySanitise($column) . '=?';
+        $sql      = [];
+        $bindings = [];
+        foreach ($statement['set'] as $column => $value) {
+            if ($value instanceof Column) {
+                $sql[] = $this->querySanitise($column) . ' = ' . $this->sanitise($value);
+            } else if ($value instanceof Raw) {
+                $sql[] = $this->querySanitise($column) . ' = ' . (string) $value;
+            } else {
+                $sql[] = $this->querySanitise($column) . ' = ?';
+                $bindings[] = $this->value($value);
+            }
         }
-        $sql = substr($sql, 1);
 
-        return [$sql, $bindings];
+        return [implode(', ', $sql), $bindings];
     }
 
 
@@ -585,7 +607,7 @@ abstract class Compiler implements CompilerInterface
                 $criteria .= $boolean . ' ' . $statement['column'] . ' ';
             } else {
                 // Standard condition
-                $bindings  = array_merge($bindings, [$statement['value']]);
+                $bindings  = array_map([$this, 'value'], array_merge($bindings, [$value]));
                 $criteria .= $boolean . ' ' . $column . ' ' . $operator . ' ? ';
             }
         }

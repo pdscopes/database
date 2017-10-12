@@ -30,7 +30,7 @@ trait WhereTrait
 
         // If the value is null and the operator is '=', '!=', or '<>'
         if ($value === null && in_array($operator, ['=', '!=', '<>'])) {
-            $value = new Raw('NULL');
+            $value = Raw::create('NULL');
             switch ($operator) {
                 case '=':
                     $operator = 'is';
@@ -87,7 +87,7 @@ trait WhereTrait
      */
     public function whereRaw($column, $operator = null, $value = null, $boolean = 'and')
     {
-        return $this->addWhere($column, $operator, new Raw($value), $boolean);
+        return $this->addWhere($column, $operator, Raw::create($value), $boolean);
     }
 
     /**
@@ -101,7 +101,7 @@ trait WhereTrait
      */
     public function orWhereRaw($column, $operator = null, $value = null)
     {
-        return $this->orWhere($column, $operator, new Raw($value));
+        return $this->orWhere($column, $operator, Raw::create($value));
     }
 
     /**
@@ -116,7 +116,7 @@ trait WhereTrait
      */
     public function whereColumn($column, $operator = null, $value = null, $boolean = 'and')
     {
-        return $this->addWhere($column, $operator, new Column($value), $boolean);
+        return $this->addWhere($column, $operator, Column::create($value), $boolean);
     }
 
     /**
@@ -130,7 +130,7 @@ trait WhereTrait
      */
     public function orWhereColumn($column, $operator = null, $value = null)
     {
-        return $this->orWhere($column, $operator, new Column($value));
+        return $this->orWhere($column, $operator, Column::create($value));
     }
 
     /**

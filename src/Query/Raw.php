@@ -10,6 +10,15 @@ class Raw
     protected $value;
 
     /**
+     * @param string $value
+     * @return static
+     */
+    public static function create($value)
+    {
+        return new static($value);
+    }
+
+    /**
      * Raw constructor.
      *
      * @param string $value

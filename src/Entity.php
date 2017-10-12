@@ -220,7 +220,7 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
         $update = $this->pool->get(static::$connection)
             ->update()
             ->table($map->tableName())
-            ->columns($columns);
+            ->set($columns);
 
         foreach ($map->primaryKeys() as $idx => $key) {
             $update->where($idx, '=', $this->{$key});

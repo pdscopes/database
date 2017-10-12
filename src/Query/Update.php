@@ -20,30 +20,50 @@ class Update extends QueryBuilder
     }
 
     /**
-     * @param string $column
-     * @param mixed  $value
+     * @param string|array $column
+     * @param mixed|null   $value
      *
      * @return Update
      */
-    public function set($column, $value)
+    public function set($column, $value = null)
     {
-        $this->addToStatement('columns', [$column]);
-        $this->addToStatement('values', [$value]);
+        if (!is_array($column)) {
+            $column = [$column => $value];
+        }
+        $this->addToStatement('set', $column);
 
         return $this;
     }
 
     /**
-     * Add a set of columns and their values.
-     *
-     * @param array $columns Array of column name pointing to new value
-     *
+     * @param string|array $column
+     * @param mixed|null   $value
      * @return Update
      */
-    public function columns(array $columns)
+    public function setRaw($column, $value = null)
     {
-        $this->addToStatement('columns', array_keys($columns));
-        $this->addToStatement('values', array_values($columns));
+        if (!is_array($column)) {
+            $column = [$column => $value];
+        }
+        $column = array_map([Raw::class, 'create'], $column);
+        $this->addToStatement('set', $column);
+
+        return $this;
+    }
+
+    /**
+     * @param string|array $column
+     * @param mixed|null   $value
+     * @return Update
+     */
+    public function setColumn($column, $value = null)
+    {
+        if (!is_array($column)) {
+            $column = [$column => $value];
+        }
+        $column = array_map([Column::class, 'create'], $column);
+        $this->addToStatement('set', $column);
+
         return $this;
     }
 
@@ -58,7 +78,7 @@ class Update extends QueryBuilder
     }
 
 
-    public  function buildSql(array $statement)
+    public  function buildSql(array $statement = null)
     {
         if (null === $statement) {
             $statement = $this->statement;
@@ -70,7 +90,6 @@ class Update extends QueryBuilder
 
     protected function tidyAfterExecution()
     {
-        unset($this->statement['columns']);
-        unset($this->statement['values']);
+        unset($this->statement['set']);
     }
 }

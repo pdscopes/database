@@ -161,7 +161,7 @@ class EntityTest extends TestCase
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
         $this->mockConnection->shouldReceive('update')->once()->withNoArgs()->andReturn($mockUpdate);
         $mockUpdate->shouldReceive('table')->once()->with('dummy')->andReturnSelf();
-        $mockUpdate->shouldReceive('columns')->once()->with(['first_name' => 'Test', 'last_name' => 'Person'])->andReturnSelf();
+        $mockUpdate->shouldReceive('set')->once()->with(['first_name' => 'Test', 'last_name' => 'Person'])->andReturnSelf();
         $mockUpdate->shouldReceive('where')->once()->with('ID', '=', 5);
         $mockUpdate->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
         $mockUpdate->shouldReceive('affectedRows')->once()->withNoArgs()->andReturn(1);
@@ -253,7 +253,7 @@ class EntityTest extends TestCase
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
         $this->mockConnection->shouldReceive('update')->once()->withNoArgs()->andReturn($mockUpdate);
         $mockUpdate->shouldReceive('table')->once()->with('dummy')->andReturnSelf();
-        $mockUpdate->shouldReceive('columns')->once()->with(['first_name' => 'Test', 'last_name' => 'Person'])->andReturnSelf();
+        $mockUpdate->shouldReceive('set')->once()->with(['first_name' => 'Test', 'last_name' => 'Person'])->andReturnSelf();
         $mockUpdate->shouldReceive('where')->once()->with('ID', '=', 5);
         $mockUpdate->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
         $mockUpdate->shouldReceive('affectedRows')->once()->withNoArgs()->andReturn(1);
@@ -279,7 +279,7 @@ class EntityTest extends TestCase
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
         $this->mockConnection->shouldReceive('update')->once()->withNoArgs()->andReturn($mockUpdate);
         $mockUpdate->shouldReceive('table')->once()->with('dummy')->andReturnSelf();
-        $mockUpdate->shouldReceive('columns')->once()->with(['first_name' => 'Test', 'last_name' => 'Person'])->andReturnSelf();
+        $mockUpdate->shouldReceive('set')->once()->with(['first_name' => 'Test', 'last_name' => 'Person'])->andReturnSelf();
         $mockUpdate->shouldReceive('where')->once()->with('ID', '=', 5);
         $mockUpdate->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
         $mockUpdate->shouldReceive('affectedRows')->once()->withNoArgs()->andReturn(1);
@@ -305,7 +305,7 @@ class EntityTest extends TestCase
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
         $this->mockConnection->shouldReceive('update')->once()->withNoArgs()->andReturn($mockUpdate);
         $mockUpdate->shouldReceive('table')->once()->with('dummy_link')->andReturnSelf();
-        $mockUpdate->shouldReceive('columns')->once()->with(['value' => 'value'])->andReturnSelf();
+        $mockUpdate->shouldReceive('set')->once()->with(['value' => 'value'])->andReturnSelf();
         $mockUpdate->shouldReceive('where')->once()->with('user_id', '=', 5);
         $mockUpdate->shouldReceive('where')->once()->with('company_id', '=', 7);
         $mockUpdate->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
@@ -332,7 +332,7 @@ class EntityTest extends TestCase
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
         $this->mockConnection->shouldReceive('update')->once()->withNoArgs()->andReturn($mockUpdate);
         $mockUpdate->shouldReceive('table')->once()->with('dummy_link')->andReturnSelf();
-        $mockUpdate->shouldReceive('columns')->once()->with(['value' => 'value'])->andReturnSelf();
+        $mockUpdate->shouldReceive('set')->once()->with(['value' => 'value'])->andReturnSelf();
         $mockUpdate->shouldReceive('where')->once()->with('user_id', '=', 5);
         $mockUpdate->shouldReceive('where')->once()->with('company_id', '=', 7);
         $mockUpdate->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();

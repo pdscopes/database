@@ -69,7 +69,7 @@ trait CompilableTrait
      *
      * @return array [string, array]
      */
-    public abstract function buildSql(array $statement);
+    public abstract function buildSql(array $statement = null);
 
 
     /**

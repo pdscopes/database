@@ -217,7 +217,7 @@ class Select extends QueryBuilder
         unset($statement['orderBy']);
         unset($statement['limit']);
         unset($statement['offset']);
-        $statement['columns'] = [new Raw('COUNT(*)')];
+        $statement['columns'] = [Raw::create('COUNT(*)')];
 
         list($sql, $bindings) = $this->buildSql($statement);
         /** @var \PDOStatement $pdoStatement */

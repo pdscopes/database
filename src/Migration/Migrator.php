@@ -244,7 +244,7 @@ class Migrator
     protected function getBatchNumber()
     {
         return (int) $this->connection->select()
-            ->columns(new Raw('MAX(batch)'))
+            ->columns(Raw::create('MAX(batch)'))
             ->from('migrations')
             ->query()->fetch(\PDO::FETCH_COLUMN, 0);
     }
