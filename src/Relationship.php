@@ -188,6 +188,15 @@ abstract class  Relationship
     }
 
     /**
+     * @see Query\Select::buildSql()
+     * @return array
+     */
+    public function buildSql()
+    {
+        return $this->query->buildSql();
+    }
+
+    /**
      * @param string|array|... $columns
      *
      * @see \MadeSimple\Database\Query\Select::columns()
