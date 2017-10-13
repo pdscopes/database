@@ -2,6 +2,7 @@
 
 namespace MadeSimple\Database\Connector;
 
+use MadeSimple\Database\DatabaseException;
 use Psr\Log\LoggerInterface;
 
 class SQLite extends BaseConnector
@@ -27,7 +28,7 @@ class SQLite extends BaseConnector
         $path = realpath($config['database']);
 
         if ($path === false) {
-            throw new \RuntimeException('Database does not exist: ' . $config['database']);
+            throw new DatabaseException('Database does not exist: ' . $config['database'], DatabaseException::ERROR_CONNECTION);
         }
 
         return $this->createPdo('sqlite:'.$path, $config, $options);

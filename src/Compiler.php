@@ -159,7 +159,9 @@ abstract class Compiler implements CompilerInterface
     {
         // Validate select statement
         if (!array_key_exists('from', $statement)) {
-            throw new \RuntimeException('No tables to select from specified');
+            $exception = new DatabaseException('No tables to select from specified', DatabaseException::ERROR_COMPILE);
+            $exception->errorInfo = ['statement' => $statement];
+            throw $exception;
         }
 
 
@@ -206,7 +208,9 @@ abstract class Compiler implements CompilerInterface
     {
         // Validate select statement
         if (!array_key_exists('into', $statement)) {
-            throw new \RuntimeException('No table to insert into specified');
+            $exception = new DatabaseException('No table to insert into specified', DatabaseException::ERROR_COMPILE);
+            $exception->errorInfo = ['statement' => $statement];
+            throw $exception;
         }
 
 
@@ -236,7 +240,9 @@ abstract class Compiler implements CompilerInterface
     {
         // Validate select statement
         if (!array_key_exists('table', $statement)) {
-            throw new \RuntimeException('No table to update specified');
+            $exception = new DatabaseException('No table to update specified', DatabaseException::ERROR_COMPILE);
+            $exception->errorInfo = ['statement' => $statement];
+            throw $exception;
         }
 
 
@@ -265,7 +271,9 @@ abstract class Compiler implements CompilerInterface
     {
         // Validate select statement
         if (!array_key_exists('from', $statement)) {
-            throw new \RuntimeException('No tables to delete from specified');
+            $exception = new DatabaseException('No tables to delete from specified', DatabaseException::ERROR_COMPILE);
+            $exception->errorInfo = ['statement' => $statement];
+            throw $exception;
         }
 
 
@@ -448,7 +456,9 @@ abstract class Compiler implements CompilerInterface
             $bindings = array_merge($bindings, $statement['values']);
         } else {
             if (count($statement['values']) % count($statement['columns']) !== 0) {
-                throw new \RuntimeException('Number of values does not match number of columns');
+                $exception = new DatabaseException('Number of values does not match number of columns', DatabaseException::ERROR_COMPILE);
+                $exception->errorInfo = ['statement' => $statement];
+                throw $exception;
             }
 
             $sql .= 'VALUES ';
@@ -473,7 +483,9 @@ abstract class Compiler implements CompilerInterface
     protected function compileQuerySetPairs($statement)
     {
         if (!array_key_exists('set', $statement)) {
-            throw new \RuntimeException('Update queries must have make a change');
+            $exception = new DatabaseException('Update queries must have make a change', DatabaseException::ERROR_COMPILE);
+            $exception->errorInfo = ['statement' => $statement];
+            throw $exception;
         }
 
         $sql      = [];

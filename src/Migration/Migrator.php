@@ -233,7 +233,7 @@ class Migrator
                 return (int) $count === 1;
 
             default:
-                throw new \RuntimeException('Unknown database driver');
+                throw new \InvalidArgumentException('Unknown database driver');
         }
 
     }

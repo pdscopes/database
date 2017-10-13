@@ -61,7 +61,7 @@ class Connection
                 break;
 
             default:
-                throw new \RuntimeException('Unknown driver: ' . $config['driver']);
+                throw new DatabaseException('Unknown driver: ' . $config['driver'], DatabaseException::ERROR_CONNECTION);
         }
 
         return new Connection($config, $connector, $compiler, $logger);

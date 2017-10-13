@@ -121,7 +121,12 @@ trait CompilableTrait
             return [$pdoStatement, microtime(true) - $start];
         }
         catch (PDOException $exception) {
-            throw new \RuntimeException('PDO Exception: "' . $sql . '"', 1, $exception);
+            $exception = new DatabaseException('Execution Failed: "' . $sql . '" with: ' . json_encode($bindings), DatabaseException::ERROR_EXECUTION, $exception);
+            $exception->errorInfo = [
+                'sql'      => $sql,
+                'bindings' => $bindings,
+            ];
+            throw $exception;
         }
     }
 
