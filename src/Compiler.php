@@ -466,7 +466,7 @@ abstract class Compiler implements CompilerInterface
                 $sql .= '(' . implode(',', array_fill(0, count($values), '?')) . '),';
             }
             $sql = substr($sql, 0, -1);
-            $bindings = array_merge($bindings, $statement['values']);
+            $bindings = array_merge($bindings, array_map([$this, 'value'], $statement['values']));
         }
 
 
