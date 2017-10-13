@@ -71,6 +71,36 @@ class EntityMapTest extends TestCase
     }
 
     /**
+     * Test getting the populate map.
+     *
+     * @param array $keyMap
+     * @param array $columnMap
+     * @param array $linkedMap
+     * @param array $populateMap
+     * @dataProvider populateMapDataProvider
+     */
+    public function testPopulateMap($keyMap, $columnMap, $linkedMap, $populateMap)
+    {
+        $entityMap = new EntityMap('', $keyMap, $columnMap, $linkedMap);
+        $this->assertEquals($populateMap, $entityMap->populateMap());
+    }
+
+    /**
+     * Test getting the populate map.
+     *
+     * @param array $keyMap
+     * @param array $columnMap
+     * @param array $linkedMap
+     * @param array $columnRemap
+     * @dataProvider columnRemapDataProvider
+     */
+    public function testColumnRemap($keyMap, $columnMap, $linkedMap, $columnRemap)
+    {
+        $entityMap = new EntityMap('', $keyMap, $columnMap, $linkedMap);
+        $this->assertEquals($columnRemap, $entityMap->columnRemap());
+    }
+
+    /**
      * Test getting the database columns.
      *
      * @param array $columnMap
@@ -110,6 +140,42 @@ class EntityMapTest extends TestCase
     {
         return [
             [['id' => 'id', 'user_id' => 'userId', 'foo' => 'bar']],
+        ];
+    }
+    public function populateMapDataProvider()
+    {
+        return [
+            [[], [], [], []],
+
+            [['key'], [], [], ['key' => 'key']],
+            [['diffKey' => 'key'], [], [], ['diffKey' => 'key']],
+
+            [[], ['column'], [], ['column' => 'column']],
+            [[], ['diffColumn' => 'column'], [], ['diffColumn' => 'column']],
+
+            [[], [], ['linked'], ['linked' => 'linked']],
+            [[], [], ['diffLinked' => 'linked'], ['diffLinked' => 'linked']],
+
+            [['key'], ['diffColumn' => 'column'], [], ['key' => 'key', 'diffColumn' => 'column']],
+            [['key'], ['column'], ['linked'], ['key' => 'key', 'column' => 'column', 'linked' => 'linked']],
+        ];
+    }
+    public function columnRemapDataProvider()
+    {
+        return [
+            [[], [], [], []],
+
+            [['key'], [], [], []],
+            [['diffKey' => 'key'], [], [], ['diffKey' => 'key']],
+
+            [[], ['column'], [], []],
+            [[], ['diffColumn' => 'column'], [], ['diffColumn' => 'column']],
+
+            [[], [], ['linked'], []],
+            [[], [], ['diffLinked' => 'linked'], ['diffLinked' => 'linked']],
+
+            [['key'], ['diffColumn' => 'column'], [], ['diffColumn' => 'column']],
+            [['key'], ['column'], ['linked'], []],
         ];
     }
 }

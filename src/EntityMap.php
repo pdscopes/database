@@ -20,6 +20,16 @@ class EntityMap
     protected $columnMap;
 
     /**
+     * @var array[]
+     */
+    protected $linkedMap = [];
+
+    /**
+     * @var string[]
+     */
+    protected $populateMap = [];
+
+    /**
      * @var string[]
      */
     protected $columnRemap = [];
@@ -30,13 +40,16 @@ class EntityMap
      * @param string   $tableName DB table name
      * @param string[] $keyMap    Map of DB keys to Entity properties
      * @param string[] $columnMap Map of DB columns to Entity properties (merged with $keyMap)
+     * @param string[] $linkedMap Map of DB columns to Entity properties (for population and remapping only!)
      */
-    public function __construct($tableName, array $keyMap, array $columnMap)
+    public function __construct($tableName, array $keyMap, array $columnMap, array $linkedMap = [])
     {
         $this->tableName   = $tableName;
         $this->keyMap      = $this->keyCheck($keyMap);
         $this->columnMap   = array_replace($this->keyMap, $this->keyCheck($columnMap), $this->keyMap);
-        $this->columnRemap = $this->remapCheck($keyMap, $columnMap);
+        $this->linkedMap   = $this->keyCheck($linkedMap);
+        $this->populateMap = $this->keyCheck(array_merge($keyMap, $columnMap, $linkedMap));
+        $this->columnRemap = $this->remapCheck(array_merge($keyMap, $columnMap, $linkedMap));
     }
 
     /**
@@ -77,6 +90,14 @@ class EntityMap
         return $withPrimaryKeys
             ? $this->columnMap
             : array_diff_key($this->columnMap, $this->keyMap);
+    }
+
+    /**
+     * @return string[]
+     */
+    public function populateMap()
+    {
+        return $this->populateMap;
     }
 
     /**
@@ -146,14 +167,13 @@ class EntityMap
     }
 
     /**
-     * @param array $keyMap
-     * @param array $columnMap
+     * @param array $columns
      * @return array
      */
-    protected function remapCheck(array $keyMap, array $columnMap)
+    protected function remapCheck(array $columns)
     {
         $remap = [];
-        foreach (array_merge($keyMap, $columnMap) as $k => $v) {
+        foreach ($columns as $k => $v) {
             if (!is_int($k)) {
                 $remap[$k] = $v;
             }

@@ -119,7 +119,7 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
      */
     public function populate(array $row)
     {
-        foreach (static::map()->columnMap() as $dbName => $propName) {
+        foreach (static::map()->populateMap() as $dbName => $propName) {
             if (!isset($row[$dbName])) {
                 continue;
             }
