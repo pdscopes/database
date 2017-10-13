@@ -105,6 +105,43 @@ class ToManyTest extends TestCase
         $this->assertEquals(5, $items[0]->key);
         $this->assertEquals('VALUE', $items[0]->value);
     }
+
+    /**
+     * Test has count.
+     */
+    public function testHasCount()
+    {
+        $this->mockSelect->shouldReceive('columns')->once()->with('e.*')->andReturnSelf();
+        $this->mockSelect->shouldReceive('from')->once()->with('entity', 'e')->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('e.foreign_key', '=', 5)->andReturnSelf();
+
+        $this->mockSelect->shouldReceive('count')->once()->withNoArgs()->andReturn(3);
+
+        $entity = new ToManyRelatedEntity($this->mockPool);
+        $entity->key = 5;
+        $relation = (new ToMany($entity))->has(ToManyEntity::class, 'e', 'foreign_key');
+
+        $this->assertEquals(3, $relation->count());
+    }
+
+    /**
+     * Test belongs to count.
+     */
+    public function testBelongsToCount()
+    {
+        $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
+        $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('r.KEY', '=', 5)->andReturnSelf();
+
+        $this->mockSelect->shouldReceive('count')->once()->withNoArgs()->andReturn(3);
+
+        $entity = new ToManyEntity($this->mockPool);
+        $entity->foreignKey = 5;
+
+        $relation = (new ToMany($entity))->belongsTo(ToManyRelatedEntity::class, 'r', 'foreign_key');
+
+        $this->assertEquals(3, $relation->count());
+    }
 }
 class ToManyEntity extends Entity
 {

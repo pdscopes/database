@@ -9,7 +9,7 @@ use MadeSimple\Database\Relationship;
 class ToMany extends Relationship
 {
     /**
-     * @return EntityCollection|Collection
+     * @return \MadeSimple\Database\EntityCollection|\MadeSimple\Arrays\Collection
      */
     public function fetch()
     {
@@ -25,5 +25,14 @@ class ToMany extends Relationship
         } else {
             return new Collection($statement->fetchAll(\PDO::FETCH_OBJ));
         }
+    }
+
+    /**
+     * @see \MadeSimple\Database\Query\Select::count()
+     * @return int
+     */
+    public function count()
+    {
+        return $this->query->count();
     }
 }
