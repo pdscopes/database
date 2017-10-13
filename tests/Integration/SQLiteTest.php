@@ -63,9 +63,11 @@ class SQLiteTest extends TestCase
         $this->assertEquals('user1', $user->username);
 
         // Find users
-        $this->assertInstanceOf(SQLiteTestUserEntity::class, $user->find(['UUID' => '456']));
+        $user = SQLiteTestUserEntity::find($pool, ['UUID' => '456']);
+        $this->assertInstanceOf(SQLiteTestUserEntity::class, $user);
         $this->assertEquals('user2', $user->username);
-        $this->assertInstanceOf(SQLiteTestUserEntity::class, $user->find(['UUID' => '123']));
+        $user = SQLiteTestUserEntity::find($pool, ['UUID' => '123']);
+        $this->assertInstanceOf(SQLiteTestUserEntity::class, $user);
         $this->assertEquals('user1', $user->username);
 
 

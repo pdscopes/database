@@ -265,6 +265,27 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
     }
 
     /**
+     * @param Pool  $pool    Connection pool
+     * @param array $columns Mapping from column name to value
+     * @see Entity::read
+     * @return static|null
+     */
+    public static function find(Pool $pool, array $columns)
+    {
+        $connection = $pool->get(static::$connection);
+
+        $map    = static::map();
+        $select = $connection->select()->columns('*')->from($map->tableName(), 't')->limit(1);
+
+        foreach ($columns as $column => $value) {
+            $select->where('t.' . $column, '=', $value);
+        }
+
+        $entity = $select->query()->fetch(PDO::FETCH_CLASS, static::class, [$pool, true]);
+        return $entity === false ? null : $entity;
+    }
+
+    /**
      * @param null|mixed $primaryKey Null to use the set primary key, other the given primary key
      *
      * @return bool True if entity was successfully deleted
@@ -284,30 +305,6 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
         }
 
         return 1 === $delete->query()->affectedRows();
-    }
-
-    /**
-     * @param array $columns Mapping from column name to value
-     * @see Entity::read
-     * @return static True if the entity was successfully found (populated)
-     */
-    public function find(array $columns)
-    {
-        $connection = $this->pool->get(static::$connection);
-
-        $map    = static::map();
-        $select = $connection->select()->columns('*')->from($map->tableName(), 't')->limit(1);
-
-        foreach ($columns as $column => $value) {
-            $select->where('t.' . $column, '=', $value);
-        }
-
-        $row = $select->query()->fetch(PDO::FETCH_ASSOC);
-        if (false === $row) {
-            throw new \InvalidArgumentException('Invalid table name or primary key name/value');
-        }
-
-        return $this->populate($row);
     }
 
     /**

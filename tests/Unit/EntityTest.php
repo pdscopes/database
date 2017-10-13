@@ -462,6 +462,7 @@ class EntityTest extends TestCase
             'first_name' => 'Test',
             'last_name'  => 'Person',
         ];
+        $entity = (new SingleKeyEntity($this->mockPool))->populate($row);
 
         $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
         $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($mockSelect);
@@ -470,11 +471,11 @@ class EntityTest extends TestCase
         $mockSelect->shouldReceive('limit')->once()->with(1)->andReturnSelf();
         $mockSelect->shouldReceive('where')->once()->with('t.UUID', '=', '123');
         $mockSelect->shouldReceive('query')->once()->withNoArgs()->andReturnSelf();
-        $mockSelect->shouldReceive('fetch')->once()->with(\PDO::FETCH_ASSOC)->andReturn($row);
+        $mockSelect->shouldReceive('fetch')->once()->with(\PDO::FETCH_CLASS, SingleKeyEntity::class, [$this->mockPool, true])->andReturn($entity);
 
-        $entity = new SingleKeyEntity($this->mockPool);
+        $entity = SingleKeyEntity::find($this->mockPool, ['UUID' => '123']);
 
-        $this->assertInstanceOf(SingleKeyEntity::class, $entity->find(['UUID' => '123']));
+        $this->assertInstanceOf(SingleKeyEntity::class, $entity);
         $this->assertEquals(5, $entity->id);
         $this->assertEquals('Test', $entity->firstName);
         $this->assertEquals('Person', $entity->lastName);

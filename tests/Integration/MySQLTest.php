@@ -69,9 +69,11 @@ class MySQLTest extends TestCase
         $this->assertEquals('user1', $user->username);
 
         // Find users
-        $this->assertInstanceOf(MySQLTestUserEntity::class, $user->find(['UUID' => '456']));
+        $user = MySQLTestUserEntity::find($pool, ['UUID' => '456']);
+        $this->assertInstanceOf(MySQLTestUserEntity::class, $user);
         $this->assertEquals('user2', $user->username);
-        $this->assertInstanceOf(MySQLTestUserEntity::class, $user->find(['UUID' => '123']));
+        $user = MySQLTestUserEntity::find($pool, ['UUID' => '123']);
+        $this->assertInstanceOf(MySQLTestUserEntity::class, $user);
         $this->assertEquals('user1', $user->username);
 
 
