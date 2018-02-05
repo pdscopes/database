@@ -4,7 +4,7 @@ namespace MadeSimple\Database\Query;
 
 trait WhereTrait
 {
-    protected $statement;
+    protected $statement = [];
 
     /**
      * Add a WHERE clause to the query.

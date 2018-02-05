@@ -14,7 +14,7 @@ trait CompilableTrait
     /**
      * @var array
      */
-    protected $statement;
+    protected $statement = [];
 
     /**
      * @var PDO
@@ -115,7 +115,7 @@ trait CompilableTrait
                     is_int($value) | is_bool($value) ? PDO::PARAM_INT : PDO::PARAM_STR
                 );
             }
-            $this->logger->debug('Executing SQL: "' . $sql . '"');
+            $this->logger->debug('Executing SQL: "' . $sql . '"', ['bindings' => $bindings]);
             $pdoStatement->execute();
 
             return [$pdoStatement, microtime(true) - $start];
