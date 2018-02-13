@@ -8,7 +8,7 @@ use MadeSimple\Database\Relationship;
 
 class User extends Entity
 {
-    use Relationship\Relational;
+    use Entity\Relational, Entity\Queryable;
 
     public $id;
     public $uuid;

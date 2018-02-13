@@ -1,6 +1,6 @@
 <?php
 
-namespace MadeSimple\Database\Tests\Unit\Relationship;
+namespace MadeSimple\Database\Tests\Unit\Entity;
 
 use MadeSimple\Database\Entity;
 use MadeSimple\Database\EntityMap;
@@ -18,7 +18,7 @@ class RelationalTest extends TestCase
         $mockEntity = \Mockery::mock(Entity::class);
         /** @var \Mockery\Mock|Relationship $mockRelationship */
         $mockRelationship = \Mockery::mock(Relationship::class);
-        /** @var \Mockery\Mock|Relationship\Relational $mockRelational */
+        /** @var \Mockery\Mock|Entity\Relational $mockRelational */
         $mockRelational = \Mockery::mock(RelationTestEntity::class)->makePartial();
         $mockRelational->shouldReceive('foobar')->once()->withNoArgs()->andReturn($mockRelationship);
         $mockRelationship->shouldReceive('fetch')->once()->with()->andReturn($mockEntity);
@@ -39,7 +39,7 @@ class RelationalTest extends TestCase
         $mockEntity = \Mockery::mock(Entity::class);
         /** @var \Mockery\Mock|Relationship $mockRelationship */
         $mockRelationship = \Mockery::mock(Relationship::class);
-        /** @var \Mockery\Mock|Relationship\Relational $mockRelational */
+        /** @var \Mockery\Mock|Entity\Relational $mockRelational */
         $mockRelational = \Mockery::mock(RelationTestEntity::class . '[foobar]');
         $mockRelational->shouldReceive('foobar')->once()->with('arg1', 'arg2')->andReturn($mockRelationship);
         $mockRelationship->shouldReceive('fetch')->once()->with()->andReturn($mockEntity);
@@ -53,7 +53,7 @@ class RelationalTest extends TestCase
 }
 class RelationTestEntity extends Entity
 {
-    use Relationship\Relational;
+    use Entity\Relational;
 
     public $id;
     public $foreignKey;

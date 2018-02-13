@@ -5,7 +5,6 @@ namespace MadeSimple\Database\Tests\Unit;
 use MadeSimple\Database\EntityCollection;
 use MadeSimple\Database\Entity;
 use MadeSimple\Database\EntityMap;
-use MadeSimple\Database\Relationship\Relational;
 use MadeSimple\Database\Tests\TestCase;
 
 class EntityCollectionTest extends TestCase
@@ -146,7 +145,7 @@ class EntityCollectionTestEntity extends Entity
 
 class EntityCollectionTestRelationalEntity extends Entity
 {
-    use Relational;
+    use Entity\Relational;
 
     public $id;
     public $value;

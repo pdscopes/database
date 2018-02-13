@@ -137,7 +137,7 @@ $connection->statement(function (CreateTable $create) {
 ```php
 class User extends \MadeSimple\Database\Entity
 {
-    use \MadeSimple\Database\Relationship\Relational;
+    use \MadeSimple\Database\Entity\Relational;
 
     protected static function getMap()
     {
@@ -164,7 +164,7 @@ class User extends \MadeSimple\Database\Entity
 }
 class Post extends \MadeSimple\Database\Entity
 {
-    use \MadeSimple\Database\Relationship\Relational;
+    use \MadeSimple\Database\Entity\Relational;
 
     protected static function getMap()
     {

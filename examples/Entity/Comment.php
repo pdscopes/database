@@ -8,7 +8,7 @@ use MadeSimple\Database\Relationship;
 
 class Comment extends Entity
 {
-    use Relationship\Relational;
+    use Entity\Relational;
 
     public $id;
     public $uuid;

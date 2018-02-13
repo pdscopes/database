@@ -1,11 +1,12 @@
 <?php
 
-namespace MadeSimple\Database\Relationship;
+namespace MadeSimple\Database\Entity;
 
 use MadeSimple\Arrays\Arrayable;
 use MadeSimple\Database\EntityCollection;
 use MadeSimple\Database\Entity;
 use MadeSimple\Database\EntityMap;
+use MadeSimple\Database\Relationship;
 
 trait Relational
 {
@@ -43,24 +44,24 @@ trait Relational
 
     /**
      * Start to define a new to one type relationship.
-     * @return ToOne
+     * @return Relationship\ToOne
      */
     protected function toOne()
     {
         if ($this instanceof Entity) {
-            return new ToOne($this);
+            return new Relationship\ToOne($this);
         }
         throw new \RuntimeException('Cannot create to one relationship for non-entities');
     }
 
     /**
      * Start to define a new to many type relationship.
-     * @return ToMany
+     * @return Relationship\ToMany
      */
     protected function toMany()
     {
         if ($this instanceof Entity) {
-            return new ToMany($this);
+            return new Relationship\ToMany($this);
         }
         throw new \RuntimeException('Cannot create to many relationship for non-entities');
     }
