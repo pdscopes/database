@@ -18,6 +18,11 @@ trait DatabaseConfigurationTrait
     protected $config = [];
 
     /**
+     * @var bool
+     */
+    protected $configured;
+
+    /**
      * Adds the database configuration to the command.
      */
     protected function addDatabaseConfigure()
@@ -43,6 +48,9 @@ trait DatabaseConfigurationTrait
             $output->writeln("<error>Cannot use no interaction without --dotenv (-e) option</error>");
             exit(1);
         }
+
+        // Default to set configuration from the environment
+        $this->setConfigurationFromEnvironment($input, $output);
     }
 
     /**
@@ -53,26 +61,8 @@ trait DatabaseConfigurationTrait
      */
     protected function interact(InputInterface $input, OutputInterface $output)
     {
-        if ($input->getOption('dotenv')) {
-            $dotenv = new Dotenv(getcwd(), $input->getOption('dotenv'));
-            $dotenv->load();
-            $dotenv->required('DATABASE_DRIVER')->allowedValues(['mysql', 'sqlite']);
-            $this->config['driver'] = getenv('DATABASE_DRIVER');
-            switch ($this->config['driver']) {
-                case 'mysql':
-                    $dotenv->required(['DATABASE_HOST', 'DATABASE_NAME', 'DATABASE_USERNAME', 'DATABASE_PASSWORD']);
-                    $this->config['host']     = getenv('DATABASE_HOST');
-                    $this->config['database'] = getenv('DATABASE_NAME');
-                    $this->config['username'] = getenv('DATABASE_USERNAME');
-                    $this->config['password'] = getenv('DATABASE_PASSWORD');
-                    break;
-
-                case 'sqlite':
-                    $dotenv->required(['DATABASE_LOCATION']);
-                    $this->config['database'] = getenv('DATABASE_LOCATION');
-                    break;
-            }
-            return ;
+        if ($this->configured) {
+            return;
         }
 
         // Request missing data
@@ -101,6 +91,45 @@ trait DatabaseConfigurationTrait
                 $question = new Question('Database Location: ');
                 $this->config['database'] = $helper->ask($input, $output, $question);
                 break;
+        }
+    }
+
+    protected function setConfigurationFromEnvironment(InputInterface $input, OutputInterface $output)
+    {
+        // If wanting to use the dotenv file
+        if ($input->getOption('dotenv')) {
+            $dotenv = new Dotenv(getcwd(), $input->getOption('dotenv'));
+            $dotenv->load();
+            $dotenv->required('DATABASE_DRIVER')->allowedValues(['mysql', 'sqlite']);
+            $this->config['driver'] = getenv('DATABASE_DRIVER');
+            switch ($this->config['driver']) {
+                case 'mysql':
+                    $dotenv->required(['DATABASE_HOST', 'DATABASE_NAME', 'DATABASE_USERNAME', 'DATABASE_PASSWORD']);
+                    break;
+
+                case 'sqlite':
+                    $dotenv->required(['DATABASE_LOCATION']);
+                    break;
+            }
+        }
+
+        $this->config['driver'] = getenv('DATABASE_DRIVER');
+        switch ($this->config['driver']) {
+            case 'mysql':
+                $this->config['host']     = getenv('DATABASE_HOST');
+                $this->config['database'] = getenv('DATABASE_NAME');
+                $this->config['username'] = getenv('DATABASE_USERNAME');
+                $this->config['password'] = getenv('DATABASE_PASSWORD');
+                $this->configured = true;
+                break;
+
+            case 'sqlite':
+                $this->config['database'] = getenv('DATABASE_LOCATION');
+                $this->configured = true;
+                break;
+
+            default:
+                $this->configured = false;
         }
     }
 }
