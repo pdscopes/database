@@ -48,6 +48,38 @@ class RelationalTest extends TestCase
         $this->assertEquals($mockEntity, $mockRelational->relation('foobar', 'arg1', 'arg2'));
         // Test that subsequent calls
         $this->assertEquals($mockEntity, $mockRelational->relation('foobar', 'arg1', 'arg2'));
+
+        // Test subsequent calls with different arguments
+        $mockRelational->shouldReceive('foobar')->once()->with()->andReturn($mockRelationship);
+        $mockRelationship->shouldReceive('fetch')->once()->with()->andReturn($mockEntity);
+        $this->assertEquals($mockEntity, $mockRelational->relation('foobar'));
+    }
+
+    /**
+     * Test Relation with Entity arguments.
+     */
+    public function testRelationWithEntityArgs()
+    {
+        $entity = new RelationTestEntity();
+        $entity->id = 11;
+
+        /** @var \Mockery\Mock|Entity $mockEntity */
+        $mockEntity = \Mockery::mock(Entity::class);
+        /** @var \Mockery\Mock|Relationship $mockRelationship */
+        $mockRelationship = \Mockery::mock(Relationship::class);
+        /** @var \Mockery\Mock|Entity\Relational $mockRelational */
+        $mockRelational = \Mockery::mock(RelationTestEntity::class . '[foobar]');
+        $mockRelational->shouldReceive('foobar')->once()->with($entity)->andReturn($mockRelationship);
+        $mockRelationship->shouldReceive('fetch')->once()->with()->andReturn($mockEntity);
+
+        // Test the first call
+        $this->assertEquals($mockEntity, $mockRelational->relation('foobar', $entity));
+        // Test that subsequent calls
+        $this->assertEquals($mockEntity, $mockRelational->relation('foobar', $entity));
+
+        // Test subsequent calls with different arguments
+        $mockRelational->shouldReceive('foobar')->once()->with()->andReturn($mockRelationship);
+        $mockRelationship->shouldReceive('fetch')->once()->with()->andReturn($mockEntity);
         $this->assertEquals($mockEntity, $mockRelational->relation('foobar'));
     }
 }

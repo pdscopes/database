@@ -30,16 +30,37 @@ trait Relational
      */
     public function relation($relationship, ... $args)
     {
+        // Attempt to convert $args to a string
+        $key = $this->generateKey($relationship, $args);
+
         // If the relationship has not already been fetched
-        if (!array_key_exists($relationship, $this->relationships)) {
+        if ($key === false || !array_key_exists($key, $this->relationships)) {
             if (!method_exists($this, $relationship)) {
                 throw new \InvalidArgumentException('No such relationship: ' . $relationship);
             }
 
-            $this->relationships[$relationship] = call_user_func_array([$this, $relationship], $args)->fetch();
+            $relationship = call_user_func_array([$this, $relationship], $args)->fetch();
+            if ($key) {
+                $this->relationships[$key] = $relationship;
+            }
+            return $relationship;
         }
 
-        return $this->relationships[$relationship];
+        return $this->relationships[$key];
+    }
+
+    /**
+     * @param string $relationship
+     * @param array $args
+     * @return bool|string
+     */
+    protected function generateKey($relationship, array $args = [])
+    {
+        try {
+            return $relationship . join('', $args);
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     /**

@@ -330,4 +330,9 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
     {
         return $this->propertiesToArray(static::map()->columnMap());
     }
+
+    public function __toString()
+    {
+        return join('', static::map()->primaryKeys($this));
+    }
 }
