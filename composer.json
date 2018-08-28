@@ -11,6 +11,8 @@
     ],
     "require": {
         "php": ">=7.0",
+        "ext-json": "*",
+        "ext-pdo": "*",
         "psr/log": "~1.0",
         "madesimple/php-arrays": "^1.3"
     },

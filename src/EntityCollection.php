@@ -75,6 +75,45 @@ class EntityCollection extends Collection implements Jsonable
     }
 
     /**
+     * Filters the collection keeping entities that match the where clause
+     *
+     * @param string $column
+     * @param string $operator
+     * @param mixed $value
+     *
+     * @return static
+     */
+    public function where($column, $operator, $value)
+    {
+        return $this->filter(function (Entity $entity) use ($column, $operator, $value) {
+            switch ($operator) {
+                case '>':
+                    return $entity->{$column} > $value;
+                case '>=':
+                    return $entity->{$column} >= $value;
+
+                case '<':
+                    return $entity->{$column} < $value;
+                case '<=':
+                    return $entity->{$column} <= $value;
+
+                case '!==':
+                    return $entity->{$column} !== $value;
+
+                case '===':
+                    return $entity->{$column} === $value;
+
+                case '!=':
+                    return $entity->{$column} != $value;
+
+                case '==':
+                default:
+                    return $entity->{$column} == $value;
+            }
+        });
+    }
+
+    /**
      * @InheritDoc
      */
     public function toJson($options = 0, $depth = 512)

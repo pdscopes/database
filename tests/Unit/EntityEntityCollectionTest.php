@@ -13,7 +13,7 @@ class EntityCollectionTest extends TestCase
     {
         $entities = [];
         for ($i=1; $i<=10; $i++) {
-            $entities[] = new EntityCollectionTestEntity(null, [
+            $entities[] = (new EntityCollectionTestEntity)->populate([
                 'id'     => $i,
                 'value' => 'value ' . $i,
                 'VALUE' => 'VALUE ' . $i,
@@ -26,7 +26,7 @@ class EntityCollectionTest extends TestCase
     {
         $entities = [];
         for ($i=1; $i<=10; $i++) {
-            $entities[] = new EntityCollectionTestRelationalEntity(null, [
+            $entities[] = (new EntityCollectionTestRelationalEntity)->populate([
                 'id'    => $i,
                 'value' => 'value ' . $i,
                 'other' => [
@@ -129,6 +129,142 @@ class EntityCollectionTest extends TestCase
             $this->assertEquals($entity->relation('other')['FIELD'], $plucked[$k]['other']['FIELD']);
         }
     }
+
+
+    /**
+     * Test Collection::where returns the correct collection when filtering where id equals.
+     */
+    public function testWhereEquals()
+    {
+        $collection = $this->generateEntityCollection();
+
+        for ($i=1; $i<=10; $i++) {
+            $where = $collection->where('id', '==', $i);
+            $this->assertCount(1, $where);
+            foreach ($where as $entity) {
+                $this->assertEquals($entity->id, $i);
+            }
+        }
+    }
+
+    /**
+     * Test Collection::where returns the correct collection when filtering where id not equals.
+     */
+    public function testWhereNotEquals()
+    {
+        $collection = $this->generateEntityCollection();
+
+        for ($i=1; $i<=10; $i++) {
+            $where = $collection->where('id', '!=', $i);
+            $this->assertCount(9, $where);
+            foreach ($where as $entity) {
+                $this->assertNotEquals($entity->id, $i);
+            }
+        }
+    }
+
+
+    /**
+     * Test Collection::where returns the correct collection when filtering where id is identical.
+     */
+    public function testWhereIdentical()
+    {
+        $collection = $this->generateEntityCollection();
+
+        for ($i=1; $i<=10; $i++) {
+            $where = $collection->where('id', '===', $i);
+            $this->assertCount(1, $where);
+            foreach ($where as $entity) {
+                $this->assertEquals($entity->id, $i);
+            }
+
+            $where = $collection->where('id', '===', (string) $i);
+            $this->assertCount(0, $where);
+        }
+    }
+
+    /**
+     * Test Collection::where returns the correct collection when filtering where id is not identical.
+     */
+    public function testWhereNotIdentical()
+    {
+        $collection = $this->generateEntityCollection();
+
+        for ($i=1; $i<=10; $i++) {
+            $where = $collection->where('id', '!==', $i);
+            $this->assertCount(9, $where);
+            foreach ($where as $entity) {
+                $this->assertNotEquals($entity->id, $i);
+            }
+
+            $where = $collection->where('id', '!==', (string) $i);
+            $this->assertCount(10, $where);
+        }
+    }
+
+    /**
+     * Test Collection::where returns the correct collection when filtering where id greater than.
+     */
+    public function testWhereGreaterThan()
+    {
+        $collection = $this->generateEntityCollection();
+
+        for ($i=1; $i<=10; $i++) {
+            $where = $collection->where('id', '>', $i);
+            $this->assertCount(10-$i, $where);
+            foreach ($where as $entity) {
+                $this->assertTrue($entity->id > $i);
+            }
+        }
+    }
+
+    /**
+     * Test Collection::where returns the correct collection when filtering where id greater than or equals.
+     */
+    public function testWhereGreaterThanOrEquals()
+    {
+        $collection = $this->generateEntityCollection();
+
+        for ($i=1; $i<=10; $i++) {
+            $where = $collection->where('id', '>=', $i);
+            $this->assertCount(10-($i-1), $where);
+            foreach ($where as $entity) {
+                $this->assertTrue($entity->id >= $i);
+            }
+        }
+    }
+
+    /**
+     * Test Collection::where returns the correct collection when filtering where id less than.
+     */
+    public function testWhereLessThan()
+    {
+        $collection = $this->generateEntityCollection();
+
+        for ($i=1; $i<=10; $i++) {
+            $where = $collection->where('id', '<', $i);
+            $this->assertCount($i-1, $where);
+            foreach ($where as $entity) {
+                $this->assertTrue($entity->id < $i);
+            }
+        }
+    }
+
+    /**
+     * Test Collection::where returns the correct collection when filtering where id less than or equals.
+     */
+    public function testWhereLessThanOrEquals()
+    {
+        $collection = $this->generateEntityCollection();
+
+        for ($i=1; $i<=10; $i++) {
+            $where = $collection->where('id', '<=', $i);
+            $this->assertCount($i, $where);
+            foreach ($where as $entity) {
+                $this->assertTrue($entity->id <= $i);
+            }
+        }
+    }
 }
 
 class EntityCollectionTestEntity extends Entity
@@ -150,15 +286,17 @@ class EntityCollectionTestRelationalEntity extends Entity
     public $id;
     public $value;
 
-    public function __construct($pool = null, $row = null)
+    public function populate(array $row)
     {
-        parent::__construct($pool, $row);
+        parent::populate($row);
 
         foreach ($row as $k => $value) {
             if (method_exists($this, $k)) {
                 $this->relationships[$k] = $value;
             }
         }
+
+        return $this;
     }
 
     protected static function getMap()
