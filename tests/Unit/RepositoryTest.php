@@ -87,6 +87,30 @@ class RepositoryTest extends TestCase
     }
 
     /**
+     * Test find by with column in.
+     */
+    public function testFindByWithColumnIn()
+    {
+        $fetched = (new RepositoryEntity)->populate(['ID' => 1, 'db_value' => 'value']);
+
+        $this->mockPool->shouldReceive('get')->once()->with(null)->andReturn($this->mockConnection);
+        $this->mockConnection->shouldReceive('select')->once()->withNoArgs()->andReturn($this->mockSelect);
+        $this->mockSelect->shouldReceive('columns')->once()->with('t.*')->andReturnSelf();
+        $this->mockSelect->shouldReceive('from')->once()->with('repo', 't')->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('t.c1', '=', ['v1', 'v2'])->andReturnSelf();
+        $this->mockSelect->shouldNotReceive('orderBy');
+        $this->mockSelect->shouldReceive('fetchAll')->once()
+            ->with(\PDO::FETCH_CLASS, RepositoryEntity::class, [$this->mockPool, true])->andReturn([$fetched]);
+
+        $repository = new Repository($this->mockPool, RepositoryEntity::class);
+        $items      = $repository->findBy(['c1' => ['v1', 'v2']]);
+
+        $this->assertInstanceOf(EntityCollection::class, $items);
+        $this->assertCount(1, $items);
+        $this->assertInstanceOf(RepositoryEntity::class, $items[0]);
+    }
+
+    /**
      * Test find by with columns.
      */
     public function testFindByWithColumns()

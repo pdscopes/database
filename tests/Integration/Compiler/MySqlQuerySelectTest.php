@@ -166,6 +166,17 @@ class MySqlQuerySelectTest extends CompilableMySqlTestCase
     }
 
     /**
+     * Test where not in.
+     */
+    public function testQuerySelectWhereNotIn()
+    {
+        $sql    = 'SELECT * FROM `table` WHERE `field` NOT IN (?,?,?,?,?)';
+        $select = (new Select($this->mockConnection))->from('table')
+            ->where('field', 'not in', [1, 2, 3, 4, 5]);
+        $this->assertEquals($sql, $select->toSql());
+    }
+
+    /**
      * Test where with closure.
      */
     public function testQuerySelectWhereClosure()

@@ -89,6 +89,63 @@ class WhereTest extends CompilableTestCase
     }
 
     /**
+     * Test where: "field = $var" becomes "field IN (?)" when $var is an array
+     */
+    public function testWhereEqualsInArray()
+    {
+        $query = (new WhereBuilder($this->mockConnection))->where('field', '=', [1,2,3]);
+        $array = $query->toArray();
+
+        $this->assertInstanceOf(WhereBuilder::class, $query);
+        $this->assertEquals([
+            'where' => [
+                [
+                    'column'   => 'field',
+                    'operator' => 'in',
+                    'value'    => [1,2,3],
+                    'boolean'  => 'and',
+                ]
+            ]
+        ], $array);
+    }
+
+    /**
+     * Test where: "field != $var" and "field <> $var" becomes "field NOT IN (?)" when $var is an array
+     */
+    public function testWhereNotEqualsInArray()
+    {
+        $query = (new WhereBuilder($this->mockConnection))->where('field', '!=', [1,2,3]);
+        $array = $query->toArray();
+
+        $this->assertInstanceOf(WhereBuilder::class, $query);
+        $this->assertEquals([
+            'where' => [
+                [
+                    'column'   => 'field',
+                    'operator' => 'not in',
+                    'value'    => [1,2,3],
+                    'boolean'  => 'and',
+                ]
+            ]
+        ], $array);
+
+        $query = (new WhereBuilder($this->mockConnection))->where('field', '<>', [1,2,3]);
+        $array = $query->toArray();
+
+        $this->assertInstanceOf(WhereBuilder::class, $query);
+        $this->assertEquals([
+            'where' => [
+                [
+                    'column'   => 'field',
+                    'operator' => 'not in',
+                    'value'    => [1,2,3],
+                    'boolean'  => 'and',
+                ]
+            ]
+        ], $array);
+    }
+
+    /**
      * Test where between.
      */
     public function testWhereBetween()

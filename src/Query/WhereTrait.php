@@ -41,6 +41,18 @@ trait WhereTrait
             }
         }
 
+        // If the value is an array and the operator is '=', '!=', or '<>'
+        if (is_array($value) && in_array($operator, ['=', '!=', '<>'])) {
+            switch ($operator) {
+                case '=':
+                    $operator = 'in';
+                    break;
+                default:
+                    $operator = 'not in';
+                    break;
+            }
+        }
+
         $this->statement['where'][] = compact('column', 'operator', 'value', 'boolean');
 
         return $this;
