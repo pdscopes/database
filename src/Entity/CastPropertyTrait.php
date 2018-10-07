@@ -2,16 +2,11 @@
 
 namespace MadeSimple\Database\Entity;
 
+/**
+ * @property array $casts List of properties to be cast.
+ */
 trait CastPropertyTrait
 {
-
-    /**
-     * List of properties to be cast.
-     *
-     * @var array
-     */
-    protected $casts = [];
-
     /**
      * @param      $property
      * @param null $default
