@@ -3,8 +3,8 @@
 namespace MadeSimple\Database\Entity;
 
 use MadeSimple\Arrays\Arrayable;
-use MadeSimple\Database\EntityCollection;
 use MadeSimple\Database\Entity;
+use MadeSimple\Database\EntityCollection;
 use MadeSimple\Database\EntityMap;
 use MadeSimple\Database\Relationship;
 
@@ -23,6 +23,8 @@ trait Relational
     public static abstract function map();
 
     /**
+     * Fetch the relation named `$relationship`. Results are cached.
+     *
      * @param string $relationship
      * @param array  $args
      *
@@ -47,6 +49,26 @@ trait Relational
         }
 
         return $this->relationships[$key];
+    }
+
+    /**
+     * Explicitly set the relative.
+     *
+     * @param mixed  $relative
+     * @param string $relationship
+     * @param array  ...$args
+     *
+     * @return static
+     */
+    public function relate($relative, $relationship, ... $args)
+    {
+        // Attempt to convert $args to a string
+        $key = $this->generateKey($relationship, $args);
+
+        // Store the relationship
+        $this->relationships[$key] = $relative;
+
+        return $this;
     }
 
     /**

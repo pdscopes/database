@@ -21,7 +21,15 @@ class ToMany extends Relationship
         }
 
         if (class_exists($this->relation, false)) {
-            return new EntityCollection($statement->fetchAll(\PDO::FETCH_CLASS, $this->relation, [$this->entity->pool, true]));
+            $collection = new EntityCollection($statement->fetchAll(\PDO::FETCH_CLASS, $this->relation, [$this->entity->pool, true]));
+            if (!empty($this->related)  && method_exists($this->relation, 'relate')) {
+                foreach ($this->related as list($relative, $relationship, $args)) {
+                    $collection->each(function ($entity) use ($relative, $relationship, $args) {
+                        $entity->relate($relative, $relationship, $args);
+                    });
+                }
+            }
+            return $collection;
         } else {
             return new Collection($statement->fetchAll(\PDO::FETCH_OBJ));
         }

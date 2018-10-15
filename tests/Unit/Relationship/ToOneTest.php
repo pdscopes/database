@@ -48,7 +48,7 @@ class ToOneTest extends TestCase
 
 
     /**
-     * Test fetch.
+     * Test "has" relationship fetch.
      */
     public function testHasFetch()
     {
@@ -78,7 +78,40 @@ class ToOneTest extends TestCase
     }
 
     /**
-     * Test fetch.
+     * Test "has" relationship fetch with related.
+     */
+    public function testHasFetchWithRelated()
+    {
+        $fetched = (new ToOneRelationalEntity)->populate(['ID' => 3, 'foreign_key' => '5']);
+
+        $this->mockSelect->shouldReceive('columns')->once()->with('e.*')->andReturnSelf();
+        $this->mockSelect->shouldReceive('from')->once()->with('entity', 'e')->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('e.foreign_key', '=', 5)->andReturnSelf();
+        $this->mockSelect->shouldReceive('limit')->once()->with(1)->andReturnSelf();
+        $this->mockSelect->shouldReceive('statement')->once()->withNoArgs()->andReturn([$this->mockPdoStatement, 0]);
+
+        $this->mockPdoStatement->shouldReceive('setFetchMode')
+            ->once()->with(\PDO::FETCH_CLASS, ToOneRelationalEntity::class, [$this->mockPool, true])->andReturnSelf();
+        $this->mockPdoStatement->shouldReceive('fetch')->once()->withNoArgs()->andReturn($fetched);
+
+
+
+        $entity = new ToOneRelatedRelationalEntity($this->mockPool);
+        $entity->key = 5;
+        $relation = (new ToOne($entity))
+            ->has(ToOneRelationalEntity::class, 'e', 'foreign_key')
+            ->relate($entity, 'entity');
+        /** @var ToOneRelationalEntity $related */
+        $related  = $relation->fetch();
+
+        $this->assertInstanceOf(ToOneRelationalEntity::class, $related);
+        $this->assertEquals(5, $related->foreignKey);
+        $this->assertEquals(3, $related->id);
+        $this->assertEquals($entity, $related->relation('entity'));
+    }
+
+    /**
+     * Test "belongs to" relationship fetch.
      */
     public function testBelongsToFetch()
     {
@@ -106,6 +139,39 @@ class ToOneTest extends TestCase
         $this->assertEquals(5, $related->key);
         $this->assertEquals('VALUE', $related->value);
     }
+
+    /**
+     * Test "belong to" relationship fetch with related.
+     */
+    public function testBelongsToFetchWithRelated()
+    {
+        $fetched = (new ToOneRelatedRelationalEntity)->populate(['KEY' => 5, 'db_value' => 'VALUE']);
+
+        $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
+        $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('r.KEY', '=', 5)->andReturnSelf();
+        $this->mockSelect->shouldReceive('limit')->once()->with(1)->andReturnSelf();
+        $this->mockSelect->shouldReceive('statement')->once()->withNoArgs()->andReturn([$this->mockPdoStatement, 0]);
+
+        $this->mockPdoStatement->shouldReceive('setFetchMode')
+            ->once()->with(\PDO::FETCH_CLASS, ToOneRelatedRelationalEntity::class, [$this->mockPool, true])->andReturnSelf();
+        $this->mockPdoStatement->shouldReceive('fetch')->once()->withNoArgs()->andReturn($fetched);
+
+
+
+        $entity = new ToOneRelationalEntity($this->mockPool);
+        $entity->foreignKey = 5;
+        $relation = (new ToOne($entity))
+            ->belongsTo(ToOneRelatedRelationalEntity::class, 'r', 'foreign_key')
+            ->relate($entity, 'entity');
+        /** @var ToOneRelatedRelationalEntity $related */
+        $related  = $relation->fetch();
+
+        $this->assertInstanceOf(ToOneRelatedRelationalEntity::class, $related);
+        $this->assertEquals(5, $related->key);
+        $this->assertEquals('VALUE', $related->value);
+        $this->assertEquals($entity, $related->relation('entity'));
+    }
 }
 class ToOneEntity extends Entity
 {
@@ -119,6 +185,30 @@ class ToOneEntity extends Entity
 }
 class ToOneRelatedEntity extends Entity
 {
+    public $key;
+    public $value;
+
+    protected static function getMap()
+    {
+        return new EntityMap('related', ['KEY' => 'key'], ['db_value' => 'value']);
+    }
+}
+class ToOneRelationalEntity extends Entity
+{
+    use Entity\Relational;
+
+    public $id;
+    public $foreignKey;
+
+    protected static function getMap()
+    {
+        return new EntityMap('entity', ['ID' => 'id'], ['foreign_key' => 'foreignKey']);
+    }
+}
+class ToOneRelatedRelationalEntity extends Entity
+{
+    use Entity\Relational;
+
     public $key;
     public $value;
 

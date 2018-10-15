@@ -78,6 +78,40 @@ class ToManyTest extends TestCase
     }
 
     /**
+     * Test fetch with related.
+     */
+    public function testHasFetchWithRelated()
+    {
+        $fetched = (new ToManyRelationalEntity)->populate(['ID' => 3, 'foreign_key' => '5']);
+
+        $this->mockSelect->shouldReceive('columns')->once()->with('e.*')->andReturnSelf();
+        $this->mockSelect->shouldReceive('from')->once()->with('entity', 'e')->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('e.foreign_key', '=', 5)->andReturnSelf();
+        $this->mockSelect->shouldReceive('statement')->once()->withNoArgs()->andReturn([$this->mockPdoStatement, 0]);
+
+        $this->mockPdoStatement->shouldReceive('fetchAll')->once()
+            ->with(\PDO::FETCH_CLASS, ToManyRelationalEntity::class, [$this->mockPool, true])->andReturn([$fetched]);
+
+
+
+        $entity = new ToManyRelatedRelationalEntity($this->mockPool);
+        $entity->key = 5;
+        $relation = (new ToMany($entity))
+            ->has(ToManyRelationalEntity::class, 'e', 'foreign_key')
+            ->relate($entity, 'entity');
+        $items    = $relation->fetch();
+
+        $this->assertInstanceOf(EntityCollection::class, $items);
+        $this->assertCount(1, $items);
+        $this->assertInstanceOf(ToManyRelationalEntity::class, $items[0]);
+        $this->assertEquals(5, $items[0]->foreignKey);
+        $this->assertEquals(3, $items[0]->id);
+        foreach ($items as $item) {
+            $this->assertEquals($entity, $item->relation('entity'));
+        }
+    }
+
+    /**
      * Test fetch.
      */
     public function testBelongsToFetch()
@@ -104,6 +138,40 @@ class ToManyTest extends TestCase
         $this->assertInstanceOf(ToManyRelatedEntity::class, $items[0]);
         $this->assertEquals(5, $items[0]->key);
         $this->assertEquals('VALUE', $items[0]->value);
+    }
+
+    /**
+     * Test fetch with related.
+     */
+    public function testBelongsToFetchWithRelated()
+    {
+        $fetched = (new ToManyRelatedRelationalEntity)->populate(['KEY' => 5, 'db_value' => 'VALUE']);
+
+        $this->mockSelect->shouldReceive('columns')->once()->with('r.*')->andReturnSelf();
+        $this->mockSelect->shouldReceive('from')->once()->with('related', 'r')->andReturnSelf();
+        $this->mockSelect->shouldReceive('where')->once()->with('r.KEY', '=', 5)->andReturnSelf();
+        $this->mockSelect->shouldReceive('statement')->once()->withNoArgs()->andReturn([$this->mockPdoStatement, 0]);
+
+        $this->mockPdoStatement->shouldReceive('fetchAll')->once()
+            ->with(\PDO::FETCH_CLASS, ToManyRelatedRelationalEntity::class, [$this->mockPool, true])->andReturn([$fetched]);
+
+
+
+        $entity = new ToManyRelationalEntity($this->mockPool);
+        $entity->foreignKey = 5;
+        $relation = (new ToMany($entity))
+            ->belongsTo(ToManyRelatedRelationalEntity::class, 'r', 'foreign_key')
+            ->relate($entity, 'entity');
+        $items    = $relation->fetch();
+
+        $this->assertInstanceOf(EntityCollection::class, $items);
+        $this->assertCount(1, $items);
+        $this->assertInstanceOf(ToManyRelatedRelationalEntity::class, $items[0]);
+        $this->assertEquals(5, $items[0]->key);
+        $this->assertEquals('VALUE', $items[0]->value);
+        foreach ($items as $item) {
+            $this->assertEquals($entity, $item->relation('entity'));
+        }
     }
 
     /**
@@ -155,6 +223,30 @@ class ToManyEntity extends Entity
 }
 class ToManyRelatedEntity extends Entity
 {
+    public $key;
+    public $value;
+
+    protected static function getMap()
+    {
+        return new EntityMap('related', ['KEY' => 'key'], ['db_value' => 'value']);
+    }
+}
+class ToManyRelationalEntity extends Entity
+{
+    use Entity\Relational;
+
+    public $id;
+    public $foreignKey;
+
+    protected static function getMap()
+    {
+        return new EntityMap('entity', ['ID' => 'id'], ['foreign_key' => 'foreignKey']);
+    }
+}
+class ToManyRelatedRelationalEntity extends Entity
+{
+    use Entity\Relational;
+
     public $key;
     public $value;
 

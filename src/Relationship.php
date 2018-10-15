@@ -32,6 +32,11 @@ abstract class  Relationship
     protected $query;
 
     /**
+     * @var array
+     */
+    protected $related = [];
+
+    /**
      * Relationship constructor.
      *
      * @param Entity $entity
@@ -47,6 +52,19 @@ abstract class  Relationship
      * @return mixed
      */
     public abstract function fetch();
+
+    /**
+     * Explicity set the relationships of fetched `Entity`.
+     * @param mixed $relative
+     * @param string $relationship
+     * @param array ...$args
+     * @return static
+     */
+    public function relate($relative, $relationship, ... $args)
+    {
+        $this->related[] = [$relative, $relationship, empty($args) ? null : $args];
+        return $this;
+    }
 
     /**
      * @param string       $related         Related Entity class name or table name
