@@ -4,13 +4,11 @@ namespace MadeSimple\Database\Entity;
 
 use MadeSimple\Database\Pool;
 
+/**
+ * @uses \MadeSimple\Database\Entity::$connection
+ */
 trait Queryable
 {
-    /**
-     * @var string
-     */
-    public static $connection = null;
-
     /**
      * @return \MadeSimple\Database\EntityMap
      */
