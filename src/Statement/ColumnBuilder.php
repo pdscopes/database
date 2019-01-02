@@ -334,7 +334,7 @@ class ColumnBuilder extends Builder
     public function text($binary = false, $charset = null, $collate = null)
     {
         $type = 'text';
-        $this->statement['datatype'] = compact('type', 'length', 'binary', 'charset', 'collate');
+        $this->statement['datatype'] = compact('type', 'binary', 'charset', 'collate');
 
         return $this;
     }
@@ -351,7 +351,7 @@ class ColumnBuilder extends Builder
     public function mediumText($binary = false, $charset = null, $collate = null)
     {
         $type = 'mediumText';
-        $this->statement['datatype'] = compact('type', 'length', 'binary', 'charset', 'collate');
+        $this->statement['datatype'] = compact('type', 'binary', 'charset', 'collate');
 
         return $this;
     }
@@ -368,7 +368,7 @@ class ColumnBuilder extends Builder
     public function longText($binary = false, $charset = null, $collate = null)
     {
         $type = 'longText';
-        $this->statement['datatype'] = compact('type', 'length', 'binary', 'charset', 'collate');
+        $this->statement['datatype'] = compact('type', 'binary', 'charset', 'collate');
 
         return $this;
     }
