@@ -8,12 +8,12 @@ namespace MadeSimple\Database\Entity;
 trait CastPropertyTrait
 {
     /**
-     * @param      $property
-     * @param null $default
+     * @param string $property
+     * @param mixed  $default
      *
-     * @return array|float|null|string
+     * @return mixed
      */
-    public function cast($property, $default = null)
+    public function cast(string $property, $default = null)
     {
         if (!isset($this->{$property})) {
             return $default;
@@ -47,7 +47,11 @@ trait CastPropertyTrait
                 return json_decode($this->{$property}, true);
 
             default:
-                return $default;
+                if (is_callable($this->casts[$property])) {
+                    return call_user_func($this->casts[$property], $this->{$property});
+                } else {
+                    return $default;
+                }
         }
     }
 }
