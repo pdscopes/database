@@ -154,13 +154,7 @@ class SQLite extends Compiler
                 return 'UNIQUE' . ($constraintArray['name'] ?? '') . '(' . $columns . ')';
 
             case 'foreignKey':
-                $referenceTable   = $this->sanitise($constraintArray['referenceTable']);
-                $referenceColumns = implode(',', array_map([$this, 'sanitise'], $constraintArray['referenceColumns']));
-                $onDelete         = (isset($constraintArray['onDelete']) ? ' ON DELETE ' . $constraintArray['onDelete'] : '');
-                $onUpdate         = (isset($constraintArray['onUpdate']) ? ' ON UPDATE ' . $constraintArray['onUpdate'] : '');
-                return 'FOREIGN KEY '
-                    . ($constraintArray['name'] ?? '') . '(' . $columns . ') REFERENCES ' . $referenceTable
-                    . '(' . $referenceColumns . ')' . $onDelete . $onUpdate;
+                // SQLite does not support foreign keys
         }
 
         return '';
