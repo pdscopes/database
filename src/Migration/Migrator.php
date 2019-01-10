@@ -259,7 +259,8 @@ class Migrator
         require_once $file;
 
         $fileName   = basename($file);
-        $className  = substr($fileName, strrpos($fileName, '-') + 1, -4);
+        preg_match('/(.+-)?([a-zA-Z0-9\_]+).php/', $fileName, $matches);
+        $className  = $matches[2];
         $className  = str_replace('_', '', ucwords($className, '_'));
         $reflection = new \ReflectionClass($className);
 
