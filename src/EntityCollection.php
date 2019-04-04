@@ -120,4 +120,12 @@ class EntityCollection extends Collection implements Jsonable
     {
         return json_encode($this->jsonSerialize(), $options, $depth);
     }
+
+    /**
+     * @InheritDoc
+     */
+    public function __toString()
+    {
+        return join('', array_map(function ($i) { return (string) $i; }, $this->toArray()));
+    }
 }
