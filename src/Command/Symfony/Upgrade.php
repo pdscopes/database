@@ -35,10 +35,9 @@ class Upgrade extends Command
             ->addOption('path', 'p', InputOption::VALUE_REQUIRED, 'Path to your database migration files', 'database/migrations')
             ->addOption('seed', 's', InputOption::VALUE_OPTIONAL, 'Path to your database seed files', 'database/seeds')
             ->addOption('step', 't', InputOption::VALUE_OPTIONAL, 'Limit the number of migration files to migrate', false)
-            ->addUsage('sqlite')
-            ->addUsage('-p path/to/migration/files sqlite')
-            ->addUsage('-e')
-            ->addUsage('-e -p path/to/migration/files');
+            ->addUsage('--db-driver sqlite')
+            ->addUsage('-p path/to/migration/files --db-driver sqlite')
+            ->addUsage('-p path/to/migration/files');
     }
 
     protected function initialize(InputInterface $input, OutputInterface $output)

@@ -23,7 +23,6 @@
         "symfony/console": "~3.2",
         "symfony/filesystem": "~3.2",
         "symfony/finder": "^3.2",
-        "vlucas/phpdotenv": "^2.4",
         "monolog/monolog": "^1.23"
     },
     "autoload": {

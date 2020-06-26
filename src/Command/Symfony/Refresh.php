@@ -28,8 +28,8 @@ class Refresh extends Command
             ->setHelp('This command allows you to refresh your database migrations')
             ->addOption('path', 'p', InputOption::VALUE_REQUIRED, 'Path to your database migration files', 'database/migrations')
             ->addOption('seed', 's', InputOption::VALUE_OPTIONAL, 'Path to your database seed files', 'database/seeds')
-            ->addUsage('sqlite')
-            ->addUsage('-e');
+            ->addUsage('--db-driver sqlite')
+            ->addUsage('--no-env');
     }
 
     protected function initialize(InputInterface $input, OutputInterface $output)

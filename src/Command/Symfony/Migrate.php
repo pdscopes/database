@@ -29,8 +29,8 @@ class Migrate extends Command
             ->addOption('path', 'p', InputOption::VALUE_REQUIRED, 'Path to your database migration files', 'database/migrations')
             ->addOption('seed', 's', InputOption::VALUE_OPTIONAL, 'Path to your database seed files', 'database/seeds')
             ->addOption('step', 't', InputOption::VALUE_OPTIONAL, 'Limit the number of migration files to migrate', false)
-            ->addUsage('sqlite')
-            ->addUsage('-e');
+            ->addUsage('--db-driver sqlite')
+            ->addUsage('--no-env');
     }
 
     protected function initialize(InputInterface $input, OutputInterface $output)

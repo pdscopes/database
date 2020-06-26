@@ -21,8 +21,8 @@ class Install extends Command
             ->setName('database:install')
             ->setDescription('Install the database migrations table')
             ->setHelp('This command allows you to install the database migrations table')
-            ->addUsage('sqlite')
-            ->addUsage('-e');
+            ->addUsage('--db-driver sqlite')
+            ->addUsage('--no-env');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)

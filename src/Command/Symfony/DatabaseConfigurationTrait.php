@@ -2,13 +2,11 @@
 
 namespace MadeSimple\Database\Command\Symfony;
 
-use Dotenv\Dotenv;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Question\Question;
-use Symfony\Component\Filesystem\Filesystem;
 
 trait DatabaseConfigurationTrait
 {
@@ -23,30 +21,27 @@ trait DatabaseConfigurationTrait
     protected $configured;
 
     /**
+     * @return string[] List of supported database drivers
+     */
+    protected function supportedDbDrivers(): array
+    {
+        return ['mysql', 'sqlite'];
+    }
+
+    /**
      * Adds the database configuration to the command.
      */
     protected function addDatabaseConfigure()
     {
-        $this->addArgument('dbDriver', InputArgument::OPTIONAL, 'Driver for the database to run migration');
-        $this->addArgument('dbUser', InputArgument::OPTIONAL, 'Username for the database');
-        $this->addOption('dotenv', 'e', InputOption::VALUE_OPTIONAL, 'Load configuration from environment file', '.env');
+        $this->addOption('no-env', null, InputOption::VALUE_NONE, 'Do not load db config from environment');
+        $this->addOption('db-driver', null, InputOption::VALUE_REQUIRED, 'Driver for the database to run migration (available: '.join(', ', $this->supportedDbDrivers()).')');
     }
 
     protected function initialize(InputInterface $input, OutputInterface $output)
     {
-        // Ensure default value for options with optional value
-        $input->setOption('dotenv', $input->getOption('dotenv') ?? $this->getDefinition()->getOption('dotenv')->getDefault());
-
-        if ($input->getParameterOption(['--dotenv', '-e'], false, true) !== false) {
-            $fs = new Filesystem();
-            if (!$fs->exists($input->getOption('dotenv'))) {
-                $output->writeln('<error>Environment file must exist</error>');
-                exit(1);
-            }
-        }
-        else if($input->getOption('no-interaction')) {
-            $output->writeln("<error>Cannot use no interaction without --dotenv (-e) option</error>");
-            exit(1);
+        // Check the value of db-driver
+        if ($input->getOption('db-driver') && !in_array($input->getOption('db-driver'), $this->supportedDbDrivers())) {
+            throw new \InvalidArgumentException('db-driver must be one of: ' . join(', ',  $this->supportedDbDrivers()));
         }
 
         // Default to set configuration from the environment
@@ -67,9 +62,9 @@ trait DatabaseConfigurationTrait
 
         // Request missing data
         $helper = $this->getHelper('question');
-        $this->config['driver'] = $input->getArgument('dbDriver');
-        if (!$input->getArgument('dbDriver')) {
-            $question = new Question('Database driver: ');
+        $this->config['driver'] = $input->getOption('db-driver');
+        if (!$input->getOption('db-driver')) {
+            $question = new ChoiceQuestion('Choose a database driver: ', ['mysql', 'sqlite']);
             $this->config['driver'] = $helper->ask($input, $output, $question);
         }
 
@@ -96,21 +91,10 @@ trait DatabaseConfigurationTrait
 
     protected function setConfigurationFromEnvironment(InputInterface $input, OutputInterface $output)
     {
-        // If wanting to use the dotenv file
-        if ($input->getOption('dotenv')) {
-            $dotenv = new Dotenv(getcwd(), $input->getOption('dotenv'));
-            $dotenv->load();
-            $dotenv->required('DATABASE_DRIVER')->allowedValues(['mysql', 'sqlite']);
-            $this->config['driver'] = getenv('DATABASE_DRIVER');
-            switch ($this->config['driver']) {
-                case 'mysql':
-                    $dotenv->required(['DATABASE_HOST', 'DATABASE_NAME', 'DATABASE_USERNAME', 'DATABASE_PASSWORD']);
-                    break;
-
-                case 'sqlite':
-                    $dotenv->required(['DATABASE_LOCATION']);
-                    break;
-            }
+        // If set to not config from the environment
+        if ($input->getOption('no-env')) {
+            $output->writeln('<fg=yellow>Not loading db config from env</>', OutputInterface::VERBOSITY_DEBUG);
+            return;
         }
 
         $this->config['driver'] = getenv('DATABASE_DRIVER');
@@ -120,12 +104,12 @@ trait DatabaseConfigurationTrait
                 $this->config['database'] = getenv('DATABASE_NAME');
                 $this->config['username'] = getenv('DATABASE_USERNAME');
                 $this->config['password'] = getenv('DATABASE_PASSWORD');
-                $this->configured = true;
+                $this->configured = (bool) ($this->config['host'] && $this->config['database']);
                 break;
 
             case 'sqlite':
                 $this->config['database'] = getenv('DATABASE_LOCATION');
-                $this->configured = true;
+                $this->configured = (bool) $this->config['database'];
                 break;
 
             default:

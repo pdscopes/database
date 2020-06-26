@@ -26,10 +26,10 @@ class RollBack extends Command
             ->setHelp('This command allows you to rollback your database to the previous migration')
             ->addOption('batches', 'b', InputOption::VALUE_REQUIRED, 'Number of batches to rollback', 1)
             ->addOption('all', 'a', InputOption::VALUE_NONE, 'Rollback to before your first migration')
-            ->addUsage('sqlite')
-            ->addUsage('--all sqlite')
-            ->addUsage('-e')
-            ->addUsage('-e -b 1');
+            ->addUsage('--db-driver sqlite')
+            ->addUsage('--all --db-driver sqlite')
+            ->addUsage('-b 1')
+            ->addUsage('--no-env');
     }
 
     protected function initialize(InputInterface $input, OutputInterface $output)
