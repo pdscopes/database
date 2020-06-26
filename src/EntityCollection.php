@@ -126,6 +126,8 @@ class EntityCollection extends Collection implements Jsonable
      */
     public function __toString()
     {
-        return join('', array_map(function ($i) { return (string) $i; }, $this->toArray()));
+        return join('', array_map(function ($i) {
+            return is_array($i) ? array_map('strval', $i) :  (string) $i;
+        }, $this->toArray()));
     }
 }
