@@ -2,17 +2,8 @@
 
 namespace MadeSimple\Database\Tests;
 
-class TestCase extends \PHPUnit\Framework\TestCase
+use Mockery\Adapter\Phpunit\MockeryTestCase;
+
+class TestCase extends MockeryTestCase
 {
-    protected function setUp()
-    {
-        parent::setUp();
-    }
-
-    protected function tearDown()
-    {
-        parent::tearDown();
-
-        \Mockery::close();
-    }
 }

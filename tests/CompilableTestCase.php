@@ -31,7 +31,7 @@ class CompilableTestCase extends TestCase
      */
     protected $mockCompiler;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 

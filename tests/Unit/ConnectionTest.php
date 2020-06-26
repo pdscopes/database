@@ -31,7 +31,7 @@ class ConnectionTest extends TestCase
      */
     private $mockCompiler;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 

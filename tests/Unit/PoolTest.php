@@ -41,7 +41,7 @@ class PoolTest extends TestCase
      */
     private $connection2;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -67,12 +67,12 @@ class PoolTest extends TestCase
 
     /**
      * Test construct throws exception.
-     *
-     * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessage Pool only accepts Connections
      */
     public function testConstructThrowsInvalidArgumentException()
     {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Pool only accepts Connections');
+
         new Pool('Not A Connection');
     }
 

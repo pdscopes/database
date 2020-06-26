@@ -21,7 +21,7 @@ class EntityTest extends TestCase
      */
     private $mockPool;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -178,12 +178,12 @@ class EntityTest extends TestCase
 
     /**
      * Test persist throws an exception when attempting to persist a composite key entity.
-     *
-     * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessage Cannot persist
      */
     public function testPersistCompositePrimaryKey()
     {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Cannot persist');
+        
         $entity = new CompositeKeyEntity($this->mockPool);
         $entity->userId    = 5;
         $entity->companyId = 7;
@@ -527,17 +527,17 @@ class EntityTest extends TestCase
         ]);
 
         $array = $entity->toArray();
-        $this->assertTrue(is_array($entity->toArray()));
-        $this->assertTrue(is_int($array['int']));
-        $this->assertTrue(is_integer($array['integer']));
-        $this->assertTrue(is_bool($array['bool']));
-        $this->assertTrue(is_bool($array['boolean']));
-        $this->assertTrue(is_double($array['double']));
-        $this->assertTrue(is_float($array['float']));
-        $this->assertTrue(is_real($array['real']));
-        $this->assertTrue(is_string($array['string']));
-        $this->assertTrue(is_array($array['array']));
-        $this->assertTrue(is_array($array['json']));
+        $this->assertIsArray($entity->toArray());
+        $this->assertIsInt($array['int']);
+        $this->assertIsInt($array['integer']);
+        $this->assertIsBool($array['bool']);
+        $this->assertIsBool($array['boolean']);
+        $this->assertIsFloat($array['double']);
+        $this->assertIsFloat($array['float']);
+        $this->assertIsFloat($array['real']);
+        $this->assertIsString($array['string']);
+        $this->assertIsArray($array['array']);
+        $this->assertIsArray($array['json']);
     }
 
     /**
@@ -558,16 +558,16 @@ class EntityTest extends TestCase
             'json'    => '{"mapped": "property"}',
         ]);
 
-        $this->assertTrue(is_int($entity->cast('int')));
-        $this->assertTrue(is_integer($entity->cast('integer')));
-        $this->assertTrue(is_bool($entity->cast('bool')));
-        $this->assertTrue(is_bool($entity->cast('boolean')));
-        $this->assertTrue(is_double($entity->cast('double')));
-        $this->assertTrue(is_float($entity->cast('float')));
-        $this->assertTrue(is_real($entity->cast('real')));
-        $this->assertTrue(is_string($entity->cast('string')));
-        $this->assertTrue(is_array($entity->cast('array')));
-        $this->assertTrue(is_array($entity->cast('json')));
+        $this->assertIsInt($entity->cast('int'));
+        $this->assertIsInt($entity->cast('integer'));
+        $this->assertIsBool($entity->cast('bool'));
+        $this->assertIsBool($entity->cast('boolean'));
+        $this->assertIsFloat($entity->cast('double'));
+        $this->assertIsFloat($entity->cast('float'));
+        $this->assertIsFloat($entity->cast('real'));
+        $this->assertIsString($entity->cast('string'));
+        $this->assertIsArray($entity->cast('array'));
+        $this->assertIsArray($entity->cast('json'));
     }
 
 
