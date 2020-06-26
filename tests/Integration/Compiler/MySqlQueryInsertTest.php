@@ -64,7 +64,7 @@ class MySqlQueryInsertTest extends CompilableMySqlTestCase
 
         $insert = (new Insert($this->mockConnection))->into('table')->columns('foo')->values(2);
         $compiledSql        = $insert->toSql();
-        list($pdoStatement) = $insert->statement();
+        [$pdoStatement] = $insert->statement();
 
         $this->assertEquals($sql, $compiledSql);
         $this->assertEquals($this->mockPdoStatement, $pdoStatement);
@@ -85,7 +85,7 @@ class MySqlQueryInsertTest extends CompilableMySqlTestCase
 
         $insert = (new Insert($this->mockConnection))->into('table')->columns('foo', 'bar')->values(2, 3);
         $compiledSql        = $insert->toSql();
-        list($pdoStatement) = $insert->statement();
+        [$pdoStatement] = $insert->statement();
 
         $this->assertEquals($sql, $compiledSql);
         $this->assertEquals($this->mockPdoStatement, $pdoStatement);
@@ -106,7 +106,7 @@ class MySqlQueryInsertTest extends CompilableMySqlTestCase
 
         $insert = (new Insert($this->mockConnection))->into('table')->columns(['foo', 'bar'])->values([2, 3]);
         $compiledSql        = $insert->toSql();
-        list($pdoStatement) = $insert->statement();
+        [$pdoStatement] = $insert->statement();
 
         $this->assertEquals($sql, $compiledSql);
         $this->assertEquals($this->mockPdoStatement, $pdoStatement);
@@ -127,7 +127,7 @@ class MySqlQueryInsertTest extends CompilableMySqlTestCase
 
         $insert = (new Insert($this->mockConnection))->into('table')->columns('foo')->values(2, 3);
         $compiledSql        = $insert->toSql();
-        list($pdoStatement) = $insert->statement();
+        [$pdoStatement] = $insert->statement();
 
         $this->assertEquals($sql, $compiledSql);
         $this->assertEquals($this->mockPdoStatement, $pdoStatement);
@@ -150,7 +150,7 @@ class MySqlQueryInsertTest extends CompilableMySqlTestCase
 
         $insert = (new Insert($this->mockConnection))->into('table')->columns('foo', 'bar')->values(2, 3, 5, 7);
         $compiledSql        = $insert->toSql();
-        list($pdoStatement) = $insert->statement();
+        [$pdoStatement] = $insert->statement();
 
         $this->assertEquals($sql, $compiledSql);
         $this->assertEquals($this->mockPdoStatement, $pdoStatement);
@@ -175,11 +175,36 @@ class MySqlQueryInsertTest extends CompilableMySqlTestCase
             ->columns(['foo', 'bar'])
             ->values([2, 3])
             ->values([5, 7]);
-        $compiledSql        = $insert->toSql();
-        list($pdoStatement) = $insert->statement();
+        $compiledSql    = $insert->toSql();
+        [$pdoStatement] = $insert->statement();
 
         $this->assertEquals($sql, $compiledSql);
         $this->assertEquals($this->mockPdoStatement, $pdoStatement);
 
+    }
+
+    /**
+     * Test insert with an array of rows chunked query.
+     */
+    public function testQueryInsertValuesChunkedRows()
+    {
+        $sql = 'INSERT INTO `table` (`foo`,`bar`) VALUES (?,?),(?,?)';
+
+        $this->mockPdo->shouldReceive('prepare')->twice()->with($sql)->andReturn($this->mockPdoStatement);
+        $this->mockPdo->shouldReceive('beginTransaction')->once();
+        $this->mockPdo->shouldReceive('commit')->once();
+        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(1, 2, \PDO::PARAM_INT)->andReturn(true);
+        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(2, 3, \PDO::PARAM_INT)->andReturn(true);
+        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(3, 5, \PDO::PARAM_INT)->andReturn(true);
+        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(4, 7, \PDO::PARAM_INT)->andReturn(true);
+        $this->mockPdoStatement->shouldReceive('execute')->twice()->withNoArgs()->andReturn('statement');
+        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(1, 4, \PDO::PARAM_INT)->andReturn(true);
+        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(2, 5, \PDO::PARAM_INT)->andReturn(true);
+        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(3, 6, \PDO::PARAM_INT)->andReturn(true);
+        $this->mockPdoStatement->shouldReceive('bindValue')->once()->with(4, 8, \PDO::PARAM_INT)->andReturn(true);
+
+        $insert = (new Insert($this->mockConnection))->into('table')
+            ->columns(['foo', 'bar']);
+        $insert->chunkedQuery([[2,3], [5,7], [4,5], [6,8]], 2);
     }
 }

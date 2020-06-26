@@ -55,10 +55,11 @@ class MySQLTest extends TestCase
             ->query();
         $connection->insert()->into('comment')
             ->columns('id', 'post_uuid', 'data')
-            ->values(['zyx', 'abc', 'Comment 1 on Post 1'])
-            ->values(['wvu', 'abc', 'Comment 2 on Post 1'])
-            ->values(['rst', 'ghi', 'Comment 1 on Post 2'])
-            ->query();
+            ->chunkedQuery([
+                ['zyx', 'abc', 'Comment 1 on Post 1'],
+                ['wvu', 'abc', 'Comment 2 on Post 1'],
+                ['rst', 'ghi', 'Comment 1 on Post 2']
+            ]);
 
 
         // Read users

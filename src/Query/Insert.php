@@ -45,6 +45,27 @@ class Insert extends QueryBuilder
         return $this->addToStatement('values', is_array($values) ? $values : func_get_args());
     }
 
+    /**
+     * Repeatedly execute the query on $chunkSize sets of rows.
+     *
+     * @param array $rows An array of values sets to be inserted
+     * @param int $chunkSize Number of rows to add before executing a query
+     * @see values()
+     * @see query()
+     */
+    public function chunkedQuery(array $rows, int $chunkSize = 500)
+    {
+        // Flatten $rows into the values
+        $values = array_merge(...$rows);
+        // Calculate $chunkSize for values (rows * columns)
+        $chunkSize *= count($this->statement['columns']);
+        $this->pdo->beginTransaction();
+        foreach (array_chunk($values, $chunkSize) as $chunkedValues) {
+            $this->values($chunkedValues)->query();
+        }
+        $this->pdo->commit();
+    }
+
 
     /**
      * @see PDOStatement::rowCount()

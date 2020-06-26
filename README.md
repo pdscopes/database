@@ -98,6 +98,19 @@ $connection
     ->columns('column1', 'column2')
     ->values(5, 'value');
 // INSERT INTO `table` (`column1`,`column2`) VALUES (?,?)
+
+$rows = [
+    ['column1_value1', 'column2_value1'],
+    ['column1_value2', 'column2_value2'],
+    ['column1_value3', 'column2_value3'],
+];
+$connection
+    ->insert()
+    ->into('table')
+    ->columns('column1', 'column2')
+    ->chunkedQuery($rows, 2);
+// INSERT INTO `table` (`column1`,`column2`) VALUES (?,?),(?,?)
+// INSERT INTO `table` (`column1`,`column2`) VALUES (?,?)
 ```
 
 ### Delete
