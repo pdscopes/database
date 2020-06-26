@@ -21,7 +21,7 @@ use Symfony\Component\Finder\Finder;
  */
 class Upgrade extends Command
 {
-    use DatabaseConfigurationTrait, LockableTrait {
+    use DatabaseConfigurationTrait, DatabaseMigrationTrait, DatabaseSeedTrait, LockableTrait {
         DatabaseConfigurationTrait::initialize as databaseInitialize;
     }
 
@@ -43,20 +43,8 @@ class Upgrade extends Command
     protected function initialize(InputInterface $input, OutputInterface $output)
     {
         $this->databaseInitialize($input, $output);
-
-        // Ensure default value for options with optional value
-        $input->setOption('path', $input->getOption('path') ?? $this->getDefinition()->getOption('path')->getDefault());
-        $input->setOption('seed', $input->getOption('seed') ?? $this->getDefinition()->getOption('seed')->getDefault());
-        $input->setOption('step', $input->getOption('step') === null ? 1 : $input->getOption('step'));
-
-        // Ensure locations exist
-        $fs = new Filesystem();
-        if (!$fs->exists($input->getOption('path'))) {
-            throw new \InvalidArgumentException('Migrations path must be a directory that exists');
-        }
-        if ($input->getParameterOption(['--seed', '-s'], false, true) !== false && !$fs->exists($input->getOption('seed'))) {
-            throw new \InvalidArgumentException('Seed path must be a directory that exists');
-        }
+        $this->migrationInitialize($input, $output);
+        $this->seedInitialize($input, $output);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -74,25 +62,11 @@ class Upgrade extends Command
         $connection = Connection::factory($this->config, $logger);
         $migrator   = new Migrator($connection, $logger);
 
-
-        // Find the necessary files
-        $finder = Finder::create()->files()->sortByName()->name('*.php');
-        $files  = array_map('realpath', iterator_to_array($finder->in($input->getOption('path'))));
-
-        // Limit the files to be upgraded
-        $files = array_diff($files, $migrator->list());
-        if ($input->getOption('step')) {
-            $files = array_slice($files, 0, (int) $input->getOption('step'));
-        }
-
         // Upgrade
-        $migrator->upgrade($files);
+        $this->executeMigrateUpgrade($migrator, $input);
 
         // Optionally seed the database
-        if ($input->getParameterOption(['--seed', '-s'], false, true) !== false) {
-            $finder = Finder::create()->files()->sortByName()->name('*.php');
-            $migrator->seed(iterator_to_array($finder->in($input->getOption('seed'))));
-        }
+        $this->executeSeed($migrator, $input);
 
         $this->release();
         return 0;

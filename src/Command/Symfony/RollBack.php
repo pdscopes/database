@@ -38,8 +38,7 @@ class RollBack extends Command
 
         // Validate input
         if ($input->getOption('batches') !== null && !is_numeric($input->getOption('batches'))) {
-            $output->writeln('<error>Batches must be an number</error>');
-            exit(1);
+            throw new \InvalidArgumentException('Batches must be an number');
         }
     }
 
