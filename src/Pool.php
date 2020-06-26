@@ -17,7 +17,7 @@ class Pool
     /**
      * Pool constructor.
      *
-     * @param Connection[] ...$connections
+     * @param Connection ...$connections
      */
     function __construct(... $connections)
     {

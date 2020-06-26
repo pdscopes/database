@@ -13,9 +13,6 @@ class SQLite extends Compiler
         parent::__construct('"', $logger);
     }
 
-    /**
-     * @InheritDoc
-     */
     public function compileStatementCreateTable(array $statement)
     {
         // IF NOT EXISTS
@@ -42,9 +39,6 @@ class SQLite extends Compiler
         ]), []];
     }
 
-    /**
-     * @InheritDoc
-     */
     public function compileStatementAlterTable(array $statement)
     {
         // Table
@@ -59,9 +53,6 @@ class SQLite extends Compiler
         ]), []];
     }
 
-    /**
-     * @InheritDoc
-     */
     public function compileStatementDropIndex(array $statement)
     {
         return ['', []];
@@ -70,7 +61,7 @@ class SQLite extends Compiler
 
 
 
-    protected function compileStatementColumn($columnArray)
+    protected function compileStatementColumn(array $columnArray)
     {
         if (!isset($columnArray['columnBuilder'])) {
             return $this->sanitise($columnArray['name']);

@@ -113,17 +113,11 @@ class EntityCollection extends Collection implements Jsonable
         });
     }
 
-    /**
-     * @InheritDoc
-     */
-    public function toJson($options = 0, $depth = 512)
+    public function toJson(int $options = 0, int $depth = 512)
     {
         return json_encode($this->jsonSerialize(), $options, $depth);
     }
 
-    /**
-     * @InheritDoc
-     */
     public function __toString()
     {
         return join('', array_map(function ($i) {

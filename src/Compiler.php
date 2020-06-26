@@ -99,9 +99,7 @@ abstract class Compiler implements CompilerInterface
      */
     protected function concatenateSql(array $pieces, $glue = ' ')
     {
-        $query = implode($glue, array_filter(array_map('trim', $pieces)));
-
-        return $query;
+        return implode($glue, array_filter(array_map('trim', $pieces)));
     }
 
     /**

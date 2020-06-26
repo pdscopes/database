@@ -307,25 +307,16 @@ abstract class Entity implements JsonSerializable, Arrayable, Jsonable
         return 1 === $delete->query()->affectedRows();
     }
 
-    /**
-     * @InheritDoc
-     */
-    public function toJson($options = 0, $depth = 512)
+    public function toJson(int $options = 0, int $depth = 512)
     {
         return json_encode($this->jsonSerialize(), $options, $depth);
     }
 
-    /**
-     * @InheritDoc
-     */
     public function jsonSerialize()
     {
         return $this->toArray();
     }
 
-    /**
-     * @return array
-     */
     public function toArray()
     {
         return $this->propertiesToArray(static::map()->columnMap());

@@ -276,7 +276,7 @@ class Connection
 
         if (--$this->transactions == 0) {
             return $this->pdo->rollBack();
-        };
+        }
 
         return true;
     }
@@ -293,7 +293,7 @@ class Connection
 
         if (--$this->transactions == 0) {
             return $this->pdo->commit();
-        };
+        }
 
         return true;
     }

@@ -79,17 +79,11 @@ class PaginatedCollection implements ArrayAccess, Countable, IteratorAggregate, 
         return $this->total;
     }
 
-
-    /**
-     * @InheritDoc
-     */
-    public function toJson($options = 0, $depth = 512)
+    public function toJson(int $options = 0, int $depth = 512)
     {
         return json_encode($this->jsonSerialize(), $options, $depth);
     }
-    /**
-     * @InheritDoc
-     */
+
     public function jsonSerialize()
     {
         return [
@@ -98,51 +92,37 @@ class PaginatedCollection implements ArrayAccess, Countable, IteratorAggregate, 
             'items' => $this->items,
         ];
     }
-    /**
-     * @InheritDoc
-     */
+
     public function __toString()
     {
         return json_encode($this->jsonSerialize());
     }
-    /**
-     * @InheritDoc
-     */
+
     public function offsetExists($offset)
     {
         return array_key_exists($offset, $this->items);
     }
-    /**
-     * @InheritDoc
-     */
+
     public function offsetGet($offset)
     {
         return $this->items[$offset];
     }
-    /**
-     * @InheritDoc
-     */
+
     public function offsetSet($offset, $value)
     {
         $this->items[$offset] = $value;
     }
-    /**
-     * @InheritDoc
-     */
+
     public function offsetUnset($offset)
     {
         unset($this->items[$offset]);
     }
-    /**
-     * @InheritDoc
-     */
+
     public function count()
     {
         return count($this->items);
     }
-    /**
-     * @InheritDoc
-     */
+
     public function getIterator()
     {
         return new ArrayIterator($this->items);

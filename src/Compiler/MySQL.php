@@ -14,9 +14,6 @@ class MySQL extends Compiler
     }
 
 
-    /**
-     * @InheritDoc
-     */
     public function compileStatementCreateTable(array $statement)
     {
         // Temporary
@@ -54,9 +51,6 @@ class MySQL extends Compiler
         ]), []];
     }
 
-    /**
-     * @InheritDoc
-     */
     public function compileStatementAlterTable(array $statement)
     {
         // Table
@@ -71,9 +65,6 @@ class MySQL extends Compiler
         ]), []];
     }
 
-    /**
-     * @InheritDoc
-     */
     public function compileStatementDropIndex(array $statement)
     {
         // Table

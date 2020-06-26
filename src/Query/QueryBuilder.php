@@ -20,7 +20,7 @@ abstract class QueryBuilder extends Builder
     /**
      * Set the fetch mode.
      *
-     * @param array ...$mode
+     * @param mixed ...$mode
      *
      * @return static
      */
