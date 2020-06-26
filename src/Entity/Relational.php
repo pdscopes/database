@@ -79,10 +79,36 @@ trait Relational
     protected function generateKey($relationship, array $args = [])
     {
         try {
-            return $relationship . join('', $args);
+            return $relationship . $this->keyify($args);
         } catch (\Throwable $e) {
             return false;
         }
+    }
+
+    /**
+     * Recursively convert the array $items into a key string.
+     *
+     * @param array $items
+     * @return string
+     */
+    private function keyify(array $items)
+    {
+        $keys = [];
+        foreach ($items as $item) {
+            if ($item instanceof EntityCollection) {
+                $keys[] = '[' . $this->keyify($item->all()) . ']';
+            }
+            else if ($item instanceof Entity) {
+                $keys[] = get_class($item) . '(' . join('|', $item::map()->primaryKeys($item)) . ')';
+            }
+            else if (is_array($item)) {
+                $keys[] = '[' . $this->keyify($item) . ']';
+            }
+            else {
+                $keys[] = (string) $item;
+            }
+        }
+        return join(',', $keys);
     }
 
     /**
