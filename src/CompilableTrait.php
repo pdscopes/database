@@ -83,8 +83,9 @@ trait CompilableTrait
     public function query($sql = null, array $bindings = null)
     {
         if (null === $sql) {
-            list($sql, $bindings) = $this->buildSql($this->statement);
+            list($sql, $builtBindings) = $this->buildSql($this->statement);
             $this->tidyAfterExecution();
+            $bindings = array_merge($builtBindings, $bindings ?? []);
         }
         list($this->pdoStatement) = $this->statement($sql, $bindings);
 
