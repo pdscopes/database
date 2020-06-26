@@ -14,7 +14,7 @@
         "ext-json": "*",
         "ext-pdo": "*",
         "psr/log": "~1.0",
-        "madesimple/php-arrays": "^1.3"
+        "madesimple/php-arrays": "^2"
     },
     "require-dev": {
         "phpunit/phpunit": "^8",

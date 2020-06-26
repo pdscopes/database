@@ -23,7 +23,7 @@ class EntityCollection extends Collection implements Jsonable
         }
         /** @var EntityMap $map */
         $map = $this->first()::map();
-        return $this->find(function (Entity $entity) use ($key, $map) {
+        return $this->search(function (Entity $entity) use ($key, $map) {
             return $entity->{$map->primaryKey(0)} === $key;
         }) ?? $default;
     }
