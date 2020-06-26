@@ -26,11 +26,11 @@ trait Relational
      * Fetch the relation named `$relationship`. Results are cached.
      *
      * @param string $relationship
-     * @param array  $args
+     * @param mixed  ...$args
      *
      * @return EntityCollection|Entity
      */
-    public function relation($relationship, ... $args)
+    public function relation($relationship, ...$args)
     {
         // Attempt to convert $args to a string
         $key = $this->generateKey($relationship, $args);
@@ -56,11 +56,11 @@ trait Relational
      *
      * @param mixed  $relative
      * @param string $relationship
-     * @param array  ...$args
+     * @param mixed  ...$args
      *
      * @return static
      */
-    public function relate($relative, $relationship, ... $args)
+    public function relate($relative, $relationship, ...$args)
     {
         // Attempt to convert $args to a string
         $key = $this->generateKey($relationship, $args);

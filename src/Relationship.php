@@ -57,10 +57,10 @@ abstract class  Relationship
      * Explicity set the relationships of fetched `Entity`.
      * @param mixed $relative
      * @param string $relationship
-     * @param array ...$args
+     * @param mixed ...$args
      * @return static
      */
-    public function relate($relative, $relationship, ... $args)
+    public function relate($relative, $relationship, ...$args)
     {
         $this->related[] = [$relative, $relationship, empty($args) ? null : $args];
         return $this;

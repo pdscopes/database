@@ -19,7 +19,7 @@ class Pool
      *
      * @param Connection ...$connections
      */
-    function __construct(... $connections)
+    function __construct(...$connections)
     {
         $this->connections = [];
         array_walk_recursive($connections, function ($e, $k) {
