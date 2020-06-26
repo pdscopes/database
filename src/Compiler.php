@@ -612,7 +612,7 @@ abstract class Compiler implements CompilerInterface
             $criteria .= $boolean . ' ' . $column . ' ' . $operator . ' ' . $value . ' ';
         } else {
             // Standard where
-            if ($statement['column'] instanceof Raw) {
+            if ($statement['column'] instanceof Raw && $statement['operator'] === null) {
                 // Completely raw condition
                 $criteria .= $boolean . ' ' . $statement['column'] . ' ';
             } else {
