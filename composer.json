@@ -19,11 +19,11 @@
     "require-dev": {
         "phpunit/phpunit": "^8",
         "mockery/mockery": "^1",
-        "fzaninotto/faker": "~1.7",
-        "symfony/console": "~3.2",
-        "symfony/filesystem": "~3.2",
-        "symfony/finder": "^3.2",
-        "monolog/monolog": "^1.23"
+        "fzaninotto/faker": "^1",
+        "symfony/console": "^5",
+        "symfony/filesystem": "^5",
+        "symfony/finder": "^5",
+        "monolog/monolog": "^2"
     },
     "autoload": {
         "psr-4": {
@@ -31,10 +31,10 @@
         }
     },
     "suggest": {
-        "fzaninotto/faker": "Generates fake data for you (~1.7).",
-        "symfony/console": "Required for Symfony commands (~3.2)",
-        "symfony/filesystem": "Required for Symfony commands (~3.2)",
-        "symfony/finder": "Required for Symfony commands (^3.2)"
+        "fzaninotto/faker": "Generates fake data for you (^1).",
+        "symfony/console": "Required for Symfony commands (^5)",
+        "symfony/filesystem": "Required for Symfony commands (^5)",
+        "symfony/finder": "Required for Symfony commands (^5)"
     },
     "autoload-dev": {
         "psr-4": {
